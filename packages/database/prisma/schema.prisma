@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  active
+  inactive
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+enum MembershipStatus {
+  invited
+  active
+  suspended
+}
+
+enum CaseNumberingMode {
+  manual
+  automatic
+}
+
+enum DocumentStorageMode {
+  local
+  s3
+}
+
+model Tenant {
+  id            String             @id @default(uuid()) @db.Uuid
+  name          String
+  legalName     String?            @map("legal_name")
+  taxId         String?            @map("tax_id")
+  status        TenantStatus       @default(active)
+  profile       TenantProfile?
+  settings      TenantSettings?
+  memberships   TenantMembership[]
+  practiceAreas PracticeArea[]
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("tenants")
+}
+
+model User {
+  id              String             @id @default(uuid()) @db.Uuid
+  email           String             @unique
+  fullName        String             @map("full_name")
+  passwordHash    String             @map("password_hash")
+  phone           String?
+  emailVerifiedAt DateTime?          @map("email_verified_at") @db.Timestamptz(6)
+  lastLoginAt     DateTime?          @map("last_login_at") @db.Timestamptz(6)
+  status          UserStatus         @default(active)
+  memberships     TenantMembership[]
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model TenantProfile {
+  id                String   @id @default(uuid()) @db.Uuid
+  tenantId          String   @unique @map("tenant_id") @db.Uuid
+  country           String
+  province          String
+  city              String
+  address           String?
+  website           String?
+  logoUrl           String?  @map("logo_url")
+  size              String?
+  mainPracticeAreas String[] @default([]) @map("main_practice_areas")
+  referralSource    String?  @map("referral_source")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_profiles")
+}
+
+model TenantSettings {
+  id                    String              @id @default(uuid()) @db.Uuid
+  tenantId              String              @unique @map("tenant_id") @db.Uuid
+  timezone              String
+  defaultCurrencyCode   String              @map("default_currency_code")
+  defaultRoleForInvites String              @default("lawyer") @map("default_role_for_invites")
+  caseNumberingMode     CaseNumberingMode   @default(manual) @map("case_numbering_mode")
+  documentStorageMode   DocumentStorageMode @default(local) @map("document_storage_mode")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  defaultCurrency Currency @relation(fields: [defaultCurrencyCode], references: [code], onDelete: Restrict)
+
+  @@map("tenant_settings")
+}
+
+model PracticeArea {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("practice_areas")
+}
+
+model Currency {
+  id             String           @id @default(uuid()) @db.Uuid
+  code           String           @unique @db.Char(3)
+  symbol         String
+  active         Boolean          @default(true)
+  tenantSettings TenantSettings[]
+
+  @@map("currencies")
+}
+
+model Role {
+  id              String             @id @default(uuid()) @db.Uuid
+  code            String             @unique
+  name            String
+  description     String?
+  isSystem        Boolean            @default(true) @map("is_system")
+  memberships     TenantMembership[]
+  rolePermissions RolePermission[]
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            String           @unique
+  resource        String
+  action          String
+  description     String?
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([resource, action])
+  @@index([resource])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid()) @db.Uuid
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model TenantMembership {
+  id        String           @id @default(uuid()) @db.Uuid
+  tenantId  String           @map("tenant_id") @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  roleId    String           @map("role_id") @db.Uuid
+  status    MembershipStatus @default(invited)
+  invitedAt DateTime?        @map("invited_at") @db.Timestamptz(6)
+  joinedAt  DateTime?        @map("joined_at") @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId, roleId])
+  @@index([userId])
+  @@map("tenant_memberships")
+}

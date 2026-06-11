@@ -1,0 +1,639 @@
+@startuml bogaap-er
+title BOGAP - ERD Multitenant + RBAC
+
+' ============================================================
+' BOGAP - Diagrama ER para una SaaS B2B de abogacia
+' ------------------------------------------------------------
+' Criterio principal:
+' - tenants = estudios juridicos que contratan la plataforma.
+' - clients = clientes juridicos atendidos por cada estudio.
+' - users = identidades globales que pueden pertenecer a varios tenants.
+' - tenant_id = frontera logica de datos dentro de una sola base compartida.
+' ============================================================
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #2F3A45
+  FontColor #111827
+}
+
+' ============================================================
+' NUCLEO SAAS / MULTITENANCY
+' ------------------------------------------------------------
+' Estas tablas definen quien usa la plataforma y como se aislan
+' los datos entre estudios juridicos dentro de una unica DB.
+' ============================================================
+
+' Tabla principal del cliente B2B del SaaS: un estudio juridico.
+entity "tenants" as tenants {
+  * id : uuid <<PK>>
+  --
+  name : varchar
+  legal_name : varchar
+  tax_id : varchar
+  status : tenant_status
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Identidad global del sistema. No lleva tenant_id porque una misma
+' persona puede trabajar en mas de un estudio juridico.
+entity "users" as users {
+  * id : uuid <<PK>>
+  --
+  email : varchar <<UQ>>
+  full_name : varchar
+  password_hash : varchar
+  phone : varchar
+  email_verified_at : timestamptz
+  last_login_at : timestamptz
+  status : user_status
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Catalogo global de roles disponibles para RBAC.
+' El alcance real del rol se define en tenant_memberships.
+entity "roles" as roles {
+  * id : uuid <<PK>>
+  --
+  code : varchar <<UQ>>
+  name : varchar
+  description : text
+  is_system : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Catalogo global de permisos atomicos del sistema.
+' El formato recomendado para code es resource:action.
+entity "permissions" as permissions {
+  * id : uuid <<PK>>
+  --
+  code : varchar <<UQ>>
+  resource : varchar
+  action : varchar
+  description : text
+  created_at : timestamptz
+  updated_at : timestamptz
+  --
+  unique(resource, action)
+}
+
+' Tabla puente many-to-many entre roles y permisos.
+entity "role_permissions" as role_permissions {
+  * id : uuid <<PK>>
+  --
+  role_id : uuid <<FK>>
+  permission_id : uuid <<FK>>
+  created_at : timestamptz
+  --
+  unique(role_id, permission_id)
+}
+
+' Relaciona usuarios con estudios juridicos.
+' Aca vive el RBAC por tenant: el mismo usuario puede tener roles
+' distintos en estudios distintos.
+entity "tenant_memberships" as tenant_memberships {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  user_id : uuid <<FK>>
+  role_id : uuid <<FK>>
+  status : membership_status
+  invited_at : timestamptz
+  joined_at : timestamptz
+  created_at : timestamptz
+  updated_at : timestamptz
+  --
+  unique(tenant_id, user_id)
+}
+
+' Perfil extendido del estudio juridico usado en onboarding.
+entity "tenant_profiles" as tenant_profiles {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  country : varchar
+  province : varchar
+  city : varchar
+  address : varchar
+  website : varchar
+  logo_url : varchar
+  size : varchar
+  main_practice_areas : text[]
+  referral_source : varchar
+  created_at : timestamptz
+  updated_at : timestamptz
+  --
+  unique(tenant_id)
+}
+
+' Configuracion inicial del workspace creada durante onboarding.
+entity "tenant_settings" as tenant_settings {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  timezone : varchar
+  default_currency_code : char(3) <<FK>>
+  default_role_for_invites : varchar
+  case_numbering_mode : case_numbering_mode
+  document_storage_mode : document_storage_mode
+  created_at : timestamptz
+  updated_at : timestamptz
+  --
+  unique(tenant_id)
+}
+
+' ============================================================
+' DOMINIO JURIDICO: CLIENTES, CONTRARIOS Y CAUSAS
+' ------------------------------------------------------------
+' Estas tablas modelan los actores juridicos y los expedientes.
+' Todas llevan tenant_id para impedir cruces entre estudios.
+' ============================================================
+
+' Cliente juridico del estudio. Puede ser persona humana o persona juridica.
+entity "clients" as clients {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  type : client_type
+  status : client_status
+  first_name : varchar
+  last_name : varchar
+  age : integer
+  dni : varchar
+  cuil : varchar
+  business_name : varchar
+  statute : text
+  salary_receipt_ref : varchar
+  cbu : varchar
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Parte contraria de una causa. Se separa de clients porque no es
+' cliente del estudio, pero puede intervenir en expedientes y gastos.
+entity "opposing_parties" as opposing_parties {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  type : party_type
+  first_name : varchar
+  last_name : varchar
+  business_name : varchar
+  tax_id : varchar
+  address : text
+  notes : text
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Areas internas del estudio: laboral, familia, sucesiones, etc.
+' Son configurables por tenant.
+entity "practice_areas" as practice_areas {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  name : varchar
+  description : text
+  active : boolean
+  --
+  unique(tenant_id, name)
+}
+
+' Causa o expediente. Centraliza carpeta, caratula, objeto, fuero,
+' jurisdiccion, radicacion, instancia y estado procesal.
+entity "cases" as cases {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  primary_client_id : uuid <<FK>>
+  practice_area_id : uuid <<FK>>
+  folder_code : varchar
+  caption : varchar
+  subject : text
+  court_number : varchar
+  jurisdiction : varchar
+  province : varchar
+  country : varchar
+  forum : varchar
+  court_assignment : varchar
+  instance : case_instance
+  last_opened_at : timestamptz
+  status : case_status
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Participantes de la causa. Permite asociar clientes, contrarios
+' u otros participantes con un rol procesal como demandante/demandado.
+entity "case_participants" as case_participants {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  case_id : uuid <<FK>>
+  client_id : uuid <<FK nullable>>
+  opposing_party_id : uuid <<FK nullable>>
+  display_name : varchar
+  participant_kind : participant_kind
+  procedural_role : procedural_role
+  notes : text
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' ============================================================
+' DOCUMENTOS
+' ------------------------------------------------------------
+' Documentos asociados a causas y, opcionalmente, a clientes.
+' Las categorias son propias de cada estudio.
+' ============================================================
+
+' Categorias configurables para clasificar documentos por tenant.
+entity "document_categories" as document_categories {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  name : varchar
+  active : boolean
+  --
+  unique(tenant_id, name)
+}
+
+' Documento subido al sistema. storage_key apunta al archivo real
+' en el proveedor de almacenamiento elegido.
+entity "documents" as documents {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  case_id : uuid <<FK>>
+  client_id : uuid <<FK nullable>>
+  category_id : uuid <<FK>>
+  name : varchar
+  storage_key : varchar
+  mime_type : varchar
+  uploaded_by_user_id : uuid <<FK>>
+  uploaded_at : timestamptz
+}
+
+' ============================================================
+' SEGUIMIENTO OPERATIVO: NOTIFICACIONES Y TAREAS
+' ------------------------------------------------------------
+' Reemplaza campos tipo lista de IDs de notificaciones y tareas por relaciones
+' 1:N desde cases hacia tablas hijas.
+' ============================================================
+
+' Notificacion asociada a una causa y a una persona responsable.
+entity "notifications" as notifications {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  case_id : uuid <<FK>>
+  assigned_user_id : uuid <<FK>>
+  name : varchar
+  category : varchar
+  notification_date : date
+  status : notification_status
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Tarea emitida dentro de una causa, con emisor, supervisor opcional
+' y vencimiento.
+entity "tasks" as tasks {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  case_id : uuid <<FK>>
+  emitted_by_user_id : uuid <<FK>>
+  supervisor_user_id : uuid <<FK nullable>>
+  status : task_status
+  issued_at : timestamptz
+  due_at : timestamptz
+  description : text
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Tabla puente para multiples responsables por tarea.
+entity "task_responsibles" as task_responsibles {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  task_id : uuid <<FK>>
+  user_id : uuid <<FK>>
+  assigned_at : timestamptz
+  --
+  unique(task_id, user_id)
+}
+
+' ============================================================
+' GASTOS
+' ------------------------------------------------------------
+' Gastos operativos asociados a causa, cliente y/o contrario.
+' Las categorias son configurables por estudio juridico.
+' ============================================================
+
+' Categorias de gastos propias de cada tenant.
+entity "expense_categories" as expense_categories {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  name : varchar
+  active : boolean
+  --
+  unique(tenant_id, name)
+}
+
+' Gasto registrado por el estudio. Puede pertenecer a una causa,
+' a un cliente, a una parte contraria o combinar esas referencias.
+entity "expenses" as expenses {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  case_id : uuid <<FK nullable>>
+  client_id : uuid <<FK nullable>>
+  opposing_party_id : uuid <<FK nullable>>
+  category_id : uuid <<FK>>
+  description : text
+  amount : numeric(14,2)
+  expense_date : date
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' ============================================================
+' FINANZAS: MONEDAS, CUENTAS CORRIENTES Y CAJA
+' ------------------------------------------------------------
+' currencies es global; el resto es operativo y tenant-scoped.
+' ============================================================
+
+' Catalogo global de monedas. No depende del tenant.
+entity "currencies" as currencies {
+  * id : uuid <<PK>>
+  --
+  code : char(3) <<UQ>>
+  symbol : varchar
+  active : boolean
+}
+
+' Cuenta corriente 1:1 por cliente dentro de un tenant.
+entity "current_accounts" as current_accounts {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  client_id : uuid <<FK>>
+  opened_at : date
+  status : account_status
+  balance : numeric(14,2)
+  created_at : timestamptz
+  updated_at : timestamptz
+  --
+  unique(tenant_id, client_id)
+}
+
+' Categorias configurables para movimientos de cuenta corriente.
+entity "account_movement_categories" as account_movement_categories {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  name : varchar
+  active : boolean
+  --
+  unique(tenant_id, name)
+}
+
+' Movimiento de cuenta corriente. Puede asociarse a una causa para
+' mantener trazabilidad contable por expediente.
+entity "account_movements" as account_movements {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  current_account_id : uuid <<FK>>
+  case_id : uuid <<FK nullable>>
+  client_id : uuid <<FK>>
+  category_id : uuid <<FK>>
+  currency_id : uuid <<FK>>
+  description : text
+  observation : text
+  invoice_status : invoice_status
+  amount : numeric(14,2)
+  resulting_balance : numeric(14,2)
+  movement_date : date
+  created_at : timestamptz
+}
+
+' Caja del estudio. Puede haber varias cajas por tenant y moneda.
+entity "cash_boxes" as cash_boxes {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  currency_id : uuid <<FK>>
+  name : varchar
+  amount : numeric(14,2)
+  status : cash_box_status
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+' Categorias configurables para ingresos/egresos de caja.
+entity "cash_movement_categories" as cash_movement_categories {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  name : varchar
+  active : boolean
+  --
+  unique(tenant_id, name)
+}
+
+' Movimiento simple de caja: ingreso o egreso.
+' Puede quedar asociado a cliente y causa cuando corresponde.
+entity "cash_movements" as cash_movements {
+  * id : uuid <<PK>>
+  --
+  tenant_id : uuid <<FK>>
+  cash_box_id : uuid <<FK>>
+  category_id : uuid <<FK>>
+  client_id : uuid <<FK nullable>>
+  case_id : uuid <<FK nullable>>
+  movement_type : cash_movement_type
+  description : text
+  amount : numeric(14,2)
+  movement_date : date
+  created_at : timestamptz
+}
+
+' ============================================================
+' RELACIONES: TENANCY Y RBAC
+' ------------------------------------------------------------
+' Un tenant tiene muchas membresias. Un usuario puede tener muchas
+' membresias, una por estudio. Cada membresia tiene exactamente un rol.
+' ============================================================
+
+tenants ||--o{ tenant_memberships
+users ||--o{ tenant_memberships
+roles ||--o{ tenant_memberships
+roles ||--o{ role_permissions
+permissions ||--o{ role_permissions
+tenants ||--|| tenant_profiles
+tenants ||--|| tenant_settings
+currencies ||--o{ tenant_settings
+
+' ============================================================
+' RELACIONES: AISLAMIENTO MULTITENANT
+' ------------------------------------------------------------
+' Todas las tablas de negocio cuelgan de tenants. En implementacion,
+' las FK deben validar que los registros relacionados compartan tenant_id.
+' ============================================================
+
+tenants ||--o{ clients
+tenants ||--o{ opposing_parties
+tenants ||--o{ practice_areas
+tenants ||--o{ cases
+tenants ||--o{ case_participants
+tenants ||--o{ document_categories
+tenants ||--o{ documents
+tenants ||--o{ notifications
+tenants ||--o{ tasks
+tenants ||--o{ task_responsibles
+tenants ||--o{ expense_categories
+tenants ||--o{ expenses
+tenants ||--o{ current_accounts
+tenants ||--o{ account_movement_categories
+tenants ||--o{ account_movements
+tenants ||--o{ cash_boxes
+tenants ||--o{ cash_movement_categories
+tenants ||--o{ cash_movements
+
+' ============================================================
+' RELACIONES: CAUSAS Y PARTICIPANTES
+' ------------------------------------------------------------
+' Un cliente puede tener N causas. Una causa puede tener multiples
+' participantes, incluyendo clientes y partes contrarias.
+' ============================================================
+
+clients ||--o{ cases : cliente_principal
+practice_areas ||--o{ cases
+cases ||--o{ case_participants
+clients ||--o{ case_participants
+opposing_parties ||--o{ case_participants
+
+' ============================================================
+' RELACIONES: DOCUMENTOS
+' ------------------------------------------------------------
+' Una causa puede tener N documentos. Tambien se permite asociar
+' documentos al cliente para consultas historicas.
+' ============================================================
+
+cases ||--o{ documents
+clients ||--o{ documents
+document_categories ||--o{ documents
+users ||--o{ documents : subido_por
+
+' ============================================================
+' RELACIONES: NOTIFICACIONES Y TAREAS
+' ------------------------------------------------------------
+' Cada notificacion y tarea pertenece a una causa. Las tareas pueden
+' tener emisor, supervisor y multiples responsables.
+' ============================================================
+
+cases ||--o{ notifications
+users ||--o{ notifications : asignado_a
+
+cases ||--o{ tasks
+users ||--o{ tasks : emitida_por
+users ||--o{ tasks : supervisa
+tasks ||--o{ task_responsibles
+users ||--o{ task_responsibles
+
+' ============================================================
+' RELACIONES: GASTOS
+' ------------------------------------------------------------
+' Los gastos reemplazan campos tipo lista de IDs con una relacion 1:N desde cases.
+' Tambien pueden referenciar cliente y contrario para trazabilidad.
+' ============================================================
+
+expense_categories ||--o{ expenses
+cases ||--o{ expenses
+clients ||--o{ expenses
+opposing_parties ||--o{ expenses
+
+' ============================================================
+' RELACIONES: CUENTA CORRIENTE
+' ------------------------------------------------------------
+' Cada cliente tiene una cuenta corriente dentro del tenant.
+' Los movimientos registran importes, factura, moneda y saldo resultante.
+' ============================================================
+
+clients ||--|| current_accounts
+current_accounts ||--o{ account_movements
+account_movement_categories ||--o{ account_movements
+currencies ||--o{ account_movements
+cases ||--o{ account_movements
+clients ||--o{ account_movements
+
+' ============================================================
+' RELACIONES: CAJA DEL ESTUDIO
+' ------------------------------------------------------------
+' Las cajas se separan de la cuenta corriente del cliente.
+' Sirven para ingresos/egresos directos del estudio, con categoria.
+' ============================================================
+
+currencies ||--o{ cash_boxes
+cash_boxes ||--o{ cash_movements
+cash_movement_categories ||--o{ cash_movements
+clients ||--o{ cash_movements
+cases ||--o{ cash_movements
+
+note right of tenants
+  tenant_id representa al estudio juridico.
+  Es la frontera de aislamiento logico
+  dentro de una sola base de datos.
+end note
+
+note right of tenant_memberships
+  El RBAC se resuelve por tenant.
+  tenant_memberships asigna el rol
+  concreto de un usuario dentro de
+  un estudio juridico.
+end note
+
+note right of role_permissions
+  role_permissions define que puede
+  hacer cada rol mediante permisos
+  atomicos tipo resource:action.
+end note
+
+note bottom of users
+  users son identidades globales.
+  Un usuario puede pertenecer a
+  varios tenants con roles distintos.
+end note
+
+note bottom of currencies
+  currencies es un catalogo global.
+  No lleva tenant_id intencionalmente.
+end note
+
+note bottom of cases
+  cases concentra causa/expediente.
+  Las relaciones hijas modelan tareas,
+  notificaciones, gastos y documentos.
+end note
+
+note bottom of current_accounts
+  current_accounts es 1:1 con clients
+  dentro del mismo tenant.
+end note
+
+note bottom of cash_boxes
+  cash_boxes modela caja del estudio,
+  no la cuenta corriente del cliente.
+end note
+
+@enduml
