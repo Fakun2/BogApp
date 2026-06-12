@@ -57,3 +57,17 @@ body {
   color: var(--foreground);
   font-family: Arial, sans-serif;
 }
+
+@keyframes create-account-loading-bar {
+  0% {
+    transform: translateX(-110%) scaleX(0.7);
+  }
+
+  50% {
+    transform: translateX(70%) scaleX(1);
+  }
+
+  100% {
+    transform: translateX(220%) scaleX(0.72);
+  }
+}

@@ -4,16 +4,26 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authControllerCreateAccount } from "@bogaap/api-client";
 import { createAccountFormSchema, type CreateAccountFormValues } from "@/lib/validation/auth";
-import { createAccountInitialForm } from "../_constants/create-account.constants";
+import {
+  createAccountInitialForm,
+  createAccountLoadingExitMs,
+  createAccountLoadingSuccessMs,
+  createAccountLoadingTotalMs
+} from "../_constants/create-account.constants";
 import {
   getCreateAccountApiErrorMessage,
   toCreateAccountFieldErrors
 } from "../_utils/create-account-errors";
+import { useCreateAccountTransition } from "./use-create-account-transition";
 import type {
   CreateAccountFieldErrors,
   CreateAccountFieldName,
   UseCreateAccountFormResult
 } from "../_types/create-account.types";
+
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 export function useCreateAccountForm(): UseCreateAccountFormResult {
   const router = useRouter();
@@ -21,6 +31,7 @@ export function useCreateAccountForm(): UseCreateAccountFormResult {
   const [fieldErrors, setFieldErrors] = useState<CreateAccountFieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const transition = useCreateAccountTransition();
   const [showPassword, setShowPassword] = useState(false);
 
   function updateField<K extends CreateAccountFieldName>(
@@ -38,16 +49,19 @@ export function useCreateAccountForm(): UseCreateAccountFormResult {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setError(null);
     setFieldErrors({});
 
     const parsed = createAccountFormSchema.safeParse(form);
     if (!parsed.success) {
       setFieldErrors(toCreateAccountFieldErrors(parsed.error));
-      setSubmitting(false);
       return;
     }
+
+    setSubmitting(true);
+    transition.start();
+    let shouldHideTransition = true;
+    const transitionStartedAt = Date.now();
 
     try {
       const response = await authControllerCreateAccount({
@@ -59,11 +73,23 @@ export function useCreateAccountForm(): UseCreateAccountFormResult {
         throw new Error(getCreateAccountApiErrorMessage(response.data));
       }
 
-      router.push(`/login?email=${encodeURIComponent(response.data.user.email)}`);
+      const elapsed = Date.now() - transitionStartedAt;
+      await wait(Math.max(createAccountLoadingTotalMs - elapsed, 0));
+      transition.showSuccess();
+      await wait(createAccountLoadingSuccessMs);
+      transition.exit();
+      await wait(createAccountLoadingExitMs);
+      shouldHideTransition = false;
+      router.push(
+        `/login?email=${encodeURIComponent(response.data.user.email)}&loading=account-created`
+      );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "No se pudo crear la cuenta.");
     } finally {
-      setSubmitting(false);
+      if (shouldHideTransition) {
+        transition.reset();
+        setSubmitting(false);
+      }
     }
   }
 
@@ -72,6 +98,8 @@ export function useCreateAccountForm(): UseCreateAccountFormResult {
     fieldErrors,
     error,
     submitting,
+    transitionExiting: transition.exiting,
+    transitionSuccess: transition.success,
     showPassword,
     submit,
     togglePasswordVisibility,

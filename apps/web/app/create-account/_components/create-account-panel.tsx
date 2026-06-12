@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { Moon, Scale, Sun } from "lucide-react";
+import { Moon, Sun, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createAccountCopy } from "../_constants/create-account.constants";
 import { CreateAccountForm } from "./create-account-form";
 import { CreateAccountHeader } from "./create-account-header";
 import { FormDivider } from "./form-divider";
-import { SocialAuthActions } from "./social-auth-actions";
 import type { UseCreateAccountFormResult } from "../_types/create-account.types";
 
 type CreateAccountPanelProps = {
@@ -21,15 +20,15 @@ export function CreateAccountPanel({
   onToggleTheme
 }: CreateAccountPanelProps) {
   return (
-    <Card className="flex min-h-screen overflow-hidden rounded-2xl border border-border bg-card/95 shadow-none lg:h-full lg:min-h-0">
-      <CardContent className="flex w-full flex-col px-4 py-4 sm:px-5">
+    <Card className="p-2 flex min-h-screen overflow-hidden rounded-2xl border border-border bg-card/95 shadow-none lg:h-full lg:min-h-0">
+      <CardContent className="flex w-full flex-col py-2 2xl:py-4 sm:px-5">
         <div className="flex items-center justify-between">
           <Link
             href="/"
             className="flex size-9 items-center justify-center rounded-full border border-border bg-secondary text-foreground"
             aria-label="BOGAP"
           >
-            <Scale className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" />
           </Link>
           <Button
             type="button"
@@ -44,7 +43,6 @@ export function CreateAccountPanel({
 
         <div className="mx-auto flex w-full max-w-[300px] flex-1 flex-col justify-center py-3">
           <CreateAccountHeader />
-          <SocialAuthActions />
           <FormDivider />
           <CreateAccountForm state={formState} />
 

@@ -19,6 +19,8 @@ export type UseCreateAccountFormResult = {
   fieldErrors: CreateAccountFieldErrors;
   error: string | null;
   submitting: boolean;
+  transitionExiting: boolean;
+  transitionSuccess: boolean;
   showPassword: boolean;
   submit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   togglePasswordVisibility: () => void;
@@ -65,7 +67,7 @@ export type CreateAccountMediaTileConfig =
       description: string;
       kind: "feature";
       title: string;
-      tone: "amber" | "purple";
+      tone: "amber" | "purple" | "black";
     })
   | (CreateAccountMediaTileBase & {
       kind: "brand";

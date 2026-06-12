@@ -49,22 +49,40 @@ export const createAccountCopy = {
   login: "Entrar"
 } as const;
 
+export const createAccountLoadingCopy = {
+  animatedWord: "espere",
+  footerItems: ["Validando datos...", "Creando acceso seguro...", "Preparando inicio de sesión..."],
+  subtitle: "Estamos preparando tu acceso seguro a BOGAP.",
+  successTitle: "Cuenta creada con exito!",
+  titlePrefix: "Creando cuenta, "
+} as const;
+
+export const createAccountLoadingDurationMs = 3000;
+export const createAccountLoadingExitMs = 720;
+export const createAccountLoadingIntroMs = 1400;
+export const createAccountLoadingOverlayStartDelayMs = 80;
+export const createAccountLoadingSuccessMs = 1300;
+export const createAccountLoadingTotalMs =
+  createAccountLoadingOverlayStartDelayMs +
+  createAccountLoadingIntroMs +
+  createAccountLoadingDurationMs;
+
 export const createAccountMedia = {
-  imageUrl: "/create-account-mosaic.png",
-  label: "Vista visual del workspace BOGAP"
+  videoUrl: "/media/lawyer.mp4",
+  label: "video de abogado"
 } as const;
 
 const defaultMedia = {
   alt: "Composición visual abstracta del workspace",
-  src: createAccountMedia.imageUrl,
-  type: "image" as const
+  src: createAccountMedia.videoUrl,
+  type: "video" as const
 };
 
 export const createAccountMediaTileRadius = {
-  brand: "rounded-[30px]",
+  brand: "rounded-[24px]",
   default: "rounded-[24px]",
-  feature: "rounded-[18px]",
-  tight: "rounded-[14px]"
+  feature: "rounded-[24px]",
+  tight: "rounded-[24px]"
 } as const;
 
 export const createAccountMediaTileCorners = {
@@ -208,11 +226,9 @@ export const createAccountMediaTiles: CreateAccountMediaTileConfig[] = [
   },
   {
     id: "feature-tenant",
-    kind: "feature",
+    kind: "media",
     className: "col-start-2 col-span-2 row-start-7 row-span-4",
-    title: "Maximum Customization",
-    description: "Whether you're a designer, artist, or enthusiast, BOGAP adapts to your team.",
-    tone: "amber",
+    media: defaultMedia,
     radiusClassName: createAccountMediaTileRadius.feature,
     roundedCorners: createAccountMediaTileCorners.all({
       topLeft: true,
