@@ -1,6 +1,17 @@
 # BOGAP TODO
 
-Hoja de ruta inicial basada en `docs/diagrams/bogaap-er.puml`.
+Inventario historico basado en `docs/diagrams/bogaap-er.puml`.
+
+La fuente de verdad actual para planificacion esta en:
+
+- `docs/product/ROADMAP.md`
+- `docs/product/MVP_SCOPE.md`
+- `docs/database/DATABASE_SOURCE_OF_TRUTH.md`
+- `docs/database/gaps.md`
+- `docs/github/ISSUES_BACKLOG.md`
+
+Mantener este archivo solo como referencia heredada hasta cerrar la migracion de
+roadmap a issues/milestones.
 
 ## 1. Base SaaS multitenant
 
