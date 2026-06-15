@@ -1,0 +1,65 @@
+name: Feature
+description: Proponer o implementar una funcionalidad.
+title: "[Feature]: "
+labels: ["type:feature", "status:ready"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema / oportunidad
+      description: Que necesidad de producto o tecnica resuelve.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance
+      description: Que entra y que queda fuera.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptacion
+      description: Lista verificable para cerrar la issue.
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencias
+      description: Issues, decisiones o contratos necesarios.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area principal
+      options:
+        - area:api
+        - area:web
+        - area:database
+        - area:auth
+        - area:tenant
+        - area:rbac
+        - area:onboarding
+        - area:clients
+        - area:cases
+        - area:documents
+        - area:tasks
+        - area:finance
+        - area:integrations
+        - area:qa
+        - area:infra
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+        - priority:p3
+    validations:
+      required: true

@@ -1,6 +1,10 @@
-# BOGAP
+# BogApp
 
 SaaS B2B para estudios juridicos.
+
+Nombre publico del producto: **BogApp**. Los identificadores internos heredados
+pueden seguir apareciendo como `bogaap`, `BOGAP` o `@bogaap/*` hasta que una
+tarea especifica de marca los alinee sin mezclarlo con cambios funcionales.
 
 ## Stack
 
@@ -20,12 +24,31 @@ SaaS B2B para estudios juridicos.
 - `apps/web`: frontend Next.js.
 - `packages/database`: Prisma schema, client y migraciones.
 - `packages/api-client`: cliente TypeScript generado por Orval.
+- `docs/product`: alcance MVP, roadmap, onboarding y decisiones funcionales.
+- `docs/database`: fuente de verdad de base de datos y gaps contra Prisma/ERD.
+- `docs/architecture`: auditoria, decisiones tecnicas, multitenancy y RBAC.
+- `docs/github`: backlog, milestones, labels, project board e issues listas para copiar.
 - `docs/diagrams`: PlantUML ERD y notas de diseno.
-- `TODO.md`: hoja de ruta de desarrollo.
+- `TODO.md`: inventario historico. La fuente de verdad actual esta en `docs/`.
 
-## Primer objetivo
+## Fuente de verdad
 
-Construir la base multitenant y RBAC:
+Antes de implementar modulos grandes, usar estos documentos:
+
+- Producto: `docs/product/ROADMAP.md`
+- MVP: `docs/product/MVP_SCOPE.md`
+- Onboarding: `docs/product/ONBOARDING_FLOW.md`
+- Decisiones: `docs/product/PRODUCT_DECISIONS.md`
+- Base de datos: `docs/database/DATABASE_SOURCE_OF_TRUTH.md`
+- Gaps: `docs/database/gaps.md`
+- Arquitectura: `docs/architecture/DECISIONS.md`
+- Multitenancy: `docs/architecture/MULTITENANCY.md`
+- RBAC: `docs/architecture/RBAC.md`
+- Backlog: `docs/github/ISSUES_BACKLOG.md`
+
+## Primer objetivo tecnico
+
+Construir y endurecer la base multitenant y RBAC:
 
 - `tenants`
 - `users`

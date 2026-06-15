@@ -1,0 +1,57 @@
+name: Chore
+description: Tarea de mantenimiento, documentacion, infra o organizacion.
+title: "[Chore]: "
+labels: ["type:chore", "status:ready"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Que se quiere ordenar, mantener o preparar.
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tareas
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validacion
+      description: Comandos, documentos o evidencias para cerrar.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area principal
+      options:
+        - area:api
+        - area:web
+        - area:database
+        - area:auth
+        - area:tenant
+        - area:rbac
+        - area:onboarding
+        - area:clients
+        - area:cases
+        - area:documents
+        - area:tasks
+        - area:finance
+        - area:integrations
+        - area:qa
+        - area:infra
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+        - priority:p3
+    validations:
+      required: true
