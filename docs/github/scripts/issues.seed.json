@@ -1,0 +1,1573 @@
+{
+  "repository": "Fakun2/BogApp",
+  "project": "BogApp — Gestión profesional",
+  "issues": [
+    {
+      "code": "BOG-001",
+      "title": "Auditar estado técnico del repositorio BogApp",
+      "phase": "M0",
+      "phaseName": "Auditoría y organización",
+      "milestone": "M0 — Auditoría y organización",
+      "priority": "P0",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M0",
+      "startDate": "2026-06-15",
+      "targetDate": "2026-06-21",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-002",
+      "title": "Definir fuente de verdad de base de datos",
+      "phase": "M0",
+      "phaseName": "Auditoría y organización",
+      "milestone": "M0 — Auditoría y organización",
+      "priority": "P0",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M0",
+      "startDate": "2026-06-15",
+      "targetDate": "2026-06-21",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-006",
+        "BOG-010",
+        "BOG-021"
+      ]
+    },
+    {
+      "code": "BOG-003",
+      "title": "Configurar Project board estilo Código Cuatro",
+      "phase": "M0",
+      "phaseName": "Auditoría y organización",
+      "milestone": "M0 — Auditoría y organización",
+      "priority": "P0",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M0",
+      "startDate": "2026-06-15",
+      "targetDate": "2026-06-21",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-004",
+      "title": "Crear labels, milestones y vistas del Project",
+      "phase": "M0",
+      "phaseName": "Auditoría y organización",
+      "milestone": "M0 — Auditoría y organización",
+      "priority": "P0",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M0",
+      "startDate": "2026-06-15",
+      "targetDate": "2026-06-21",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-005",
+      "title": "Documentar decisiones funcionales cerradas de BogApp",
+      "phase": "M0",
+      "phaseName": "Auditoría y organización",
+      "milestone": "M0 — Auditoría y organización",
+      "priority": "P0",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M0",
+      "startDate": "2026-06-15",
+      "targetDate": "2026-06-21",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-006"
+      ]
+    },
+    {
+      "code": "BOG-006",
+      "title": "Frontend: implementar store del onboarding",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-002",
+        "BOG-005"
+      ],
+      "blocks": [
+        "BOG-007",
+        "BOG-008",
+        "BOG-009"
+      ]
+    },
+    {
+      "code": "BOG-007",
+      "title": "Frontend: implementar paso 1 — Cuenta owner",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-006"
+      ],
+      "blocks": [
+        "BOG-012"
+      ]
+    },
+    {
+      "code": "BOG-008",
+      "title": "Frontend: implementar paso 2 — Estudio jurídico",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-006"
+      ],
+      "blocks": [
+        "BOG-012"
+      ]
+    },
+    {
+      "code": "BOG-009",
+      "title": "Frontend: implementar paso 3 — Workspace",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-006"
+      ],
+      "blocks": [
+        "BOG-012"
+      ]
+    },
+    {
+      "code": "BOG-010",
+      "title": "Database: preparar modelos para tenant onboarding",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Database",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-002"
+      ],
+      "blocks": [
+        "BOG-011"
+      ]
+    },
+    {
+      "code": "BOG-011",
+      "title": "Backend: crear endpoint bootstrap tenant",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "L",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-010"
+      ],
+      "blocks": [
+        "BOG-012",
+        "BOG-015"
+      ]
+    },
+    {
+      "code": "BOG-012",
+      "title": "Integración: conectar onboarding con API real",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Integration",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-007",
+        "BOG-008",
+        "BOG-009",
+        "BOG-011"
+      ],
+      "blocks": [
+        "BOG-014"
+      ]
+    },
+    {
+      "code": "BOG-013",
+      "title": "Frontend: crear dashboard inicial post-alta",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-014"
+      ]
+    },
+    {
+      "code": "BOG-014",
+      "title": "QA: validar flujo completo de alta del estudio",
+      "phase": "M1",
+      "phaseName": "Tenant onboarding",
+      "milestone": "M1 — Tenant onboarding",
+      "priority": "P0",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M1",
+      "startDate": "2026-06-22",
+      "targetDate": "2026-07-05",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-012",
+        "BOG-013"
+      ],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-015",
+      "title": "Backend: implementar tenant context por request",
+      "phase": "M2",
+      "phaseName": "Auth, RBAC y seguridad",
+      "milestone": "M2 — Auth, RBAC y seguridad",
+      "priority": "P0",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M2",
+      "startDate": "2026-07-06",
+      "targetDate": "2026-07-19",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-011"
+      ],
+      "blocks": [
+        "BOG-016",
+        "BOG-021"
+      ]
+    },
+    {
+      "code": "BOG-016",
+      "title": "Backend: validar membership contra DB",
+      "phase": "M2",
+      "phaseName": "Auth, RBAC y seguridad",
+      "milestone": "M2 — Auth, RBAC y seguridad",
+      "priority": "P0",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M2",
+      "startDate": "2026-07-06",
+      "targetDate": "2026-07-19",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-015"
+      ],
+      "blocks": [
+        "BOG-017"
+      ]
+    },
+    {
+      "code": "BOG-017",
+      "title": "Backend: implementar RBAC base por tenant",
+      "phase": "M2",
+      "phaseName": "Auth, RBAC y seguridad",
+      "milestone": "M2 — Auth, RBAC y seguridad",
+      "priority": "P0",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "L",
+      "sprint": "M2",
+      "startDate": "2026-07-06",
+      "targetDate": "2026-07-19",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-016"
+      ],
+      "blocks": [
+        "BOG-019",
+        "BOG-022",
+        "BOG-035",
+        "BOG-044"
+      ]
+    },
+    {
+      "code": "BOG-018",
+      "title": "Backend: aplicar guards a rutas protegidas",
+      "phase": "M2",
+      "phaseName": "Auth, RBAC y seguridad",
+      "milestone": "M2 — Auth, RBAC y seguridad",
+      "priority": "P0",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M2",
+      "startDate": "2026-07-06",
+      "targetDate": "2026-07-19",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-019"
+      ]
+    },
+    {
+      "code": "BOG-019",
+      "title": "QA: probar bloqueo de acceso cross-tenant",
+      "phase": "M2",
+      "phaseName": "Auth, RBAC y seguridad",
+      "milestone": "M2 — Auth, RBAC y seguridad",
+      "priority": "P0",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M2",
+      "startDate": "2026-07-06",
+      "targetDate": "2026-07-19",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-017",
+        "BOG-018"
+      ],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-020",
+      "title": "Backend: registrar auditoría de acciones sensibles",
+      "phase": "M2",
+      "phaseName": "Auth, RBAC y seguridad",
+      "milestone": "M2 — Auth, RBAC y seguridad",
+      "priority": "P0",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M2",
+      "startDate": "2026-07-06",
+      "targetDate": "2026-07-19",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-021",
+      "title": "Database: validar modelos MVP tenant-aware",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Database",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-002",
+        "BOG-015"
+      ],
+      "blocks": [
+        "BOG-022"
+      ]
+    },
+    {
+      "code": "BOG-022",
+      "title": "Backend: CRUD de clientes jurídicos",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "L",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-017",
+        "BOG-021"
+      ],
+      "blocks": [
+        "BOG-025"
+      ]
+    },
+    {
+      "code": "BOG-023",
+      "title": "Frontend: pantalla de clientes",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-024",
+      "title": "Backend: CRUD de partes contrarias y áreas de práctica",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "L",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-025"
+      ]
+    },
+    {
+      "code": "BOG-025",
+      "title": "Backend: CRUD de expedientes / causas",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "L",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-022",
+        "BOG-024"
+      ],
+      "blocks": [
+        "BOG-031",
+        "BOG-035"
+      ]
+    },
+    {
+      "code": "BOG-026",
+      "title": "Backend: gestionar participantes de causa",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-027",
+      "title": "Frontend: pantalla de expedientes",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-028",
+      "title": "Frontend: timeline básico del expediente",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-029",
+      "title": "QA: validar clientes y expedientes",
+      "phase": "M3",
+      "phaseName": "Clientes y expedientes",
+      "milestone": "M3 — Clientes y expedientes",
+      "priority": "P1",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M3",
+      "startDate": "2026-07-20",
+      "targetDate": "2026-08-09",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-030",
+      "title": "Backend: implementar abstracción StorageProvider",
+      "phase": "M4",
+      "phaseName": "Documentos",
+      "milestone": "M4 — Documentos",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M4",
+      "startDate": "2026-08-10",
+      "targetDate": "2026-08-23",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-031"
+      ]
+    },
+    {
+      "code": "BOG-031",
+      "title": "Backend: documentos básicos asociados a causas y clientes",
+      "phase": "M4",
+      "phaseName": "Documentos",
+      "milestone": "M4 — Documentos",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M4",
+      "startDate": "2026-08-10",
+      "targetDate": "2026-08-23",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-025",
+        "BOG-030"
+      ],
+      "blocks": []
+    },
+    {
+      "code": "BOG-032",
+      "title": "Frontend: carga y listado de documentos",
+      "phase": "M4",
+      "phaseName": "Documentos",
+      "milestone": "M4 — Documentos",
+      "priority": "P1",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M4",
+      "startDate": "2026-08-10",
+      "targetDate": "2026-08-23",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-033",
+      "title": "Backend: categorías y metadatos de documentos",
+      "phase": "M4",
+      "phaseName": "Documentos",
+      "milestone": "M4 — Documentos",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M4",
+      "startDate": "2026-08-10",
+      "targetDate": "2026-08-23",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-034",
+      "title": "QA: validar módulo de documentos",
+      "phase": "M4",
+      "phaseName": "Documentos",
+      "milestone": "M4 — Documentos",
+      "priority": "P1",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M4",
+      "startDate": "2026-08-10",
+      "targetDate": "2026-08-23",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-035",
+      "title": "Backend: modelos y API de tareas básicas",
+      "phase": "M5",
+      "phaseName": "Tareas, agenda y notificaciones",
+      "milestone": "M5 — Tareas, agenda y notificaciones",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M5",
+      "startDate": "2026-08-24",
+      "targetDate": "2026-09-06",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-017",
+        "BOG-025"
+      ],
+      "blocks": [
+        "BOG-044"
+      ]
+    },
+    {
+      "code": "BOG-036",
+      "title": "Frontend: vista de tareas y vencimientos",
+      "phase": "M5",
+      "phaseName": "Tareas, agenda y notificaciones",
+      "milestone": "M5 — Tareas, agenda y notificaciones",
+      "priority": "P1",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M5",
+      "startDate": "2026-08-24",
+      "targetDate": "2026-09-06",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-037",
+      "title": "Backend: notificaciones básicas",
+      "phase": "M5",
+      "phaseName": "Tareas, agenda y notificaciones",
+      "milestone": "M5 — Tareas, agenda y notificaciones",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M5",
+      "startDate": "2026-08-24",
+      "targetDate": "2026-09-06",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-038",
+      "title": "Backend: recordatorios de tareas vencidas y próximas",
+      "phase": "M5",
+      "phaseName": "Tareas, agenda y notificaciones",
+      "milestone": "M5 — Tareas, agenda y notificaciones",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M5",
+      "startDate": "2026-08-24",
+      "targetDate": "2026-09-06",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-039",
+      "title": "QA: validar tareas, vencimientos y notificaciones",
+      "phase": "M5",
+      "phaseName": "Tareas, agenda y notificaciones",
+      "milestone": "M5 — Tareas, agenda y notificaciones",
+      "priority": "P1",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M5",
+      "startDate": "2026-08-24",
+      "targetDate": "2026-09-06",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-040",
+      "title": "Backend: gastos simples por causa y cliente",
+      "phase": "M6",
+      "phaseName": "Caja, cuenta corriente y reportes",
+      "milestone": "M6 — Caja, cuenta corriente y reportes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M6",
+      "startDate": "2026-09-07",
+      "targetDate": "2026-09-20",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-041",
+      "title": "Backend: cuenta corriente básica del cliente",
+      "phase": "M6",
+      "phaseName": "Caja, cuenta corriente y reportes",
+      "milestone": "M6 — Caja, cuenta corriente y reportes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M6",
+      "startDate": "2026-09-07",
+      "targetDate": "2026-09-20",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-042",
+      "title": "Backend: caja básica del estudio",
+      "phase": "M6",
+      "phaseName": "Caja, cuenta corriente y reportes",
+      "milestone": "M6 — Caja, cuenta corriente y reportes",
+      "priority": "P1",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M6",
+      "startDate": "2026-09-07",
+      "targetDate": "2026-09-20",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-043",
+      "title": "Frontend: dashboard financiero básico",
+      "phase": "M6",
+      "phaseName": "Caja, cuenta corriente y reportes",
+      "milestone": "M6 — Caja, cuenta corriente y reportes",
+      "priority": "P1",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M6",
+      "startDate": "2026-09-07",
+      "targetDate": "2026-09-20",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-044",
+      "title": "Arquitectura: documentar RabbitMQ, eventos y Outbox Pattern",
+      "phase": "M7",
+      "phaseName": "Integraciones",
+      "milestone": "M7 — Integraciones",
+      "priority": "P2",
+      "area": "Architecture",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M7",
+      "startDate": "2026-09-21",
+      "targetDate": "2026-10-04",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-017",
+        "BOG-035"
+      ],
+      "blocks": []
+    },
+    {
+      "code": "BOG-045",
+      "title": "Integración futura: Google Calendar",
+      "phase": "M7",
+      "phaseName": "Integraciones",
+      "milestone": "M7 — Integraciones",
+      "priority": "P2",
+      "area": "Integration",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M7",
+      "startDate": "2026-09-21",
+      "targetDate": "2026-10-04",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-046",
+      "title": "Integración futura: Google Drive",
+      "phase": "M7",
+      "phaseName": "Integraciones",
+      "milestone": "M7 — Integraciones",
+      "priority": "P2",
+      "area": "Integration",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M7",
+      "startDate": "2026-09-21",
+      "targetDate": "2026-10-04",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-047",
+      "title": "Integración futura: IA legal sobre documentos y expedientes",
+      "phase": "M7",
+      "phaseName": "Integraciones",
+      "milestone": "M7 — Integraciones",
+      "priority": "P2",
+      "area": "Integration",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M7",
+      "startDate": "2026-09-21",
+      "targetDate": "2026-10-04",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-048",
+      "title": "Infra: hardening de CI/CD y comandos de validación",
+      "phase": "M8",
+      "phaseName": "QA, deploy y escalabilidad",
+      "milestone": "M8 — QA, deploy y escalabilidad",
+      "priority": "P2",
+      "area": "Infra",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M8",
+      "startDate": "2026-10-05",
+      "targetDate": "2026-10-18",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-050"
+      ]
+    },
+    {
+      "code": "BOG-049",
+      "title": "Infra: documentación de variables de entorno y secretos",
+      "phase": "M8",
+      "phaseName": "QA, deploy y escalabilidad",
+      "milestone": "M8 — QA, deploy y escalabilidad",
+      "priority": "P2",
+      "area": "Infra",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M8",
+      "startDate": "2026-10-05",
+      "targetDate": "2026-10-18",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-052"
+      ]
+    },
+    {
+      "code": "BOG-050",
+      "title": "QA: smoke test completo del MVP",
+      "phase": "M8",
+      "phaseName": "QA, deploy y escalabilidad",
+      "milestone": "M8 — QA, deploy y escalabilidad",
+      "priority": "P0",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M8",
+      "startDate": "2026-10-05",
+      "targetDate": "2026-10-18",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-014",
+        "BOG-019",
+        "BOG-029",
+        "BOG-034",
+        "BOG-039",
+        "BOG-043",
+        "BOG-048"
+      ],
+      "blocks": [
+        "BOG-052"
+      ]
+    },
+    {
+      "code": "BOG-051",
+      "title": "Observabilidad: logs, auditoría y errores por tenant",
+      "phase": "M8",
+      "phaseName": "QA, deploy y escalabilidad",
+      "milestone": "M8 — QA, deploy y escalabilidad",
+      "priority": "P2",
+      "area": "Observability",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M8",
+      "startDate": "2026-10-05",
+      "targetDate": "2026-10-18",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-052"
+      ]
+    },
+    {
+      "code": "BOG-052",
+      "title": "Release checklist: preparar entrega MVP de BogApp",
+      "phase": "M8",
+      "phaseName": "QA, deploy y escalabilidad",
+      "milestone": "M8 — QA, deploy y escalabilidad",
+      "priority": "P0",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M8",
+      "startDate": "2026-10-05",
+      "targetDate": "2026-10-18",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-049",
+        "BOG-050",
+        "BOG-051"
+      ],
+      "blocks": [
+        "BOG-053",
+        "BOG-061",
+        "BOG-065",
+        "BOG-068"
+      ]
+    },
+    {
+      "code": "BOG-053",
+      "title": "Producto: definir planes comerciales Free/Premium/Enterprise",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-052"
+      ],
+      "blocks": [
+        "BOG-054",
+        "BOG-056",
+        "BOG-057"
+      ]
+    },
+    {
+      "code": "BOG-054",
+      "title": "Backend: preparar límites por plan y tenant",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Backend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-053"
+      ],
+      "blocks": [
+        "BOG-055"
+      ]
+    },
+    {
+      "code": "BOG-055",
+      "title": "Frontend: pantalla de plan y uso del tenant",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Frontend",
+      "type": "Feature",
+      "size": "M",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-054"
+      ],
+      "blocks": []
+    },
+    {
+      "code": "BOG-056",
+      "title": "Billing: documentar estrategia Stripe/MercadoPago",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Billing",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-053"
+      ],
+      "blocks": []
+    },
+    {
+      "code": "BOG-057",
+      "title": "Legal: documentar términos de uso y política de privacidad",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Legal",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-053"
+      ],
+      "blocks": []
+    },
+    {
+      "code": "BOG-058",
+      "title": "Comercial: preparar demo seed para estudios jurídicos",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Sales",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-059",
+      "title": "Comercial: preparar landing o sección comercial básica",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Sales",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-060",
+      "title": "Soporte: documentar proceso de alta de nuevo cliente",
+      "phase": "M9",
+      "phaseName": "Comercialización SaaS",
+      "milestone": "M9 — Comercialización SaaS",
+      "priority": "P2",
+      "area": "Support",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M9",
+      "startDate": "2026-10-19",
+      "targetDate": "2026-11-01",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-061",
+      "title": "Infra: configurar entorno staging",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Infra",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-052"
+      ],
+      "blocks": [
+        "BOG-062"
+      ]
+    },
+    {
+      "code": "BOG-062",
+      "title": "Infra: configurar entorno producción",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Infra",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-061"
+      ],
+      "blocks": [
+        "BOG-063"
+      ]
+    },
+    {
+      "code": "BOG-063",
+      "title": "Infra: estrategia de backups de base de datos",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Infra",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-062"
+      ],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-064",
+      "title": "Infra: estrategia de recuperación ante fallos",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Infra",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-065",
+      "title": "Seguridad: checklist OWASP básico",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Security",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-052"
+      ],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-066",
+      "title": "Seguridad: rate limiting y protección de endpoints críticos",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Security",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-067",
+      "title": "Seguridad: revisión de exposición de secretos",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Security",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-068",
+      "title": "QA: pruebas E2E principales",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-052"
+      ],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-069",
+      "title": "QA: prueba de carga inicial",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-070",
+      "title": "QA: prueba de permisos por rol",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "QA",
+      "type": "QA",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-071",
+      "title": "UX: revisión final de navegación y consistencia visual",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "UX",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-072",
+      "title": "Docs: manual técnico de instalación",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Docs",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-073",
+      "title": "Docs: manual de usuario owner/admin",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Docs",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-074",
+      "title": "Docs: manual de usuario abogado/asistente",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Docs",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": [
+        "BOG-077"
+      ]
+    },
+    {
+      "code": "BOG-075",
+      "title": "Soporte: flujo de reporte de bugs",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Support",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-076",
+      "title": "Soporte: SLA inicial para clientes",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Support",
+      "type": "Chore",
+      "size": "S",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [],
+      "blocks": []
+    },
+    {
+      "code": "BOG-077",
+      "title": "Release: checklist de go-live",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P0",
+      "area": "Release",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-063",
+        "BOG-064",
+        "BOG-065",
+        "BOG-068",
+        "BOG-069",
+        "BOG-070",
+        "BOG-071",
+        "BOG-072",
+        "BOG-073",
+        "BOG-074"
+      ],
+      "blocks": [
+        "BOG-078"
+      ]
+    },
+    {
+      "code": "BOG-078",
+      "title": "Release: crear versión v1.0.0",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P0",
+      "area": "Release",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-077"
+      ],
+      "blocks": [
+        "BOG-079",
+        "BOG-080"
+      ]
+    },
+    {
+      "code": "BOG-079",
+      "title": "Comercial: preparar demo comercial",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Sales",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-078"
+      ],
+      "blocks": []
+    },
+    {
+      "code": "BOG-080",
+      "title": "Producto: retrospectiva y roadmap post venta",
+      "phase": "M10",
+      "phaseName": "Release vendible y soporte",
+      "milestone": "M10 — Release vendible y soporte",
+      "priority": "P1",
+      "area": "Product",
+      "type": "Chore",
+      "size": "M",
+      "sprint": "M10",
+      "startDate": "2026-11-02",
+      "targetDate": "2026-11-15",
+      "status": "Backlog",
+      "dependsOn": [
+        "BOG-078"
+      ],
+      "blocks": []
+    }
+  ]
+}

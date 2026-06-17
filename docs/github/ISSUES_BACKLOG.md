@@ -1,299 +1,86 @@
-# Issues backlog
-
-Backlog inicial preparado para GitHub. Si no se crean issues reales desde la
-API, cada issue tiene una version markdown en `docs/github/issues/`.
-
-## Milestones
-
-| Milestone                              | Objetivo                                                               |
-| -------------------------------------- | ---------------------------------------------------------------------- |
-| M0 - Auditoria y organizacion          | Entender repo, validar stack, ordenar docs y definir fuente de verdad. |
-| M1 - Tenant onboarding                 | Hacer funcional el alta real del estudio juridico.                     |
-| M2 - Auth, RBAC y seguridad            | Proteger rutas, roles, permisos y separacion por tenant.               |
-| M3 - Clientes y expedientes            | Implementar la operacion legal central.                                |
-| M4 - Documentos                        | Asociar documentos a clientes y causas con storage provider.           |
-| M5 - Tareas, agenda y notificaciones   | Implementar operacion diaria, vencimientos y seguimiento.              |
-| M6 - Caja, cuenta corriente y reportes | Implementar control financiero base.                                   |
-| M7 - Integraciones                     | Preparar Google Drive, Google Calendar e integraciones externas.       |
-| M8 - QA, deploy y escalabilidad        | Robustecer testing, CI/CD, observabilidad y despliegue.                |
-
-## Labels
-
-- `type:epic`
-- `type:feature`
-- `type:bug`
-- `type:docs`
-- `type:chore`
-- `type:refactor`
-- `type:test`
-- `area:api`
-- `area:web`
-- `area:database`
-- `area:auth`
-- `area:tenant`
-- `area:rbac`
-- `area:onboarding`
-- `area:clients`
-- `area:cases`
-- `area:documents`
-- `area:tasks`
-- `area:finance`
-- `area:integrations`
-- `area:qa`
-- `area:infra`
-- `priority:p0`
-- `priority:p1`
-- `priority:p2`
-- `priority:p3`
-- `status:blocked`
-- `status:ready`
-- `status:in-progress`
-- `status:needs-review`
-
-## Initial issues
-
-### EPIC 01 - Auditoria tecnica del repositorio
-
-Milestone: M0 - Auditoria y organizacion
-
-Labels: `type:epic`, `area:infra`, `priority:p0`
-
-Objetivo: auditar el estado real del proyecto antes de avanzar.
-
-Entregables:
-
-- Mapa del repo.
-- Stack confirmado.
-- Comandos funcionales documentados.
-- Riesgos tecnicos detectados.
-- Diferencias entre README, TODO, Prisma, backend, frontend y diagrama.
-- `docs/architecture/DECISIONS.md` actualizado.
-
-Criterios:
-
-- `npm install` funciona o queda documentado el error.
-- `npm run typecheck` funciona o queda documentado el error.
-- Se identifica fuente de verdad tecnica.
-- Se documentan bloqueos reales.
-
-### EPIC 02 - Fuente de verdad de base de datos
-
-Milestone: M0 - Auditoria y organizacion
-
-Labels: `type:epic`, `area:database`, `priority:p0`
-
-Objetivo: definir la base de datos real del proyecto.
-
-Entregables:
-
-- `docs/database/DATABASE_SOURCE_OF_TRUTH.md`
-- `docs/database/gaps.md`
-- Lista de entidades existentes.
-- Lista de entidades faltantes.
-- Plan de migraciones.
-- Decision de entidades MVP vs post-MVP.
-
-Criterios:
-
-- No queda ambiguedad sobre que schema implementar.
-- Las diferencias entre diagrama y Prisma quedan documentadas.
-- Las entidades MVP quedan marcadas.
-
-### EPIC 03 - Onboarding real de tenant
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:epic`, `area:onboarding`, `area:tenant`, `priority:p0`
-
-Dependencias: EPIC 01, EPIC 02
-
-Objetivo: implementar alta real del estudio juridico.
-
-Entregables:
-
-- UI en 3 pasos.
-- Store de onboarding.
-- Validaciones Zod.
-- Endpoint backend de bootstrap.
-- Persistencia real.
-- Redireccion al dashboard.
-- Tests basicos.
-
-Criterios:
-
-- Crear estudio genera tenant real.
-- Crear estudio genera owner/membership real.
-- Crear estudio genera roles base.
-- Crear estudio genera configuracion workspace.
-- Crear estudio genera areas iniciales.
-- No quedan datos hardcodeados como solucion final.
-
-### Issue - Backend: endpoint bootstrap tenant
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:feature`, `area:api`, `area:tenant`, `area:onboarding`, `priority:p0`
-
-Dependencias: EPIC 02
-
-Debe crear en transaccion tenant, owner user si corresponde, membership, roles
-base, workspace settings, practice areas y audit log inicial si existe entidad.
-
-Criterios:
-
-- DTO validado.
-- Operacion transaccional.
-- Si falla una parte, no queda tenant incompleto.
-- Respuesta tipada.
-- Swagger actualizado.
-- Tests minimos.
-
-### Issue - Frontend: onboarding paso 1 owner
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:feature`, `area:web`, `area:onboarding`, `priority:p0`
-
-Criterios:
-
-- Validacion con Zod.
-- Estado persistente entre pasos.
-- Resumen lateral actualizado.
-- No permite avanzar con email invalido.
-- Si auth ya existe, reutiliza el flujo existente.
-
-### Issue - Frontend: onboarding paso 2 estudio juridico
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:feature`, `area:web`, `area:onboarding`, `priority:p0`
-
-Criterios:
-
-- Validacion con Zod.
-- CUIT/CUIL opcional.
-- CUIT/CUIL validado si se completa.
-- Areas separadas por coma.
-- Estado persistente entre pasos.
-- Resumen lateral actualizado.
-- Boton siguiente bloqueado si faltan campos obligatorios.
-
-### Issue - Frontend: onboarding paso 3 workspace
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:feature`, `area:web`, `area:onboarding`, `priority:p0`
-
-Criterios:
-
-- Validacion con Zod.
-- Boton `Crear estudio`.
-- Loading state.
-- Error state.
-- Success state.
-- Redireccion al dashboard.
-- Envio real al endpoint bootstrap.
-
-### Issue - Frontend: onboarding store
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:feature`, `area:web`, `area:onboarding`, `priority:p0`
-
-Criterios:
-
-- Mantiene datos de pasos 1, 2 y 3.
-- Permite volver atras sin perder informacion.
-- Limpia estado al finalizar.
-- No guarda informacion sensible innecesaria.
-- Tipado correcto.
-
-### Issue - Backend: RBAC base por tenant
-
-Milestone: M2 - Auth, RBAC y seguridad
-
-Labels: `type:feature`, `area:api`, `area:auth`, `area:rbac`, `priority:p0`
-
-Criterios:
-
-- Un usuario puede pertenecer a mas de un tenant.
-- El rol puede variar por tenant.
-- No hay acceso cruzado entre estudios.
-- Guards aplicados en rutas protegidas.
-- Permisos documentados.
-
-### Issue - Backend: tenant context por request
-
-Milestone: M2 - Auth, RBAC y seguridad
-
-Labels: `type:feature`, `area:api`, `area:tenant`, `priority:p0`
-
-Criterios:
-
-- El backend identifica tenant activo.
-- Todas las rutas operativas requieren tenant activo.
-- Las queries se filtran por tenant.
-- Se documenta como se obtiene tenantId.
-- Se agregan tests de no acceso cross-tenant.
-
-### Issue - Database: modelos MVP tenant-aware
-
-Milestone: M3 - Clientes y expedientes
-
-Labels: `type:feature`, `area:database`, `priority:p0`
-
-Modelos minimos:
-
-- `tenants`
-- `users`
-- `roles`
-- `tenant_memberships`
-- `workspace_settings` o `tenant_settings`
-- `practice_areas`
-- `clients`
-- `opposing_parties`
-- `cases`
-- `case_participants`
-- `document_categories`
-- `documents`
-- `tasks`
-- `task_responsibles`
-- `notifications`
-
-Criterios:
-
-- Prisma actualizado.
-- Migracion generada.
-- Relaciones correctas.
-- Indices basicos.
-- Seeds basicos.
-- Documentacion actualizada.
-
-### Issue - Docs: roadmap y backlog GitHub
-
-Milestone: M0 - Auditoria y organizacion
-
-Labels: `type:docs`, `priority:p0`
-
-Criterios:
-
-- Roadmap por fases.
-- Backlog priorizado.
-- Correlatividades claras.
-- Division para 2 desarrolladores.
-- Entregables por sprint.
-- `docs/github/ISSUES_BACKLOG.md` creado.
-
-### Issue - QA: pruebas minimas onboarding y tenant
-
-Milestone: M1 - Tenant onboarding
-
-Labels: `type:test`, `area:qa`, `priority:p1`
-
-Criterios:
-
-- Test de DTO backend.
-- Test de creacion de tenant.
-- Test de validacion frontend.
-- Test de bloqueo por datos invalidos.
-- Test de no acceso cross-tenant si existe RBAC base.
+# Backlog BogApp BOG-001 a BOG-080
+
+Backlog profesional para construir MVP funcional, SaaS multi-tenant, plataforma LegalTech y release vendible.
+
+| Código | Título | Priority | Phase | Area | Type | Size | Sprint | Inicio | Cierre | Depends on | Blocks |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| BOG-001 | Auditar estado técnico del repositorio BogApp | P0 | M0 | Product | Chore | M | M0 | 2026-06-15 | 2026-06-21 | — | — |
+| BOG-002 | Definir fuente de verdad de base de datos | P0 | M0 | Product | Chore | M | M0 | 2026-06-15 | 2026-06-21 | — | BOG-006, BOG-010, BOG-021 |
+| BOG-003 | Configurar Project board estilo Código Cuatro | P0 | M0 | Product | Chore | M | M0 | 2026-06-15 | 2026-06-21 | — | — |
+| BOG-004 | Crear labels, milestones y vistas del Project | P0 | M0 | Product | Chore | M | M0 | 2026-06-15 | 2026-06-21 | — | — |
+| BOG-005 | Documentar decisiones funcionales cerradas de BogApp | P0 | M0 | Product | Chore | M | M0 | 2026-06-15 | 2026-06-21 | — | BOG-006 |
+| BOG-006 | Frontend: implementar store del onboarding | P0 | M1 | Frontend | Feature | M | M1 | 2026-06-22 | 2026-07-05 | BOG-002, BOG-005 | BOG-007, BOG-008, BOG-009 |
+| BOG-007 | Frontend: implementar paso 1 — Cuenta owner | P0 | M1 | Frontend | Feature | M | M1 | 2026-06-22 | 2026-07-05 | BOG-006 | BOG-012 |
+| BOG-008 | Frontend: implementar paso 2 — Estudio jurídico | P0 | M1 | Frontend | Feature | M | M1 | 2026-06-22 | 2026-07-05 | BOG-006 | BOG-012 |
+| BOG-009 | Frontend: implementar paso 3 — Workspace | P0 | M1 | Frontend | Feature | M | M1 | 2026-06-22 | 2026-07-05 | BOG-006 | BOG-012 |
+| BOG-010 | Database: preparar modelos para tenant onboarding | P0 | M1 | Database | Feature | M | M1 | 2026-06-22 | 2026-07-05 | BOG-002 | BOG-011 |
+| BOG-011 | Backend: crear endpoint bootstrap tenant | P0 | M1 | Backend | Feature | L | M1 | 2026-06-22 | 2026-07-05 | BOG-010 | BOG-012, BOG-015 |
+| BOG-012 | Integración: conectar onboarding con API real | P0 | M1 | Integration | Feature | M | M1 | 2026-06-22 | 2026-07-05 | BOG-007, BOG-008, BOG-009, BOG-011 | BOG-014 |
+| BOG-013 | Frontend: crear dashboard inicial post-alta | P0 | M1 | Frontend | Feature | M | M1 | 2026-06-22 | 2026-07-05 | — | BOG-014 |
+| BOG-014 | QA: validar flujo completo de alta del estudio | P0 | M1 | QA | QA | M | M1 | 2026-06-22 | 2026-07-05 | BOG-012, BOG-013 | BOG-050 |
+| BOG-015 | Backend: implementar tenant context por request | P0 | M2 | Backend | Feature | M | M2 | 2026-07-06 | 2026-07-19 | BOG-011 | BOG-016, BOG-021 |
+| BOG-016 | Backend: validar membership contra DB | P0 | M2 | Backend | Feature | M | M2 | 2026-07-06 | 2026-07-19 | BOG-015 | BOG-017 |
+| BOG-017 | Backend: implementar RBAC base por tenant | P0 | M2 | Backend | Feature | L | M2 | 2026-07-06 | 2026-07-19 | BOG-016 | BOG-019, BOG-022, BOG-035, BOG-044 |
+| BOG-018 | Backend: aplicar guards a rutas protegidas | P0 | M2 | Backend | Feature | M | M2 | 2026-07-06 | 2026-07-19 | — | BOG-019 |
+| BOG-019 | QA: probar bloqueo de acceso cross-tenant | P0 | M2 | QA | QA | M | M2 | 2026-07-06 | 2026-07-19 | BOG-017, BOG-018 | BOG-050 |
+| BOG-020 | Backend: registrar auditoría de acciones sensibles | P0 | M2 | Backend | Feature | M | M2 | 2026-07-06 | 2026-07-19 | — | — |
+| BOG-021 | Database: validar modelos MVP tenant-aware | P1 | M3 | Database | Feature | M | M3 | 2026-07-20 | 2026-08-09 | BOG-002, BOG-015 | BOG-022 |
+| BOG-022 | Backend: CRUD de clientes jurídicos | P1 | M3 | Backend | Feature | L | M3 | 2026-07-20 | 2026-08-09 | BOG-017, BOG-021 | BOG-025 |
+| BOG-023 | Frontend: pantalla de clientes | P1 | M3 | Frontend | Feature | M | M3 | 2026-07-20 | 2026-08-09 | — | — |
+| BOG-024 | Backend: CRUD de partes contrarias y áreas de práctica | P1 | M3 | Backend | Feature | L | M3 | 2026-07-20 | 2026-08-09 | — | BOG-025 |
+| BOG-025 | Backend: CRUD de expedientes / causas | P1 | M3 | Backend | Feature | L | M3 | 2026-07-20 | 2026-08-09 | BOG-022, BOG-024 | BOG-031, BOG-035 |
+| BOG-026 | Backend: gestionar participantes de causa | P1 | M3 | Backend | Feature | M | M3 | 2026-07-20 | 2026-08-09 | — | — |
+| BOG-027 | Frontend: pantalla de expedientes | P1 | M3 | Frontend | Feature | M | M3 | 2026-07-20 | 2026-08-09 | — | — |
+| BOG-028 | Frontend: timeline básico del expediente | P1 | M3 | Frontend | Feature | M | M3 | 2026-07-20 | 2026-08-09 | — | — |
+| BOG-029 | QA: validar clientes y expedientes | P1 | M3 | QA | QA | M | M3 | 2026-07-20 | 2026-08-09 | — | BOG-050 |
+| BOG-030 | Backend: implementar abstracción StorageProvider | P1 | M4 | Backend | Feature | M | M4 | 2026-08-10 | 2026-08-23 | — | BOG-031 |
+| BOG-031 | Backend: documentos básicos asociados a causas y clientes | P1 | M4 | Backend | Feature | M | M4 | 2026-08-10 | 2026-08-23 | BOG-025, BOG-030 | — |
+| BOG-032 | Frontend: carga y listado de documentos | P1 | M4 | Frontend | Feature | M | M4 | 2026-08-10 | 2026-08-23 | — | — |
+| BOG-033 | Backend: categorías y metadatos de documentos | P1 | M4 | Backend | Feature | M | M4 | 2026-08-10 | 2026-08-23 | — | — |
+| BOG-034 | QA: validar módulo de documentos | P1 | M4 | QA | QA | M | M4 | 2026-08-10 | 2026-08-23 | — | BOG-050 |
+| BOG-035 | Backend: modelos y API de tareas básicas | P1 | M5 | Backend | Feature | M | M5 | 2026-08-24 | 2026-09-06 | BOG-017, BOG-025 | BOG-044 |
+| BOG-036 | Frontend: vista de tareas y vencimientos | P1 | M5 | Frontend | Feature | M | M5 | 2026-08-24 | 2026-09-06 | — | — |
+| BOG-037 | Backend: notificaciones básicas | P1 | M5 | Backend | Feature | M | M5 | 2026-08-24 | 2026-09-06 | — | — |
+| BOG-038 | Backend: recordatorios de tareas vencidas y próximas | P1 | M5 | Backend | Feature | M | M5 | 2026-08-24 | 2026-09-06 | — | — |
+| BOG-039 | QA: validar tareas, vencimientos y notificaciones | P1 | M5 | QA | QA | M | M5 | 2026-08-24 | 2026-09-06 | — | BOG-050 |
+| BOG-040 | Backend: gastos simples por causa y cliente | P1 | M6 | Backend | Feature | M | M6 | 2026-09-07 | 2026-09-20 | — | — |
+| BOG-041 | Backend: cuenta corriente básica del cliente | P1 | M6 | Backend | Feature | M | M6 | 2026-09-07 | 2026-09-20 | — | — |
+| BOG-042 | Backend: caja básica del estudio | P1 | M6 | Backend | Feature | M | M6 | 2026-09-07 | 2026-09-20 | — | — |
+| BOG-043 | Frontend: dashboard financiero básico | P1 | M6 | Frontend | Feature | M | M6 | 2026-09-07 | 2026-09-20 | — | BOG-050 |
+| BOG-044 | Arquitectura: documentar RabbitMQ, eventos y Outbox Pattern | P2 | M7 | Architecture | Chore | M | M7 | 2026-09-21 | 2026-10-04 | BOG-017, BOG-035 | — |
+| BOG-045 | Integración futura: Google Calendar | P2 | M7 | Integration | Feature | M | M7 | 2026-09-21 | 2026-10-04 | — | — |
+| BOG-046 | Integración futura: Google Drive | P2 | M7 | Integration | Feature | M | M7 | 2026-09-21 | 2026-10-04 | — | — |
+| BOG-047 | Integración futura: IA legal sobre documentos y expedientes | P2 | M7 | Integration | Feature | M | M7 | 2026-09-21 | 2026-10-04 | — | — |
+| BOG-048 | Infra: hardening de CI/CD y comandos de validación | P2 | M8 | Infra | Chore | M | M8 | 2026-10-05 | 2026-10-18 | — | BOG-050 |
+| BOG-049 | Infra: documentación de variables de entorno y secretos | P2 | M8 | Infra | Chore | M | M8 | 2026-10-05 | 2026-10-18 | — | BOG-052 |
+| BOG-050 | QA: smoke test completo del MVP | P0 | M8 | QA | QA | M | M8 | 2026-10-05 | 2026-10-18 | BOG-014, BOG-019, BOG-029, BOG-034, BOG-039, BOG-043, BOG-048 | BOG-052 |
+| BOG-051 | Observabilidad: logs, auditoría y errores por tenant | P2 | M8 | Observability | Chore | M | M8 | 2026-10-05 | 2026-10-18 | — | BOG-052 |
+| BOG-052 | Release checklist: preparar entrega MVP de BogApp | P0 | M8 | Product | Chore | M | M8 | 2026-10-05 | 2026-10-18 | BOG-049, BOG-050, BOG-051 | BOG-053, BOG-061, BOG-065, BOG-068 |
+| BOG-053 | Producto: definir planes comerciales Free/Premium/Enterprise | P2 | M9 | Product | Chore | M | M9 | 2026-10-19 | 2026-11-01 | BOG-052 | BOG-054, BOG-056, BOG-057 |
+| BOG-054 | Backend: preparar límites por plan y tenant | P2 | M9 | Backend | Feature | M | M9 | 2026-10-19 | 2026-11-01 | BOG-053 | BOG-055 |
+| BOG-055 | Frontend: pantalla de plan y uso del tenant | P2 | M9 | Frontend | Feature | M | M9 | 2026-10-19 | 2026-11-01 | BOG-054 | — |
+| BOG-056 | Billing: documentar estrategia Stripe/MercadoPago | P2 | M9 | Billing | Chore | M | M9 | 2026-10-19 | 2026-11-01 | BOG-053 | — |
+| BOG-057 | Legal: documentar términos de uso y política de privacidad | P2 | M9 | Legal | Chore | S | M9 | 2026-10-19 | 2026-11-01 | BOG-053 | — |
+| BOG-058 | Comercial: preparar demo seed para estudios jurídicos | P2 | M9 | Sales | Chore | M | M9 | 2026-10-19 | 2026-11-01 | — | — |
+| BOG-059 | Comercial: preparar landing o sección comercial básica | P2 | M9 | Sales | Chore | M | M9 | 2026-10-19 | 2026-11-01 | — | — |
+| BOG-060 | Soporte: documentar proceso de alta de nuevo cliente | P2 | M9 | Support | Chore | S | M9 | 2026-10-19 | 2026-11-01 | — | — |
+| BOG-061 | Infra: configurar entorno staging | P1 | M10 | Infra | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-052 | BOG-062 |
+| BOG-062 | Infra: configurar entorno producción | P1 | M10 | Infra | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-061 | BOG-063 |
+| BOG-063 | Infra: estrategia de backups de base de datos | P1 | M10 | Infra | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-062 | BOG-077 |
+| BOG-064 | Infra: estrategia de recuperación ante fallos | P1 | M10 | Infra | Chore | M | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-065 | Seguridad: checklist OWASP básico | P1 | M10 | Security | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-052 | BOG-077 |
+| BOG-066 | Seguridad: rate limiting y protección de endpoints críticos | P1 | M10 | Security | Chore | M | M10 | 2026-11-02 | 2026-11-15 | — | — |
+| BOG-067 | Seguridad: revisión de exposición de secretos | P1 | M10 | Security | Chore | M | M10 | 2026-11-02 | 2026-11-15 | — | — |
+| BOG-068 | QA: pruebas E2E principales | P1 | M10 | QA | QA | M | M10 | 2026-11-02 | 2026-11-15 | BOG-052 | BOG-077 |
+| BOG-069 | QA: prueba de carga inicial | P1 | M10 | QA | QA | M | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-070 | QA: prueba de permisos por rol | P1 | M10 | QA | QA | M | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-071 | UX: revisión final de navegación y consistencia visual | P1 | M10 | UX | Chore | M | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-072 | Docs: manual técnico de instalación | P1 | M10 | Docs | Chore | S | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-073 | Docs: manual de usuario owner/admin | P1 | M10 | Docs | Chore | S | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-074 | Docs: manual de usuario abogado/asistente | P1 | M10 | Docs | Chore | S | M10 | 2026-11-02 | 2026-11-15 | — | BOG-077 |
+| BOG-075 | Soporte: flujo de reporte de bugs | P1 | M10 | Support | Chore | S | M10 | 2026-11-02 | 2026-11-15 | — | — |
+| BOG-076 | Soporte: SLA inicial para clientes | P1 | M10 | Support | Chore | S | M10 | 2026-11-02 | 2026-11-15 | — | — |
+| BOG-077 | Release: checklist de go-live | P0 | M10 | Release | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-063, BOG-064, BOG-065, BOG-068, BOG-069, BOG-070, BOG-071, BOG-072, BOG-073, BOG-074 | BOG-078 |
+| BOG-078 | Release: crear versión v1.0.0 | P0 | M10 | Release | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-077 | BOG-079, BOG-080 |
+| BOG-079 | Comercial: preparar demo comercial | P1 | M10 | Sales | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-078 | — |
+| BOG-080 | Producto: retrospectiva y roadmap post venta | P1 | M10 | Product | Chore | M | M10 | 2026-11-02 | 2026-11-15 | BOG-078 | — |
