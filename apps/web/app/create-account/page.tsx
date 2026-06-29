@@ -45,7 +45,7 @@ export default function CreateAccountPage() {
   return (
     <main
       className={cn(
-        "min-h-screen bg-[#0d0d0d] text-foreground transition-colors lg:h-screen lg:cursor-none lg:overflow-hidden lg:px-3 lg:py-12 lg:[&_*]:cursor-none",
+        "min-h-screen bg-background text-foreground transition-colors lg:h-screen lg:cursor-none lg:overflow-hidden lg:px-3 lg:py-12 lg:[&_*]:cursor-none",
         darkMode && "dark"
       )}
       onMouseEnter={updateCursor}

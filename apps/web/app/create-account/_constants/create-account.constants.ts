@@ -15,14 +15,14 @@ export const createAccountInitialForm: CreateAccountFormValues = {
 export const createAccountFieldMap: CreateAccountFieldConfig[] = [
   {
     name: "fullName",
-    label: "Nombre",
-    placeholder: "Estudio BOGAP",
+    label: "Nombre completo",
+    placeholder: "Ej. Juan Perez",
     autoComplete: "name",
     type: "text"
   },
   {
     name: "email",
-    label: "Email",
+    label: "Email laboral",
     placeholder: "hola@estudio.com",
     autoComplete: "email",
     inputMode: "email",
@@ -38,27 +38,22 @@ export const createAccountFieldMap: CreateAccountFieldConfig[] = [
 ];
 
 export const createAccountCopy = {
-  badge: "Workspace legal privado",
+  badge: "Gestion juridica privada",
   title: "Crear cuenta",
-  description: "Ingresá tus datos para crear tu identidad global en BOGAP.",
+  description:
+    "Configura tu acceso a BogApp para gestionar clientes, expedientes y tareas del estudio en un solo lugar.",
   divider: "o",
-  formTooltip: "hola!",
+  formTooltip: "Datos seguros del estudio",
   submit: "Crear cuenta",
-  submitTooltip: "Vamos!",
-  existingAccount: "¿Ya tenés cuenta?",
-  login: "Entrar"
+  submitTooltip: "Crear acceso",
+  existingAccount: "¿Ya tenes cuenta?",
+  login: "Iniciar sesion"
 } as const;
 
 export const createAccountMedia = {
   imageUrl: "/create-account-mosaic.png",
-  label: "Vista visual del workspace BOGAP"
+  label: "Vista visual del workspace juridico BogApp"
 } as const;
-
-const defaultMedia = {
-  alt: "Composición visual abstracta del workspace",
-  src: createAccountMedia.imageUrl,
-  type: "image" as const
-};
 
 export const createAccountMediaTileRadius = {
   brand: "rounded-[30px]",
@@ -79,229 +74,4 @@ export const createAccountMediaTileCorners = {
   }
 } as const;
 
-export const createAccountMediaTiles: CreateAccountMediaTileConfig[] = [
-  {
-    id: "top-left",
-    kind: "media",
-    className: "col-start-1 col-span-1 row-start-1 row-span-2",
-    media: defaultMedia,
-    objectPosition: "0% 0%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: false,
-      bottomLeft: false,
-      bottomRight: true
-    })
-  },
-  {
-    id: "top-wide-left",
-    kind: "media",
-    className: "col-start-2 col-span-2 row-start-1 row-span-2",
-    media: defaultMedia,
-    objectPosition: "32% 0%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: false,
-      topRight: false,
-      bottomLeft: true,
-      bottomRight: true
-    })
-  },
-  {
-    id: "top-wide-right",
-    kind: "media",
-    className: "col-start-4 col-span-2 row-start-1 row-span-2",
-    media: defaultMedia,
-    objectPosition: "66% 0%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: false,
-      topRight: false,
-      bottomLeft: true,
-      bottomRight: true
-    })
-  },
-  {
-    id: "top-right",
-    kind: "media",
-    className: "col-start-6 col-span-1 row-start-1 row-span-2",
-    media: defaultMedia,
-    objectPosition: "100% 0%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: false,
-      topRight: true,
-      bottomLeft: true,
-      bottomRight: false
-    })
-  },
-  {
-    id: "left-main",
-    kind: "media",
-    className: "col-start-1 col-span-1 row-start-3 row-span-4",
-    media: defaultMedia,
-    objectPosition: "0% 32%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: false,
-      topRight: true,
-      bottomLeft: false,
-      bottomRight: true
-    })
-  },
-  {
-    id: "center-main-left",
-    kind: "media",
-    className: "col-start-2 col-span-2 row-start-3 row-span-4",
-    media: defaultMedia,
-    objectPosition: "32% 32%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: true,
-      bottomLeft: true,
-      bottomRight: true
-    })
-  },
-  {
-    id: "center-main-right",
-    kind: "media",
-    className: "col-start-4 col-span-2 row-start-3 row-span-4",
-    media: defaultMedia,
-    objectPosition: "66% 32%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: true,
-      bottomLeft: true,
-      bottomRight: true
-    })
-  },
-  {
-    id: "right-main",
-    kind: "media",
-    className: "col-start-6 col-span-1 row-start-3 row-span-4",
-    media: defaultMedia,
-    objectPosition: "100% 32%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: false,
-      bottomLeft: true,
-      bottomRight: false
-    })
-  },
-  {
-    id: "left-dark",
-    kind: "media",
-    className: "col-start-1 col-span-1 row-start-7 row-span-4",
-    media: defaultMedia,
-    objectPosition: "0% 66%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: false,
-      topRight: true,
-      bottomLeft: false,
-      bottomRight: true
-    })
-  },
-  {
-    id: "feature-tenant",
-    kind: "feature",
-    className: "col-start-2 col-span-2 row-start-7 row-span-4",
-    title: "Maximum Customization",
-    description: "Whether you're a designer, artist, or enthusiast, BOGAP adapts to your team.",
-    tone: "amber",
-    radiusClassName: createAccountMediaTileRadius.feature,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: true,
-      bottomLeft: true,
-      bottomRight: true
-    })
-  },
-  {
-    id: "feature-rbac",
-    kind: "feature",
-    className: "col-start-4 col-span-2 row-start-7 row-span-4",
-    title: "User-Friendly Interface",
-    description: "Create, customize, and share tenant workflows with clear roles.",
-    tone: "purple",
-    radiusClassName: createAccountMediaTileRadius.feature,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: true,
-      bottomLeft: true,
-      bottomRight: true
-    })
-  },
-  {
-    id: "brand-mark",
-    kind: "brand",
-    className: "col-start-6 col-span-1 row-start-7 row-span-4",
-    radiusClassName: createAccountMediaTileRadius.brand,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: false,
-      bottomLeft: true,
-      bottomRight: false
-    })
-  },
-  {
-    id: "bottom-left",
-    kind: "media",
-    className: "col-start-1 col-span-1 row-start-11 row-span-2",
-    media: defaultMedia,
-    objectPosition: "0% 100%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: false,
-      topRight: true,
-      bottomLeft: false,
-      bottomRight: false
-    })
-  },
-  {
-    id: "bottom-center-left",
-    kind: "media",
-    className: "col-start-2 col-span-2 row-start-11 row-span-2",
-    media: defaultMedia,
-    objectPosition: "32% 100%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: true,
-      bottomLeft: false,
-      bottomRight: false
-    })
-  },
-  {
-    id: "bottom-center-right",
-    kind: "media",
-    className: "col-start-4 col-span-2 row-start-11 row-span-2",
-    media: defaultMedia,
-    objectPosition: "66% 100%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: true,
-      bottomLeft: false,
-      bottomRight: false
-    })
-  },
-  {
-    id: "bottom-right",
-    kind: "media",
-    className: "col-start-6 col-span-1 row-start-11 row-span-2",
-    media: defaultMedia,
-    objectPosition: "100% 100%",
-    radiusClassName: createAccountMediaTileRadius.default,
-    roundedCorners: createAccountMediaTileCorners.all({
-      topLeft: true,
-      topRight: false,
-      bottomLeft: false,
-      bottomRight: true
-    })
-  }
-];
+export const createAccountMediaTiles: CreateAccountMediaTileConfig[] = [];
