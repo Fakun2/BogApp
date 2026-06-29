@@ -18,7 +18,7 @@ export function LoginCarouselPanel() {
   const carousel = useLoginCarousel();
 
   return (
-    <section className="relative hidden min-h-screen overflow-hidden bg-black lg:block">
+    <section className="relative hidden min-h-screen overflow-hidden bg-card lg:block">
       <div className="absolute left-8 top-8 z-20 flex items-center gap-3 text-white">
         <Button
           asChild

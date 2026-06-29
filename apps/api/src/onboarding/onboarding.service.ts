@@ -1,5 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { hash } from "bcryptjs";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException
+} from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service";
 import { AuthService } from "../auth/auth.service";
 import { JwtPayload } from "../auth/auth.types";
@@ -15,16 +19,29 @@ export class OnboardingService {
     private readonly rbacService: RbacService
   ) {}
 
-  async start(input: StartOnboardingDto) {
+  async start(userId: string, input: StartOnboardingDto) {
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: input.owner.email.toLowerCase() }
+      where: { id: userId }
     });
 
-    if (existingUser) {
-      throw new ConflictException("Ya existe un usuario con ese email.");
+    if (!existingUser) {
+      throw new NotFoundException("Usuario no encontrado.");
     }
 
-    const passwordHash = await hash(input.owner.password, 12);
+    if (existingUser.status !== "active") {
+      throw new ConflictException("El usuario no está activo.");
+    }
+
+    const requestedEmail = input.owner?.email?.toLowerCase();
+    if (requestedEmail && requestedEmail !== existingUser.email) {
+      const emailOwner = await this.prisma.user.findUnique({
+        where: { email: requestedEmail }
+      });
+
+      if (emailOwner && emailOwner.id !== existingUser.id) {
+        throw new ConflictException("Ya existe un usuario con ese email.");
+      }
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
       await tx.currency.upsert({
@@ -91,15 +108,15 @@ export class OnboardingService {
         where: { code: "owner" }
       });
 
-      const user = await tx.user.create({
-        data: {
-          fullName: input.owner.fullName,
-          email: input.owner.email.toLowerCase(),
-          passwordHash,
-          phone: input.owner.phone,
-          status: "active"
-        }
-      });
+      const user = input.owner
+        ? await tx.user.update({
+            where: { id: existingUser.id },
+            data: {
+              fullName: input.owner.fullName,
+              email: input.owner.email.toLowerCase()
+            }
+          })
+        : existingUser;
 
       const tenant = await tx.tenant.create({
         data: {
@@ -120,7 +137,7 @@ export class OnboardingService {
           website: input.tenant.website,
           logoUrl: input.tenant.logoUrl,
           size: input.tenant.size,
-          mainPracticeAreas: input.tenant.mainPracticeAreas,
+          mainPracticeAreas: input.tenant.mainPracticeAreas ?? [],
           referralSource: input.tenant.referralSource
         }
       });
@@ -136,13 +153,40 @@ export class OnboardingService {
         }
       });
 
-      await tx.practiceArea.createMany({
-        data: input.workspace.practiceAreas.map((name) => ({
-          tenantId: tenant.id,
-          name
-        })),
-        skipDuplicates: true
-      });
+      const selectedPracticeAreaCodes = [...new Set(input.workspace.practiceAreaCodes)];
+
+      if (selectedPracticeAreaCodes.length > 0) {
+        const templates = await tx.practiceAreaTemplate.findMany({
+          where: {
+            active: true,
+            code: { in: selectedPracticeAreaCodes }
+          }
+        });
+        const foundCodes = new Set(templates.map((template) => template.code));
+        const missingCodes = selectedPracticeAreaCodes.filter((code) => !foundCodes.has(code));
+
+        if (missingCodes.length > 0) {
+          throw new BadRequestException(`Areas de practica invalidas: ${missingCodes.join(", ")}.`);
+        }
+
+        await tx.practiceArea.createMany({
+          data: templates.map((template) => ({
+            tenantId: tenant.id,
+            templateId: template.id,
+            name: template.name,
+            description: template.description
+          })),
+          skipDuplicates: true
+        });
+      } else if (input.workspace.practiceAreas.length > 0) {
+        await tx.practiceArea.createMany({
+          data: input.workspace.practiceAreas.map((name) => ({
+            tenantId: tenant.id,
+            name
+          })),
+          skipDuplicates: true
+        });
+      }
 
       await tx.tenantMembership.create({
         data: {

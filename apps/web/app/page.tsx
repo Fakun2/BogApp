@@ -3,6 +3,7 @@ import { BadgeCheck, BriefcaseBusiness, Database, KeyRound, Scale } from "lucide
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeModeSelect } from "@/components/theme/theme-mode-select";
 
 const modules = [
   {
@@ -29,9 +30,13 @@ const modules = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-background text-foreground">
       <section className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 lg:px-8">
+          <div className="flex justify-end">
+            <ThemeModeSelect />
+          </div>
+
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
               <Badge variant="secondary" className="mb-4 gap-2">

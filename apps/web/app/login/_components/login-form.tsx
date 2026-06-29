@@ -34,7 +34,7 @@ export function LoginForm({ firstLogin, initialEmail }: LoginFormProps) {
           <LoginField label="Email laboral" error={state.fieldErrors.email}>
             <Input
               autoComplete="email"
-              className="h-12 rounded-2xl border-border bg-secondary px-4 text-sm"
+              className="h-12 rounded-2xl border-field-border bg-field px-4 text-sm text-field-foreground"
               inputMode="email"
               placeholder="hola@estudio.com"
               value={state.form.email}

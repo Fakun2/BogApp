@@ -23,13 +23,11 @@ export function CreateAccountPanel({
     <Card className="p-2 flex min-h-screen overflow-hidden rounded-2xl border border-border bg-card/95 shadow-none lg:h-full lg:min-h-0">
       <CardContent className="flex w-full flex-col py-2 2xl:py-4 sm:px-5">
         <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex size-9 items-center justify-center rounded-full border border-border bg-secondary text-foreground"
-            aria-label="BOGAP"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+          <Button asChild variant="outline" className="size-9 rounded-full p-0">
+            <Link href="/" aria-label="BOGAP">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
           <Button
             type="button"
             variant="outline"

@@ -5,6 +5,7 @@ import { DatabaseModule } from "./database/database.module";
 import { HealthModule } from "./health/health.module";
 import { IdentityModule } from "./identity/identity.module";
 import { OnboardingModule } from "./onboarding/onboarding.module";
+import { PracticeAreaTemplatesModule } from "./practice-area-templates/practice-area-templates.module";
 import { RedisModule } from "./redis/redis.module";
 import { RbacModule } from "./rbac/rbac.module";
 import { TenancyModule } from "./tenancy/tenancy.module";
@@ -20,6 +21,7 @@ import { TenancyModule } from "./tenancy/tenancy.module";
     AuthModule,
     TenancyModule,
     RbacModule,
+    PracticeAreaTemplatesModule,
     OnboardingModule,
     IdentityModule,
     HealthModule

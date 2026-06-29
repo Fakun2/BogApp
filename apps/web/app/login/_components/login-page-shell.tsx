@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { loginCopy } from "../_constants/login.constants";
 import { LoginCarouselPanel } from "./login-carousel-panel";
 import { LoginCursor } from "./login-cursor";
@@ -31,10 +30,7 @@ function LoginPageShellContent({ children, darkMode, onToggleTheme }: LoginPageS
 
   return (
     <main
-      className={cn(
-        "min-h-screen bg-background text-foreground transition-colors lg:cursor-none lg:[&_*]:cursor-none",
-        darkMode && "dark"
-      )}
+      className="min-h-screen bg-background text-foreground transition-colors lg:cursor-none lg:[&_*]:cursor-none"
       {...surfaceHandlers}
     >
       <div className="grid min-h-screen lg:grid-cols-[1.02fr_1fr]">

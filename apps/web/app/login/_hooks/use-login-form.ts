@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authControllerLogin } from "@bogaap/api-client";
 import { z } from "zod";
-import { saveSession } from "@/lib/auth/session";
+import { hasTenantAccess, saveSession } from "@/lib/auth/session";
 import { loginFormSchema, type LoginFormValues } from "@/lib/validation/auth";
 import {
   loginLoadingExitMs,
@@ -80,7 +80,7 @@ export function useLoginForm(initialEmail: string | null) {
       transition.exit();
       await wait(loginLoadingExitMs);
       shouldHideTransition = false;
-      router.push("/onboarding");
+      router.push(hasTenantAccess(response.data) ? "/admin" : "/onboarding");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "No se pudo iniciar sesion.");
     } finally {

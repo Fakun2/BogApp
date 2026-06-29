@@ -229,7 +229,7 @@ export const createAccountMediaTiles: CreateAccountMediaTileConfig[] = [
     kind: "media",
     className: "col-start-2 col-span-2 row-start-7 row-span-4",
     media: defaultMedia,
-    radiusClassName: createAccountMediaTileRadius.feature,
+    radiusClassName: createAccountMediaTileRadius.default,
     roundedCorners: createAccountMediaTileCorners.all({
       topLeft: true,
       topRight: true,
@@ -239,12 +239,10 @@ export const createAccountMediaTiles: CreateAccountMediaTileConfig[] = [
   },
   {
     id: "feature-rbac",
-    kind: "feature",
+    kind: "media",
     className: "col-start-4 col-span-2 row-start-7 row-span-4",
-    title: "User-Friendly Interface",
-    description: "Create, customize, and share tenant workflows with clear roles.",
-    tone: "purple",
-    radiusClassName: createAccountMediaTileRadius.feature,
+    media: defaultMedia,
+    radiusClassName: createAccountMediaTileRadius.default,
     roundedCorners: createAccountMediaTileCorners.all({
       topLeft: true,
       topRight: true,
@@ -254,9 +252,10 @@ export const createAccountMediaTiles: CreateAccountMediaTileConfig[] = [
   },
   {
     id: "brand-mark",
-    kind: "brand",
+    kind: "media",
     className: "col-start-6 col-span-1 row-start-7 row-span-4",
-    radiusClassName: createAccountMediaTileRadius.brand,
+     media: defaultMedia,
+    radiusClassName: createAccountMediaTileRadius.default,
     roundedCorners: createAccountMediaTileCorners.all({
       topLeft: true,
       topRight: false,

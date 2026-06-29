@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -7,6 +7,7 @@ import {
   ApiTags
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { AuthenticatedRequest } from "../auth/auth.types";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { ActiveTenant } from "../tenancy/active-tenant.decorator";
@@ -24,9 +25,11 @@ export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}
 
   @Post("start")
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: StartOnboardingResponseDto })
-  start(@Body() input: StartOnboardingDto) {
-    return this.onboardingService.start(input);
+  start(@Req() request: AuthenticatedRequest, @Body() input: StartOnboardingDto) {
+    return this.onboardingService.start(request.user!.sub, input);
   }
 
   @Get("status")

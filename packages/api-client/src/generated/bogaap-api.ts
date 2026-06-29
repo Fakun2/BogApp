@@ -79,7 +79,7 @@ export type StartOnboardingDtoTenant = { [key: string]: unknown };
 export type StartOnboardingDtoWorkspace = { [key: string]: unknown };
 
 export interface StartOnboardingDto {
-  owner: StartOnboardingDtoOwner;
+  owner?: StartOnboardingDtoOwner;
   tenant: StartOnboardingDtoTenant;
   workspace: StartOnboardingDtoWorkspace;
 }
