@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, KeyRound, Loader2, Scale } from "lucide-react";
+import { ArrowRight, KeyRound, Loader2, Scale, ShieldCheck, Users } from "lucide-react";
 import { authControllerLogin } from "@bogaap/api-client";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
@@ -73,33 +73,45 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-background">
       <section className="mx-auto grid min-h-screen max-w-6xl gap-8 px-6 py-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
-        <div className="max-w-xl">
-          <Badge variant="secondary" className="gap-2">
-            <Scale className="h-4 w-4" />
-            BOGAP
+        <div className="rounded-[2rem] border border-border bg-card/70 p-8 shadow-sm lg:p-10">
+          <Badge variant="secondary" className="gap-2 rounded-full px-4 py-2">
+            <Scale className="h-4 w-4 text-primary" />
+            BogApp LegalTech
           </Badge>
           <h1 className="mt-6 text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
-            Iniciar sesión
+            Acceso privado al estudio
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Entrá con tu cuenta global para continuar con el onboarding del estudio o acceder a tus
-            tenants activos.
+            Inicia sesion para continuar con la gestion de clientes, expedientes, tareas y
+            permisos del workspace juridico.
           </p>
-          <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
-            <KeyRound className="h-5 w-5 text-primary" />
-            El acceso a cada estudio se resuelve por membership y RBAC.
+
+          <div className="mt-8 grid gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/50 px-4 py-3">
+              <KeyRound className="h-5 w-5 text-primary" />
+              Acceso protegido por usuario, membership y tenant activo.
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/50 px-4 py-3">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Roles y permisos preparados para separar responsabilidades del estudio.
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/50 px-4 py-3">
+              <Users className="h-5 w-5 text-primary" />
+              Base lista para avanzar con clientes, busqueda e historial en S3.
+            </div>
           </div>
         </div>
 
-        <Card>
+        <Card className="rounded-[2rem] border-border bg-card/95 shadow-sm">
           <CardHeader>
-            <CardTitle>Acceso</CardTitle>
+            <CardTitle>Iniciar sesion</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="grid gap-5" onSubmit={submit}>
               <Field label="Email laboral" error={fieldErrors.email}>
                 <Input
                   autoComplete="email"
+                  className="h-12 rounded-2xl border-border bg-secondary px-4"
                   inputMode="email"
                   value={form.email}
                   onChange={(event) => updateField("email", event.currentTarget.value)}
@@ -109,6 +121,7 @@ export default function LoginPage() {
               <Field label="Contraseña" error={fieldErrors.password}>
                 <Input
                   autoComplete="current-password"
+                  className="h-12 rounded-2xl border-border bg-secondary px-4"
                   type="password"
                   value={form.password}
                   onChange={(event) => updateField("password", event.currentTarget.value)}
@@ -116,19 +129,19 @@ export default function LoginPage() {
               </Field>
 
               {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" className="h-12 w-full rounded-2xl" disabled={submitting}>
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Entrar
                 {!submitting ? <ArrowRight className="h-4 w-4" /> : null}
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">
-                ¿Todavía no tenés cuenta?{" "}
+                ¿Todavia no tenes cuenta?{" "}
                 <Link className="font-medium text-primary" href="/create-account">
                   Crear cuenta
                 </Link>
