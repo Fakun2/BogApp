@@ -2,33 +2,33 @@
 @import "tw-animate-css";
 
 :root {
-  --background: #f7f7f7;
-  --foreground: #09090b;
-  --card: #ffffff;
-  --card-foreground: #09090b;
-  --primary: #09090b;
+  --background: #f6f1e8;
+  --foreground: #14110f;
+  --card: #fffdf8;
+  --card-foreground: #14110f;
+  --primary: #8b6f2a;
   --primary-foreground: #ffffff;
-  --secondary: #f1f1f1;
-  --secondary-foreground: #09090b;
-  --muted: #e7e7e7;
-  --muted-foreground: #6b6b6b;
-  --border: #d6d6d6;
-  --ring: #09090b;
+  --secondary: #e9ddc7;
+  --secondary-foreground: #14110f;
+  --muted: #efe7da;
+  --muted-foreground: #6f665c;
+  --border: #d6c4a3;
+  --ring: #8b6f2a;
 }
 
 .dark {
-  --background: #0b0b0d;
-  --foreground: #f7f7f7;
-  --card: #111113;
-  --card-foreground: #f7f7f7;
-  --primary: #f7f7f7;
-  --primary-foreground: #09090b;
-  --secondary: #1c1c20;
-  --secondary-foreground: #f7f7f7;
-  --muted: #1a1a1e;
-  --muted-foreground: #9c9c9c;
-  --border: #25252b;
-  --ring: #f7f7f7;
+  --background: #14110f;
+  --foreground: #f8f1e4;
+  --card: #1f1a16;
+  --card-foreground: #f8f1e4;
+  --primary: #c8a646;
+  --primary-foreground: #14110f;
+  --secondary: #2d261f;
+  --secondary-foreground: #f8f1e4;
+  --muted: #262018;
+  --muted-foreground: #cbbfa9;
+  --border: #4b3f30;
+  --ring: #c8a646;
 }
 
 @theme inline {
