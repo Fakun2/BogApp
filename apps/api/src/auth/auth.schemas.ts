@@ -2,11 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 
-const emailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .email("Ingresá un email válido.");
+const emailSchema = z.string().trim().toLowerCase().email("Ingresá un email válido.");
 
 const passwordSchema = z
   .string()

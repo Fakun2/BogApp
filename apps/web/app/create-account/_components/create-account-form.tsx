@@ -25,7 +25,7 @@ export function CreateAccountForm({ state }: CreateAccountFormProps) {
             <div className={isPassword ? "relative" : undefined}>
               <Input
                 autoComplete={field.autoComplete}
-                className="h-12 rounded-2xl border-border bg-secondary px-4 text-sm"
+                className="h-12 rounded-2xl border-field-border bg-field px-4 text-sm text-field-foreground"
                 inputMode={field.inputMode}
                 placeholder={field.placeholder}
                 type={inputType}
