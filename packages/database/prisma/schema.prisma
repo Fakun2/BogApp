@@ -33,6 +33,17 @@ enum DocumentStorageMode {
   s3
 }
 
+enum ClientType {
+  human
+  legal_entity
+}
+
+enum ClientStatus {
+  active
+  inactive
+  archived
+}
+
 model Tenant {
   id            String             @id @default(uuid()) @db.Uuid
   name          String
@@ -43,6 +54,7 @@ model Tenant {
   settings      TenantSettings?
   memberships   TenantMembership[]
   practiceAreas PracticeArea[]
+  clients       Client[]
   createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -135,6 +147,39 @@ model PracticeArea {
   @@index([tenantId])
   @@index([templateId])
   @@map("practice_areas")
+}
+
+model Client {
+  id               String       @id @default(uuid()) @db.Uuid
+  tenantId         String       @map("tenant_id") @db.Uuid
+  type             ClientType   @default(human)
+  status           ClientStatus @default(active)
+  firstName        String?      @map("first_name")
+  lastName         String?      @map("last_name")
+  age              Int?
+  dni              String?
+  cuil             String?
+  businessName     String?      @map("business_name")
+  email            String?
+  phone            String?
+  address          String?
+  notes            String?
+  statute          String?
+  salaryReceiptRef String?      @map("salary_receipt_ref")
+  cbu              String?
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([tenantId, dni])
+  @@index([tenantId, cuil])
+  @@index([tenantId, businessName])
+  @@index([tenantId, lastName, firstName])
+  @@map("clients")
 }
 
 model Currency {

@@ -30,6 +30,7 @@ los modelos MVP esten completos.
 - `TenantProfile` -> `tenant_profiles`
 - `TenantSettings` -> `tenant_settings`
 - `PracticeArea` -> `practice_areas`
+- `Client` -> `clients` (definido en Prisma en #19; migracion pendiente en #20)
 - `Currency` -> `currencies`
 - `Role` -> `roles`
 - `Permission` -> `permissions`
@@ -40,7 +41,6 @@ los modelos MVP esten completos.
 
 MVP:
 
-- `clients`
 - `opposing_parties`
 - `cases`
 - `case_participants`
@@ -66,6 +66,9 @@ Post-MVP o despues del core legal:
 
 - Toda entidad operativa debe llevar `tenant_id` o relacion obligatoria con una
   entidad tenant-scoped.
+- `clients` es tenant-aware mediante `tenant_id` y pertenece a `tenants`.
+- `opposing_parties` sigue siendo una entidad separada de `clients`; no mezclar
+  partes contrarias con clientes del estudio.
 - `users` es global y no lleva `tenant_id`.
 - `currencies` es global y no lleva `tenant_id`.
 - `roles` y `permissions` son catalogos globales; la asignacion por tenant vive
@@ -106,8 +109,9 @@ Post-MVP:
 
 1. PR 1: documentar fuente de verdad y gaps. Sin cambios Prisma.
 2. PR 2/3: alinear contratos de onboarding, sin agregar dominios grandes.
-3. PR M3 DB: agregar modelos MVP tenant-aware en una migracion clara.
-4. PRs posteriores: agregar finanzas e integraciones por dominio.
+3. PR #19: definir `Client` tenant-aware en Prisma, sin generar migracion.
+4. PR #20: generar la migracion Prisma para `clients`.
+5. PRs posteriores: agregar finanzas e integraciones por dominio.
 
 ## Estado de comandos
 
