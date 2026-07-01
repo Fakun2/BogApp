@@ -39,9 +39,19 @@ y decisiones de producto. No corregir todas en un mismo PR.
 
 - ERD objetivo incluye clientes, contrarios, causas, participantes, documentos,
   tareas y notificaciones.
-- Prisma actual solo cubre onboarding foundation.
+- Estado #19: `Client` queda definido en Prisma como modelo tenant-aware.
+- Pendiente #20: generar y validar la migracion Prisma para `clients`.
+- La base migrada actual todavia solo cubre onboarding foundation y templates de
+  areas de practica.
 - Impacto: no existe aun core operativo legal.
 - Resolver en: M3/M4/M5, con migraciones separadas.
+
+### Campo bancario de cliente
+
+- Decision #19: usar `cbu` para cuenta bancaria del cliente.
+- No usar `clu` porque no esta definido en el repo ni en el dominio actual.
+- Si aparece un significado legal u operativo para `clu`, debe evaluarse en una
+  issue futura con definicion de negocio explicita.
 
 ## Gaps de ERD vs Prisma
 
@@ -60,7 +70,6 @@ Implementado en Prisma y presente en ERD:
 
 Presente en ERD y no implementado en Prisma:
 
-- `clients`
 - `opposing_parties`
 - `cases`
 - `case_participants`
@@ -77,6 +86,10 @@ Presente en ERD y no implementado en Prisma:
 - `cash_boxes`
 - `cash_movement_categories`
 - `cash_movements`
+
+Definido en Prisma y pendiente de migracion:
+
+- `clients`
 
 Implementado en Prisma y no conflictivo:
 
