@@ -159,6 +159,7 @@ model Client {
   age              Int?
   dni              String?
   cuil             String?
+  cuit             String?
   businessName     String?      @map("business_name")
   email            String?
   phone            String?
@@ -177,6 +178,7 @@ model Client {
   @@index([tenantId, type])
   @@index([tenantId, dni])
   @@index([tenantId, cuil])
+  @@index([tenantId, cuit])
   @@index([tenantId, businessName])
   @@index([tenantId, lastName, firstName])
   @@map("clients")
