@@ -39,12 +39,14 @@ y decisiones de producto. No corregir todas en un mismo PR.
 
 - ERD objetivo incluye clientes, contrarios, causas, participantes, documentos,
   tareas y notificaciones.
-- Estado #19: `Client` queda definido en Prisma como modelo tenant-aware.
-- Pendiente #20: generar y validar la migracion Prisma para `clients`.
+- `clients`: modelo definido en #19 como tenant-aware.
+- `clients`: migracion y validacion pendientes en #20.
 - La base migrada actual todavia solo cubre onboarding foundation y templates de
   areas de practica.
+- `opposing_parties`, `cases`, `current_accounts` y `account_movements` siguen
+  fuera de este follow-up.
 - Impacto: no existe aun core operativo legal.
-- Resolver en: M3/M4/M5, con migraciones separadas.
+- Resolver en: M3/M4/M5, con migraciones separadas para el resto del core legal.
 
 ### Campo bancario de cliente
 

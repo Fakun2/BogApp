@@ -77,6 +77,11 @@ Post-MVP o despues del core legal:
 - Las FK entre entidades operativas deben impedir cruces de tenant mediante FK
   compuestas o validacion transaccional en aplicacion.
 - Toda modificacion de Prisma requiere migracion.
+- La regla general de migraciones no se debilita: PR #19 fue una excepcion
+  documentada porque solo definio el modelo `Client` previo a su migracion.
+- PR #20 debe generar y validar inmediatamente la migracion Prisma para
+  `clients`.
+- Backend/API no debe usar `Client` hasta que PR #20 este resuelta.
 
 ## MVP vs post-MVP
 
@@ -109,8 +114,9 @@ Post-MVP:
 
 1. PR 1: documentar fuente de verdad y gaps. Sin cambios Prisma.
 2. PR 2/3: alinear contratos de onboarding, sin agregar dominios grandes.
-3. PR #19: definir `Client` tenant-aware en Prisma, sin generar migracion.
-4. PR #20: generar la migracion Prisma para `clients`.
+3. PR #19: definir `Client` tenant-aware en Prisma, sin generar migracion como
+   excepcion documentada previa a la migracion.
+4. PR #20: generar y validar inmediatamente la migracion Prisma para `clients`.
 5. PRs posteriores: agregar finanzas e integraciones por dominio.
 
 ## Estado de comandos
