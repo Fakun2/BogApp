@@ -4,14 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
+    "dev:lan": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
-    "lint": "eslint app components lib next.config.ts",
+    "lint": "eslint app components lib next.config.ts proxy.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "start": "next start --hostname 0.0.0.0 --port 3000"
+    "start": "next start --hostname 0.0.0.0 --port 3000",
+    "start:lan": "next start --hostname 0.0.0.0 --port 3000"
   },
   "dependencies": {
     "@bogaap/api-client": "0.1.0",
     "@radix-ui/react-slot": "^1.1.0",
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "embla-carousel-react": "^8.6.0",

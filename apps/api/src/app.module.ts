@@ -8,6 +8,7 @@ import { OnboardingModule } from "./onboarding/onboarding.module";
 import { PracticeAreaTemplatesModule } from "./practice-area-templates/practice-area-templates.module";
 import { RedisModule } from "./redis/redis.module";
 import { RbacModule } from "./rbac/rbac.module";
+import { StaffModule } from "./staff/staff.module";
 import { TenancyModule } from "./tenancy/tenancy.module";
 
 @Module({
@@ -24,6 +25,7 @@ import { TenancyModule } from "./tenancy/tenancy.module";
     PracticeAreaTemplatesModule,
     OnboardingModule,
     IdentityModule,
+    StaffModule,
     HealthModule
   ]
 })

@@ -67,7 +67,9 @@ Implementado en Prisma y presente en ERD:
 - `tenant_memberships`
 - `tenant_profiles`
 - `tenant_settings`
+- `practice_area_templates`
 - `practice_areas`
+- `tenant_membership_practice_areas`
 - `currencies`
 
 Presente en ERD y no implementado en Prisma:

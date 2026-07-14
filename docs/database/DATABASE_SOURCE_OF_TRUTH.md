@@ -29,6 +29,7 @@ los modelos MVP esten completos.
 - `User` -> `users`
 - `TenantProfile` -> `tenant_profiles`
 - `TenantSettings` -> `tenant_settings`
+- `PracticeAreaTemplate` -> `practice_area_templates`
 - `PracticeArea` -> `practice_areas`
 - `Client` -> `clients` (definido en Prisma en #19; migracion pendiente en #20)
 - `Currency` -> `currencies`
@@ -71,8 +72,15 @@ Post-MVP o despues del core legal:
   partes contrarias con clientes del estudio.
 - `users` es global y no lleva `tenant_id`.
 - `currencies` es global y no lleva `tenant_id`.
-- `roles` y `permissions` son catalogos globales; la asignacion por tenant vive
-  en `tenant_memberships`.
+- `permissions` es catalogo global. `roles` mezcla roles de sistema globales
+  (`tenant_id = null`) y roles custom por estudio (`tenant_id` definido).
+  `roles.active` define si un rol esta disponible para nuevas asignaciones.
+- `tenant_memberships.role_id` puede quedar null cuando un rol custom se
+  desactiva o elimina; eso representa personal sin rol asignado.
+- `PracticeAreaTemplate` es catalogo global; `PracticeArea` representa las areas
+  disponibles para un tenant, sean derivadas del catalogo o custom.
+- La asignacion de areas de trabajo a miembros del tenant vive en
+  `tenant_membership_practice_areas`.
 - Evitar arrays de IDs como columnas; usar relaciones 1:N o tablas puente.
 - Las FK entre entidades operativas deben impedir cruces de tenant mediante FK
   compuestas o validacion transaccional en aplicacion.

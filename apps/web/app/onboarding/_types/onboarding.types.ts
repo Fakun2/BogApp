@@ -1,14 +1,36 @@
 import type { BogaapSession } from "@/lib/auth/session";
-import type { OnboardingPayload } from "../_schemas/onboarding.schema";
 
 export type StepIndex = 0 | 1 | 2;
 
 export type StepErrors = Partial<Record<StepIndex, string>>;
 
-export type OnboardingFormState = OnboardingPayload & {
+export type OnboardingFormState = {
   owner: {
     fullName: string;
     email: string;
+  };
+  tenant: {
+    name: string;
+    legalName?: string;
+    taxId: string;
+    country: string;
+    province: string;
+    city: string;
+    timezone: string;
+    defaultCurrency: string;
+    address?: string;
+    website?: string;
+    logoUrl?: string;
+    size?: string;
+    mainPracticeAreas: string[];
+    referralSource?: string;
+  };
+  workspace: {
+    practiceAreaCodes: string[];
+    practiceAreas: string[];
+    defaultRoleForInvites: "admin" | "lawyer" | "paralegal" | "accounting" | "viewer";
+    caseNumberingMode: "manual" | "automatic";
+    documentStorageMode: "local" | "s3";
   };
 };
 

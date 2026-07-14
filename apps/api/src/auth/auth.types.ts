@@ -1,12 +1,13 @@
 export type JwtTenantAccess = {
   tenantId: string;
-  role: string;
+  role: string | null;
   permissions: string[];
 };
 
 export type JwtPayload = {
   sub: string;
   email: string;
+  sessionVersion: number;
   tenantAccess: JwtTenantAccess[];
 };
 

@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 import { AuthModule } from "../src/auth/auth.module";
 import { PrismaService } from "../src/database/prisma.service";
+import { DEFAULT_PRACTICE_AREA_TEMPLATES } from "../src/practice-area-templates/practice-area-template.constants";
 import { PracticeAreaTemplatesModule } from "../src/practice-area-templates/practice-area-templates.module";
 
 class InMemoryPracticeAreaTemplatesPrismaService {
@@ -21,24 +22,12 @@ class InMemoryPracticeAreaTemplatesPrismaService {
       assert.equal(where.active, true);
       assert.deepEqual(orderBy, [{ displayOrder: "asc" }, { name: "asc" }]);
 
-      return [
-        {
-          id: "10000000-0000-0000-0000-000000000001",
-          code: "laboral",
-          name: "Laboral",
-          description: null,
-          active: true,
-          displayOrder: 10
-        },
-        {
-          id: "10000000-0000-0000-0000-000000000002",
-          code: "familia",
-          name: "Familia",
-          description: null,
-          active: true,
-          displayOrder: 20
-        }
-      ];
+      return DEFAULT_PRACTICE_AREA_TEMPLATES.map((template, index) => ({
+        id: `10000000-0000-0000-0000-${String(index + 101).padStart(12, "0")}`,
+        ...template,
+        description: null,
+        active: true
+      }));
     }
   };
 }
@@ -74,6 +63,7 @@ describe("Practice area template endpoints (e2e)", () => {
     const accessToken = jwt.sign({
       sub: "00000000-0000-0000-0000-000000000999",
       email: "mateo@estudio.com",
+      sessionVersion: 0,
       tenantAccess: []
     });
 
@@ -84,7 +74,7 @@ describe("Practice area template endpoints (e2e)", () => {
 
     assert.deepEqual(
       response.body.map((template: { code: string }) => template.code),
-      ["laboral", "familia"]
+      DEFAULT_PRACTICE_AREA_TEMPLATES.map((template) => template.code)
     );
   });
 });

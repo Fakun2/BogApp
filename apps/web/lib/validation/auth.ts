@@ -1,26 +1,38 @@
 import { z } from "zod";
 
-const emailSchema = z.string().trim().toLowerCase().email("Ingresá un email válido.");
+const emailSchema = z.string().trim().toLowerCase().email("Ingresa un email valido.");
 
 const passwordSchema = z
   .string()
-  .min(8, "La contraseña debe tener al menos 8 caracteres.")
-  .max(72, "La contraseña no puede superar 72 caracteres.")
-  .regex(/[A-Za-z]/, "La contraseña debe incluir al menos una letra.")
-  .regex(/[0-9]/, "La contraseña debe incluir al menos un número.");
+  .min(8, "La contrasena debe tener al menos 8 caracteres.")
+  .max(72, "La contrasena no puede superar 72 caracteres.")
+  .regex(/[A-Za-z]/, "La contrasena debe incluir al menos una letra.")
+  .regex(/[0-9]/, "La contrasena debe incluir al menos un numero.");
+
+const optionalPhoneSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().trim().min(6, "Ingresa un telefono valido.").optional()
+);
 
 export const createAccountFormSchema = z.object({
-  fullName: z.string().trim().min(2, "Ingresá tu nombre completo."),
+  fullName: z.string().trim().min(2, "Ingresa tu nombre completo."),
   email: emailSchema,
   password: passwordSchema,
-  phone: z.string().trim().min(6, "Ingresá un teléfono válido.").optional().or(z.literal(""))
+  phone: optionalPhoneSchema
 });
 
 export const loginFormSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  tenantId: z.string().uuid().optional()
+  tenantId: z.string().uuid("Tenant invalido.").optional()
 });
 
-export type CreateAccountFormValues = z.infer<typeof createAccountFormSchema>;
-export type LoginFormValues = z.infer<typeof loginFormSchema>;
+export type CreateAccountFormValues = {
+  fullName: string;
+  email: string;
+  password: string;
+  phone?: string;
+};
+export type CreateAccountPayload = z.output<typeof createAccountFormSchema>;
+export type LoginFormValues = z.input<typeof loginFormSchema>;
+export type LoginPayload = z.output<typeof loginFormSchema>;

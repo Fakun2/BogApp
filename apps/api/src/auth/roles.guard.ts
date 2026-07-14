@@ -25,7 +25,10 @@ export class RolesGuard implements CanActivate {
     }
 
     return request.user.tenantAccess.some(
-      (membership) => membership.tenantId === tenantId && requiredRoles.includes(membership.role)
+      (membership) =>
+        membership.tenantId === tenantId &&
+        membership.role !== null &&
+        requiredRoles.includes(membership.role)
     );
   }
 }

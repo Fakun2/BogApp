@@ -31,6 +31,7 @@ export type UseCreateAccountFormResult = {
 };
 
 export type CreateAccountFieldProps = {
+  id: string;
   label: string;
   error?: string;
   children: ReactNode;

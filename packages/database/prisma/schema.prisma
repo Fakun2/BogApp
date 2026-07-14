@@ -66,14 +66,17 @@ model User {
   email           String             @unique
   fullName        String             @map("full_name")
   passwordHash    String             @map("password_hash")
+  dni             String?
   phone           String?
   emailVerifiedAt DateTime?          @map("email_verified_at") @db.Timestamptz(6)
   lastLoginAt     DateTime?          @map("last_login_at") @db.Timestamptz(6)
+  sessionVersion  Int                @default(0) @map("session_version")
   status          UserStatus         @default(active)
   memberships     TenantMembership[]
   createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  @@index([dni])
   @@map("users")
 }
 
@@ -141,10 +144,12 @@ model PracticeArea {
 
   tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   template PracticeAreaTemplate? @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  membershipAssignments TenantMembershipPracticeArea[]
 
   @@unique([tenantId, name])
   @@unique([tenantId, templateId])
   @@index([tenantId])
+  @@index([tenantId, active, name])
   @@index([templateId])
   @@map("practice_areas")
 }
@@ -196,15 +201,23 @@ model Currency {
 
 model Role {
   id              String             @id @default(uuid()) @db.Uuid
+  tenantId        String?            @map("tenant_id") @db.Uuid
   code            String             @unique
   name            String
   description     String?
+  active          Boolean            @default(true)
+  hierarchyLevel  Int                @default(1) @map("hierarchy_level")
   isSystem        Boolean            @default(true) @map("is_system")
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   memberships     TenantMembership[]
   rolePermissions RolePermission[]
   createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  @@index([active, name])
+  @@index([hierarchyLevel])
+  @@index([isSystem, name])
+  @@index([tenantId, active, name])
   @@map("roles")
 }
 
@@ -241,7 +254,7 @@ model TenantMembership {
   id        String           @id @default(uuid()) @db.Uuid
   tenantId  String           @map("tenant_id") @db.Uuid
   userId    String           @map("user_id") @db.Uuid
-  roleId    String           @map("role_id") @db.Uuid
+  roleId    String?          @map("role_id") @db.Uuid
   status    MembershipStatus @default(invited)
   invitedAt DateTime?        @map("invited_at") @db.Timestamptz(6)
   joinedAt  DateTime?        @map("joined_at") @db.Timestamptz(6)
@@ -250,10 +263,27 @@ model TenantMembership {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role   @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  role   Role?  @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  practiceAreas TenantMembershipPracticeArea[]
 
   @@unique([tenantId, userId])
+  @@index([tenantId, status])
   @@index([tenantId, roleId])
   @@index([userId])
   @@map("tenant_memberships")
+}
+
+model TenantMembershipPracticeArea {
+  id                 String   @id @default(uuid()) @db.Uuid
+  tenantMembershipId String   @map("tenant_membership_id") @db.Uuid
+  practiceAreaId     String   @map("practice_area_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenantMembership TenantMembership @relation(fields: [tenantMembershipId], references: [id], onDelete: Cascade)
+  practiceArea     PracticeArea     @relation(fields: [practiceAreaId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantMembershipId, practiceAreaId])
+  @@index([practiceAreaId])
+  @@index([practiceAreaId, tenantMembershipId])
+  @@map("tenant_membership_practice_areas")
 }

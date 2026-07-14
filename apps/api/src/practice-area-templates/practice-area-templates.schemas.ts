@@ -4,10 +4,10 @@ export class PracticeAreaTemplateDto {
   @ApiProperty({ format: "uuid" })
   id!: string;
 
-  @ApiProperty({ example: "laboral" })
+  @ApiProperty({ example: "derecho-civil" })
   code!: string;
 
-  @ApiProperty({ example: "Laboral" })
+  @ApiProperty({ example: "Derecho Civil" })
   name!: string;
 
   @ApiProperty({ required: false, nullable: true })

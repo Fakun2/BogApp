@@ -2,11 +2,11 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authControllerLogin } from "@bogaap/api-client";
 import { z } from "zod";
-import { hasTenantAccess, saveSession } from "@/lib/auth/session";
+import { hasTenantAccess, saveSession, type BogaapSession } from "@/lib/auth/session";
 import { loginFormSchema, type LoginFormValues } from "@/lib/validation/auth";
 import {
+  loginInitialForm,
   loginLoadingExitMs,
   loginLoadingSuccessMs,
   loginLoadingTotalMs
@@ -15,11 +15,6 @@ import { useLoginTransition } from "./use-login-transition";
 
 type FieldErrors = Partial<Record<keyof LoginFormValues, string>>;
 
-const initialForm: LoginFormValues = {
-  email: "",
-  password: ""
-};
-
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
@@ -27,7 +22,7 @@ function wait(ms: number) {
 export function useLoginForm(initialEmail: string | null) {
   const router = useRouter();
   const [form, setForm] = useState<LoginFormValues>(() => ({
-    ...initialForm,
+    ...loginInitialForm,
     email: initialEmail ?? ""
   }));
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -66,13 +61,19 @@ export function useLoginForm(initialEmail: string | null) {
     const transitionStartedAt = Date.now();
 
     try {
-      const response = await authControllerLogin(parsed.data);
+      const response = await fetch("/api/auth/login", {
+        body: JSON.stringify(parsed.data),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const data = (await response.json().catch(() => null)) as BogaapSession | unknown;
 
-      if (response.status !== 200) {
-        throw new Error(getApiErrorMessage(response.data));
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data));
       }
 
-      saveSession(response.data);
+      const session = data as BogaapSession;
+      saveSession(session);
       const elapsed = Date.now() - transitionStartedAt;
       await wait(Math.max(loginLoadingTotalMs - elapsed, 0));
       transition.showSuccess();
@@ -80,7 +81,7 @@ export function useLoginForm(initialEmail: string | null) {
       transition.exit();
       await wait(loginLoadingExitMs);
       shouldHideTransition = false;
-      router.push(hasTenantAccess(response.data) ? "/admin" : "/onboarding");
+      router.push(hasTenantAccess(session) ? "/admin" : "/onboarding");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "No se pudo iniciar sesion.");
     } finally {
@@ -103,7 +104,7 @@ export function useLoginForm(initialEmail: string | null) {
   };
 }
 
-function toFieldErrors(error: z.ZodError<LoginFormValues>) {
+function toFieldErrors(error: z.ZodError) {
   return error.issues.reduce<FieldErrors>((accumulator, issue) => {
     const key = issue.path[0] as keyof LoginFormValues | undefined;
     if (key && !accumulator[key]) {

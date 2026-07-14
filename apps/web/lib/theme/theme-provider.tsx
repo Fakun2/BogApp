@@ -39,10 +39,10 @@ function getStoredColorMode(): ColorMode {
 
 function getStoredVariant(): ThemeVariant {
   if (typeof window === "undefined") {
-    return "dark";
+    return "light";
   }
 
-  return window.localStorage.getItem(variantStorageKey) === "light" ? "light" : "dark";
+  return window.localStorage.getItem(variantStorageKey) === "dark" ? "dark" : "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

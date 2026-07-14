@@ -1,37 +1,110 @@
-import { Scale } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  adminMetrics,
+  adminQuickLinks,
+  adminSurfaceClassName,
+  adminSurfaceMutedClassName,
+  adminSurfacePrimaryClassName,
+  adminWorkspaceStatus
+} from "./_constants/dashboard";
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-background p-4 text-foreground md:p-6">
-      <section className="flex min-h-[calc(100vh-32px)] items-center justify-center rounded-2xl border border-border bg-card px-6 py-12 md:min-h-[calc(100vh-48px)]">
-        <div className="w-full max-w-3xl">
-          <Badge variant="outline" className="mb-6 rounded-full bg-secondary px-3 py-1">
-            <Scale className="h-4 w-4" />
-            BOGAP
+    <div className="grid gap-6">
+      <section className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <Badge variant="outline" className="mb-3 rounded-full bg-secondary px-3 py-1">
+            BOGAP Admin
           </Badge>
-          <h1 className="text-balance text-4xl font-semibold leading-tight tracking-normal">
-            Admin BOGAP
-          </h1>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-            Workspace cargado. Desde aca vamos a construir el panel operativo del estudio.
+          <h2 className="text-2xl font-semibold tracking-normal text-foreground md:text-3xl">
+            Dashboard
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Vista inicial del workspace para operar casos, clientes, caja y equipo del estudio.
           </p>
-          <div className="mt-8 grid gap-3 text-sm md:grid-cols-3">
-            <div className="rounded-2xl border border-border bg-secondary/70 p-4">
-              <span className="text-xs text-muted-foreground">Estado</span>
-              <p className="mt-2 font-medium">Activo</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-secondary/70 p-4">
-              <span className="text-xs text-muted-foreground">Modulo</span>
-              <p className="mt-2 font-medium">Administracion</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-secondary/70 p-4">
-              <span className="text-xs text-muted-foreground">Acceso</span>
-              <p className="mt-2 font-medium">Tenant listo</p>
-            </div>
-          </div>
         </div>
       </section>
-    </main>
+
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {adminMetrics.map((metric) => {
+          const Icon = metric.icon;
+          return (
+            <Card
+              data-admin-surface
+              key={metric.label}
+              className={`${adminSurfaceClassName} gap-4 rounded-xl border-0 py-4 shadow-[var(--admin-card-shadow)]`}
+            >
+              <CardHeader className="flex-row items-center justify-between gap-3 px-4">
+                <CardTitle className={`text-sm font-medium ${adminSurfaceMutedClassName}`}>
+                  {metric.label}
+                </CardTitle>
+                <span className="flex size-9 items-center justify-center rounded-lg bg-secondary/70 text-secondary-foreground">
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </CardHeader>
+              <CardContent className="px-4">
+                <div className={`font-mono text-2xl font-semibold ${adminSurfacePrimaryClassName}`}>
+                  {metric.value}
+                </div>
+                <p className={`mt-1 text-xs ${adminSurfaceMutedClassName}`}>{metric.detail}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
+        <Card
+          data-admin-surface
+          className={`${adminSurfaceClassName} rounded-xl border-0 shadow-[var(--admin-card-shadow)]`}
+        >
+          <CardHeader>
+            <CardTitle className={adminSurfacePrimaryClassName}>Accesos operativos</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2">
+            {adminQuickLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex min-h-16 items-center justify-between rounded-md border border-border px-4 py-3 text-sm transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span>
+                  <span className={`block font-medium ${adminSurfacePrimaryClassName}`}>
+                    {link.label}
+                  </span>
+                  <span className={`mt-1 block text-xs ${adminSurfaceMutedClassName}`}>
+                    {link.description}
+                  </span>
+                </span>
+                <ArrowRight
+                  className={`h-4 w-4 ${adminSurfaceMutedClassName}`}
+                  aria-hidden="true"
+                />
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card
+          data-admin-surface
+          className={`${adminSurfaceClassName} rounded-xl border-0 shadow-[var(--admin-card-shadow)]`}
+        >
+          <CardHeader>
+            <CardTitle className={adminSurfacePrimaryClassName}>Estado del workspace</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {adminWorkspaceStatus.map((item) => (
+              <div key={item} className="flex items-center gap-3 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-primary" aria-hidden="true" />
+                <span className={adminSurfacePrimaryClassName}>{item}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+    </div>
   );
 }
