@@ -31,7 +31,7 @@ los modelos MVP esten completos.
 - `TenantSettings` -> `tenant_settings`
 - `PracticeAreaTemplate` -> `practice_area_templates`
 - `PracticeArea` -> `practice_areas`
-- `TenantMembershipPracticeArea` -> `tenant_membership_practice_areas`
+- `Client` -> `clients` (definido en Prisma en #19; migracion pendiente en #20)
 - `Currency` -> `currencies`
 - `Role` -> `roles`
 - `Permission` -> `permissions`
@@ -42,7 +42,6 @@ los modelos MVP esten completos.
 
 MVP:
 
-- `clients`
 - `opposing_parties`
 - `cases`
 - `case_participants`
@@ -68,6 +67,9 @@ Post-MVP o despues del core legal:
 
 - Toda entidad operativa debe llevar `tenant_id` o relacion obligatoria con una
   entidad tenant-scoped.
+- `clients` es tenant-aware mediante `tenant_id` y pertenece a `tenants`.
+- `opposing_parties` sigue siendo una entidad separada de `clients`; no mezclar
+  partes contrarias con clientes del estudio.
 - `users` es global y no lleva `tenant_id`.
 - `currencies` es global y no lleva `tenant_id`.
 - `permissions` es catalogo global. `roles` mezcla roles de sistema globales
@@ -83,6 +85,11 @@ Post-MVP o despues del core legal:
 - Las FK entre entidades operativas deben impedir cruces de tenant mediante FK
   compuestas o validacion transaccional en aplicacion.
 - Toda modificacion de Prisma requiere migracion.
+- La regla general de migraciones no se debilita: PR #19 fue una excepcion
+  documentada porque solo definio el modelo `Client` previo a su migracion.
+- PR #20 debe generar y validar inmediatamente la migracion Prisma para
+  `clients`.
+- Backend/API no debe usar `Client` hasta que PR #20 este resuelta.
 
 ## MVP vs post-MVP
 
@@ -115,8 +122,10 @@ Post-MVP:
 
 1. PR 1: documentar fuente de verdad y gaps. Sin cambios Prisma.
 2. PR 2/3: alinear contratos de onboarding, sin agregar dominios grandes.
-3. PR M3 DB: agregar modelos MVP tenant-aware en una migracion clara.
-4. PRs posteriores: agregar finanzas e integraciones por dominio.
+3. PR #19: definir `Client` tenant-aware en Prisma, sin generar migracion como
+   excepcion documentada previa a la migracion.
+4. PR #20: generar y validar inmediatamente la migracion Prisma para `clients`.
+5. PRs posteriores: agregar finanzas e integraciones por dominio.
 
 ## Estado de comandos
 
