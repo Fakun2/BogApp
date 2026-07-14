@@ -9,6 +9,8 @@
     "build": "tsc -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:seed:rbac": "node prisma/seed-rbac.cjs",
+    "db:prepare": "prisma migrate deploy && npm run db:seed:rbac",
     "db:studio": "prisma studio",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"

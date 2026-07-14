@@ -8,8 +8,8 @@ import {
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { AuthenticatedRequest } from "../auth/auth.types";
-import { Roles } from "../auth/roles.decorator";
-import { RolesGuard } from "../auth/roles.guard";
+import { Permissions } from "../auth/permissions.decorator";
+import { PermissionsGuard } from "../auth/permissions.guard";
 import { ActiveTenant } from "../tenancy/active-tenant.decorator";
 import { TenantGuard } from "../tenancy/tenant.guard";
 import {
@@ -35,8 +35,8 @@ export class OnboardingController {
   @Get("status")
   @ApiBearerAuth()
   @ApiSecurity("tenant")
-  @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
-  @Roles("owner", "admin")
+  @UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
+  @Permissions("admin:access")
   @ApiOkResponse({ type: OnboardingStatusDto })
   status(@ActiveTenant() tenantId: string) {
     return this.onboardingService.status(tenantId);

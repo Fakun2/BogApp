@@ -1,9 +1,9 @@
 "use client";
 
 import { useTheme } from "@/lib/theme/theme-provider";
-import { CreateAccountMedia } from "./_components/create-account-media";
-import { CreateAccountPageShell } from "./_components/create-account-page-shell";
-import { CreateAccountPanel } from "./_components/create-account-panel";
+import { CreateAccountMedia } from "./_components/media/create-account-media";
+import { CreateAccountPageShell } from "./_components/layout/create-account-page-shell";
+import { CreateAccountPanel } from "./_components/layout/create-account-panel";
 import { CreateAccountCursorProvider } from "./_hooks/use-create-account-cursor";
 import { useCreateAccountForm } from "./_hooks/use-create-account-form";
 

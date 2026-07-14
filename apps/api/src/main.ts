@@ -3,14 +3,14 @@ import { NestFactory } from "@nestjs/core";
 import { ZodValidationPipe } from "nestjs-zod";
 import { AppModule } from "./app.module";
 import { setupOpenApi } from "./openapi.setup";
+import { createCorsOptions } from "./security/cors.config";
+import { createGlobalRateLimitMiddleware } from "./security/rate-limit.middleware";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("api");
-  app.enableCors({
-    origin: true,
-    credentials: true
-  });
+  app.enableCors(createCorsOptions());
+  app.use(createGlobalRateLimitMiddleware());
   app.useGlobalPipes(new ZodValidationPipe());
 
   setupOpenApi(app);

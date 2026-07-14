@@ -1,41 +1,44 @@
-type RequestConfig = {
-  url: string;
-  method: string;
-  headers?: HeadersInit;
-  data?: unknown;
-  params?: Record<string, unknown>;
-};
+export async function bogaapFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(toProxyApiPath(url), {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers
+    }
+  });
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost/api";
+  const text = await response.text();
+  const dataResponse = text ? JSON.parse(text) : {};
 
-export async function bogaapFetch<T>({
-  url,
-  method,
-  headers,
-  data,
-  params
-}: RequestConfig): Promise<T> {
-  const searchParams = new URLSearchParams();
+  if (!response.ok) {
+    throw new Error(getErrorMessage(dataResponse, response.status));
+  }
 
-  for (const [key, value] of Object.entries(params ?? {})) {
-    if (value !== undefined && value !== null) {
-      searchParams.set(key, String(value));
+  return {
+    data: dataResponse,
+    headers: response.headers,
+    status: response.status
+  } as T;
+}
+
+function toProxyApiPath(url: string) {
+  return `/api${url.replace(/^\/api/, "")}`;
+}
+
+function getErrorMessage(data: unknown, status: number) {
+  if (isErrorBody(data)) {
+    if (Array.isArray(data.message)) {
+      return data.message[0] ?? `BOGAP API request failed: ${status}`;
+    }
+
+    if (typeof data.message === "string" && data.message.trim()) {
+      return data.message;
     }
   }
 
-  const query = searchParams.toString();
-  const response = await fetch(`${apiBaseUrl}${url}${query ? `?${query}` : ""}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers
-    },
-    body: data === undefined ? undefined : JSON.stringify(data)
-  });
+  return `BOGAP API request failed: ${status}`;
+}
 
-  if (!response.ok) {
-    throw new Error(`BOGAP API request failed: ${response.status}`);
-  }
-
-  return response.json() as Promise<T>;
+function isErrorBody(value: unknown): value is { message?: string | string[] } {
+  return Boolean(value && typeof value === "object" && "message" in value);
 }

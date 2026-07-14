@@ -21,8 +21,16 @@ export function createOpenApiDocument(app: INestApplication) {
 }
 
 export function setupOpenApi(app: INestApplication) {
+  if (!shouldExposeOpenApi()) {
+    return;
+  }
+
   const document = createOpenApiDocument(app);
   SwaggerModule.setup("api/docs", app, document, {
     jsonDocumentUrl: "api/docs-json"
   });
+}
+
+function shouldExposeOpenApi() {
+  return process.env.NODE_ENV !== "production";
 }

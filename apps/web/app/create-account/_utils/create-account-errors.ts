@@ -1,11 +1,10 @@
 import { z } from "zod";
-import type { CreateAccountFormValues } from "@/lib/validation/auth";
 import type {
   CreateAccountFieldErrors,
   CreateAccountFieldName
 } from "../_types/create-account.types";
 
-export function toCreateAccountFieldErrors(error: z.ZodError<CreateAccountFormValues>) {
+export function toCreateAccountFieldErrors(error: z.ZodError) {
   return error.issues.reduce<CreateAccountFieldErrors>((accumulator, issue) => {
     const key = issue.path[0] as CreateAccountFieldName | undefined;
     if (key && !accumulator[key]) {

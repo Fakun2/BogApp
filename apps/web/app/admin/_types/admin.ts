@@ -1,0 +1,64 @@
+import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import type { PermissionMode } from "@/lib/auth/permissions";
+import type { BogaapSession } from "@/lib/auth/session";
+
+export type AdminSidebarVariant = "desktop" | "mobile";
+
+export type AdminNavItem = {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  permissionMode?: PermissionMode;
+  requiredPermissions?: string[];
+  status?: "ready" | "soon";
+};
+
+export type AdminNavSection = {
+  items: AdminNavItem[];
+  title: string;
+};
+
+export type AdminPageTitle = {
+  href: string;
+  title: string;
+};
+
+export type AdminHeaderProps = {
+  onOpenCommand: () => void;
+  onOpenMobileSidebar: () => void;
+  scrolled: boolean;
+  session: BogaapSession | null;
+};
+
+export type AdminMetric = {
+  detail: string;
+  icon: LucideIcon;
+  label: string;
+  value: string;
+};
+
+export type AdminQuickLink = {
+  description: string;
+  href: string;
+  label: string;
+};
+
+export type AdminCommandItem = {
+  href: string;
+  icon?: LucideIcon;
+  label: string;
+  permissionMode?: PermissionMode;
+  requiredPermissions?: string[];
+  shortcut?: string;
+  status?: "ready" | "soon";
+};
+
+export type AdminCommandSection = {
+  items: AdminCommandItem[];
+  title: string;
+};
+
+export type AdminShellProps = {
+  children: ReactNode;
+};

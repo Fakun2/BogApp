@@ -80,3 +80,14 @@ Decision: roadmap, milestones, labels, issues y templates quedan documentados en
 Motivo: permite trabajar por PRs pequenos y coordinados.
 
 Estado: aceptado.
+
+## ADR-010 - Frontend por feature modules y query global
+
+Decision: organizar pantallas complejas de `apps/web` como feature modules con
+`_api`, `_components`, `_hooks`, `_types`, `_constants` y `_utils`, y consumir
+datos del dashboard mediante `useDashboardQuery`.
+
+Motivo: separa UI de logica de negocio, centraliza tenant/auth/permisos para
+TanStack Query y mantiene componentes pequenos con un componente por archivo.
+
+Estado: aceptado.

@@ -16,7 +16,14 @@ import {
   onboardingLoadingTotalMs,
   onboardingSteps
 } from "../_constants/onboarding.constants";
-import { onboardingSchema, type OnboardingPayload } from "../_schemas/onboarding.schema";
+import {
+  onboardingFormSchema,
+  onboardingOwnerSchema,
+  onboardingTenantSchema,
+  onboardingWorkspaceSchema,
+  type OnboardingFormInput,
+  type OnboardingPayload
+} from "../_schemas/onboarding.schema";
 import type {
   OnboardingFormState,
   OnboardingResult,
@@ -65,7 +72,7 @@ export function useOnboardingFlow() {
 
     const defaultStudyName = makeStudyName(storedSession.user.fullName);
     setSession(storedSession);
-    void loadPracticeAreaTemplates(storedSession);
+    void loadPracticeAreaTemplates();
     setForm((current) => ({
       ...current,
       owner: {
@@ -74,8 +81,7 @@ export function useOnboardingFlow() {
       },
       tenant: {
         ...current.tenant,
-        name: current.tenant.name || defaultStudyName,
-        legalName: current.tenant.legalName || defaultStudyName
+        name: current.tenant.name || defaultStudyName
       }
     }));
     setSessionReady(true);
@@ -139,12 +145,12 @@ export function useOnboardingFlow() {
       !practiceAreaTemplatesLoading &&
       practiceAreaTemplates.length === 0
     ) {
-      void loadPracticeAreaTemplates(session);
+      void loadPracticeAreaTemplates();
     }
     clearStepError(2);
   }
 
-  function buildPayload(): OnboardingPayload {
+  function buildPayload(): OnboardingFormInput {
     return {
       owner: {
         fullName: form.owner.fullName,
@@ -164,9 +170,9 @@ export function useOnboardingFlow() {
   function validateStep(stepIndex: StepIndex) {
     const payload = buildPayload();
     const schemaByStep = [
-      onboardingSchema.shape.owner,
-      onboardingSchema.shape.tenant,
-      onboardingSchema.shape.workspace
+      onboardingOwnerSchema,
+      onboardingTenantSchema,
+      onboardingWorkspaceSchema
     ] as const;
     const dataByStep = [payload.owner, payload.tenant, payload.workspace] as const;
     const parsed = schemaByStep[stepIndex].safeParse(dataByStep[stepIndex]);
@@ -213,7 +219,7 @@ export function useOnboardingFlow() {
       return;
     }
 
-    const parsed = onboardingSchema.safeParse(buildPayload());
+    const parsed = onboardingFormSchema.safeParse(buildPayload());
     if (!parsed.success) {
       const errorStep = getStepFromIssue(parsed.error.issues[0]) ?? step;
       goToStep(errorStep);
@@ -227,7 +233,7 @@ export function useOnboardingFlow() {
     const transitionStartedAt = Date.now();
 
     try {
-      const response = await requestStartOnboarding(parsed.data, session);
+      const response = await requestStartOnboarding(parsed.data);
 
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { message?: string } | null;
@@ -235,14 +241,17 @@ export function useOnboardingFlow() {
       }
 
       const body = (await response.json()) as StartOnboardingResponse;
-      saveSession({
-        user: {
-          ...session.user,
-          fullName: parsed.data.owner.fullName,
-          email: parsed.data.owner.email
-        },
-        tokens: body.tokens
-      });
+      const refreshedSession = await fetchClientSession();
+      if (refreshedSession) {
+        saveSession({
+          ...refreshedSession,
+          user: {
+            ...refreshedSession.user,
+            fullName: parsed.data.owner.fullName,
+            email: parsed.data.owner.email
+          }
+        });
+      }
       setResult({ tenantId: body.tenantId, userId: body.userId });
       const elapsed = Date.now() - transitionStartedAt;
       await wait(Math.max(onboardingLoadingTotalMs - elapsed, 0));
@@ -291,12 +300,12 @@ export function useOnboardingFlow() {
     updateTenant
   };
 
-  async function loadPracticeAreaTemplates(activeSession: BogaapSession) {
+  async function loadPracticeAreaTemplates() {
     setPracticeAreaTemplatesLoading(true);
     setPracticeAreaTemplatesError(null);
 
     try {
-      const response = await requestPracticeAreaTemplates(activeSession);
+      const response = await requestPracticeAreaTemplates();
 
       if (!response.ok) {
         throw new Error(await getResponseErrorMessage(response));
@@ -313,32 +322,19 @@ export function useOnboardingFlow() {
     }
   }
 
-  async function requestPracticeAreaTemplates(activeSession: BogaapSession) {
-    const response = await fetchPracticeAreaTemplates(activeSession.tokens.accessToken);
+  async function requestPracticeAreaTemplates() {
+    const response = await fetchPracticeAreaTemplates();
 
-    if (response.status !== 401) {
-      return response;
-    }
-
-    const refreshedSession = await refreshSession(activeSession);
-    if (!refreshedSession) {
+    if (response.status === 401) {
       clearSession();
       router.replace("/login");
-      return response;
     }
 
-    setSession(refreshedSession);
-    saveSession(refreshedSession);
-
-    return fetchPracticeAreaTemplates(refreshedSession.tokens.accessToken);
+    return response;
   }
 
-  async function fetchPracticeAreaTemplates(accessToken: string) {
-    return fetch("/api/practice-area-templates", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    });
+  async function fetchPracticeAreaTemplates() {
+    return fetch("/api/practice-area-templates");
   }
 
   async function getResponseErrorMessage(response: Response) {
@@ -356,52 +352,26 @@ export function useOnboardingFlow() {
     return `No se pudieron cargar las areas reutilizables. (${response.status})`;
   }
 
-  async function requestStartOnboarding(payload: OnboardingPayload, activeSession: BogaapSession) {
-    const response = await startOnboardingRequest(payload, activeSession.tokens.accessToken);
-
-    if (response.status !== 401) {
-      return response;
-    }
-
-    const refreshedSession = await refreshSession(activeSession);
-    if (!refreshedSession) {
-      return response;
-    }
-
-    setSession(refreshedSession);
-    saveSession(refreshedSession);
-
-    return startOnboardingRequest(payload, refreshedSession.tokens.accessToken);
+  async function requestStartOnboarding(payload: OnboardingPayload) {
+    return startOnboardingRequest(payload);
   }
 
-  async function startOnboardingRequest(payload: OnboardingPayload, accessToken: string) {
+  async function startOnboardingRequest(payload: OnboardingPayload) {
     return fetch("/api/onboarding/start", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
     });
   }
 
-  async function refreshSession(activeSession: BogaapSession) {
-    const response = await fetch("/api/auth/refresh", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ refreshToken: activeSession.tokens.refreshToken })
-    });
-
+  async function fetchClientSession() {
+    const response = await fetch("/api/auth/session");
     if (!response.ok) {
       return null;
     }
 
-    const tokens = (await response.json()) as BogaapSession["tokens"];
-    return {
-      ...activeSession,
-      tokens
-    };
+    return (await response.json()) as BogaapSession;
   }
 }

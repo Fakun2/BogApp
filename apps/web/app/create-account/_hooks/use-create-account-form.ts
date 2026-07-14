@@ -64,10 +64,7 @@ export function useCreateAccountForm(): UseCreateAccountFormResult {
     const transitionStartedAt = Date.now();
 
     try {
-      const response = await authControllerCreateAccount({
-        ...parsed.data,
-        phone: undefined
-      });
+      const response = await authControllerCreateAccount(parsed.data);
 
       if (response.status !== 201) {
         throw new Error(getCreateAccountApiErrorMessage(response.data));

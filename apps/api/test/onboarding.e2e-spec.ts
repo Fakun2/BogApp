@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 import { OnboardingModule } from "../src/onboarding/onboarding.module";
 import { PrismaService } from "../src/database/prisma.service";
+import { DEFAULT_PRACTICE_AREA_TEMPLATES } from "../src/practice-area-templates/practice-area-template.constants";
 
 type StoredUser = {
   id: string;
@@ -20,7 +21,7 @@ type StoredUser = {
 type StoredTenant = {
   id: string;
   name: string;
-  legalName: string;
+  legalName: string | null;
   taxId: string;
   status: "active";
 };
@@ -243,21 +244,13 @@ class InMemoryPrismaService {
   }
 
   seedPracticeAreaTemplates() {
-    this.practiceAreaTemplates.set("laboral", {
-      id: "10000000-0000-0000-0000-000000000001",
-      code: "laboral",
-      name: "Laboral",
-      description: null,
-      active: true,
-      displayOrder: 10
-    });
-    this.practiceAreaTemplates.set("familia", {
-      id: "10000000-0000-0000-0000-000000000002",
-      code: "familia",
-      name: "Familia",
-      description: null,
-      active: true,
-      displayOrder: 20
+    DEFAULT_PRACTICE_AREA_TEMPLATES.forEach((template, index) => {
+      this.practiceAreaTemplates.set(template.code, {
+        id: `10000000-0000-0000-0000-${String(index + 101).padStart(12, "0")}`,
+        ...template,
+        description: null,
+        active: true
+      });
     });
   }
 
@@ -314,10 +307,11 @@ describe("Onboarding endpoints (e2e)", () => {
       .expect(401);
   });
 
-  it("creates a tenant and owner membership for the authenticated user", async () => {
+  it("creates a tenant and admin membership for the authenticated user", async () => {
     const accessToken = jwt.sign({
       sub: user.id,
       email: user.email,
+      sessionVersion: 0,
       tenantAccess: []
     });
 
@@ -328,24 +322,32 @@ describe("Onboarding endpoints (e2e)", () => {
       .expect(201);
 
     assert.equal(response.body.userId, user.id);
-    assert.equal(response.body.role, "owner");
+    assert.equal(response.body.role, "admin");
     assert.equal(typeof response.body.tenantId, "string");
     assert.equal(typeof response.body.tokens.accessToken, "string");
     assert.equal(typeof response.body.tokens.refreshToken, "string");
+    const issuedPayload = jwt.decode(response.body.tokens.accessToken) as {
+      tenantAccess: Array<{ permissions: string[]; role: string; tenantId: string }>;
+    };
+    assert.deepEqual(issuedPayload.tenantAccess[0]?.role, "admin");
+    assert.equal(issuedPayload.tenantAccess[0]?.tenantId, response.body.tenantId);
+    assert.ok(issuedPayload.tenantAccess[0]?.permissions.includes("admin:access"));
+    assert.ok(issuedPayload.tenantAccess[0]?.permissions.includes("staff:read"));
+    assert.ok(issuedPayload.tenantAccess[0]?.permissions.includes("staff:manage"));
     assert.equal(prisma.countUsers(), 1);
     assert.equal(prisma.countMemberships(), 1);
     assert.equal(prisma.countPracticeAreas(), 2);
     assert.deepEqual(prisma.getPracticeAreas(), [
       {
         tenantId: response.body.tenantId,
-        templateId: "10000000-0000-0000-0000-000000000001",
-        name: "Laboral",
+        templateId: "10000000-0000-0000-0000-000000000101",
+        name: "Derecho Civil",
         description: null
       },
       {
         tenantId: response.body.tenantId,
-        templateId: "10000000-0000-0000-0000-000000000002",
-        name: "Familia",
+        templateId: "10000000-0000-0000-0000-000000000102",
+        name: "Derecho de Familia",
         description: null
       }
     ]);
@@ -355,6 +357,7 @@ describe("Onboarding endpoints (e2e)", () => {
     const accessToken = jwt.sign({
       sub: user.id,
       email: user.email,
+      sessionVersion: 0,
       tenantAccess: []
     });
 
@@ -378,6 +381,7 @@ describe("Onboarding endpoints (e2e)", () => {
     const accessToken = jwt.sign({
       sub: user.id,
       email: user.email,
+      sessionVersion: 0,
       tenantAccess: []
     });
 
@@ -402,6 +406,7 @@ describe("Onboarding endpoints (e2e)", () => {
     const accessToken = jwt.sign({
       sub: user.id,
       email: user.email,
+      sessionVersion: 0,
       tenantAccess: []
     });
 
@@ -412,7 +417,7 @@ describe("Onboarding endpoints (e2e)", () => {
         ...makePayload(),
         workspace: {
           ...makePayload().workspace,
-          practiceAreaCodes: ["laboral", "fantasma"]
+          practiceAreaCodes: ["derecho-civil", "fantasma"]
         }
       })
       .expect(400);
@@ -432,7 +437,7 @@ function makePayload() {
       defaultCurrency: "ARS"
     },
     workspace: {
-      practiceAreaCodes: ["laboral", "familia"],
+      practiceAreaCodes: ["derecho-civil", "derecho-familia"],
       practiceAreas: [],
       defaultRoleForInvites: "lawyer",
       caseNumberingMode: "manual",

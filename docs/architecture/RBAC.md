@@ -14,17 +14,34 @@ RBAC se resuelve por tenant mediante `tenant_memberships`.
 ## Permisos actuales en codigo
 
 - `tenants:manage`
+- `staff:read`
+- `staff:create`
+- `staff:update`
+- `staff:delete`
+- `staff:manage`
 - `users:manage`
 - `roles:manage`
 - `clients:read`
+- `clients:create`
+- `clients:update`
+- `clients:delete`
 - `clients:write`
 - `cases:read`
+- `cases:create`
+- `cases:update`
+- `cases:delete`
 - `cases:write`
 - `documents:read`
 - `documents:write`
 - `tasks:read`
+- `tasks:create`
+- `tasks:update`
+- `tasks:delete`
 - `tasks:write`
 - `finance:read`
+- `finance:create`
+- `finance:update`
+- `finance:delete`
 - `finance:write`
 - `billing:manage`
 
@@ -63,7 +80,12 @@ Puede ver informacion autorizada. No crea, edita ni elimina.
 
 ## Estado actual
 
-- Roles y permisos estan definidos en `apps/api/src/rbac/rbac.constants.ts`.
+- Permisos se persisten como catalogo global en `permissions`.
+- Roles de sistema viven en `roles` con `tenant_id = null`.
+- Roles custom viven en `roles` con `tenant_id` del estudio activo.
+- `roles.active` indica si un rol esta disponible para nuevas asignaciones.
+- Si un rol custom se desactiva o elimina, las membresias asociadas quedan con
+  `role_id = null` mediante un evento interno idempotente.
 - `OnboardingService.start` upsertea permisos, roles y relaciones.
 - `RolesGuard` valida rol requerido contra `request.user.tenantAccess`.
 - `PermissionsGuard` valida permisos requeridos contra `request.user.tenantAccess`.

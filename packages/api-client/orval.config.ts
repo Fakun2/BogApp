@@ -10,7 +10,13 @@ export default defineConfig({
       target: "src/generated/bogaap-api.ts",
       client: "fetch",
       prettier: true,
-      clean: true
+      clean: false,
+      override: {
+        mutator: {
+          path: "./src/fetch-client.ts",
+          name: "bogaapFetch"
+        }
+      }
     }
   }
 });

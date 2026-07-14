@@ -3,8 +3,8 @@
 import { Suspense } from "react";
 import { RouteRevealTransition } from "@/components/transitions/route-reveal-transition";
 import { useTheme } from "@/lib/theme/theme-provider";
-import { LoginForm } from "./_components/login-form";
-import { LoginPageShell } from "./_components/login-page-shell";
+import { LoginForm } from "./_components/form/login-form";
+import { LoginPageShell } from "./_components/layout/login-page-shell";
 import { loginArrivalRevealMs, useLoginArrivalReveal } from "./_hooks/use-login-arrival-reveal";
 
 export default function LoginPage() {

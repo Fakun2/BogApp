@@ -1,8 +1,8 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { Roles } from "../auth/roles.decorator";
-import { RolesGuard } from "../auth/roles.guard";
+import { Permissions } from "../auth/permissions.decorator";
+import { PermissionsGuard } from "../auth/permissions.guard";
 import { ActiveTenant } from "../tenancy/active-tenant.decorator";
 import { TenantGuard } from "../tenancy/tenant.guard";
 
@@ -10,10 +10,10 @@ import { TenantGuard } from "../tenancy/tenant.guard";
 @ApiBearerAuth()
 @ApiSecurity("tenant")
 @Controller("identity")
-@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
 export class IdentityController {
   @Get("me")
-  @Roles("owner", "admin", "lawyer", "paralegal", "accounting", "viewer")
+  @Permissions("admin:access")
   me(@ActiveTenant() tenantId: string) {
     return {
       tenantId,
@@ -22,7 +22,7 @@ export class IdentityController {
   }
 
   @Get("roles")
-  @Roles("owner", "admin")
+  @Permissions("admin:access")
   roles() {
     return {
       roles: ["owner", "admin", "lawyer", "paralegal", "accounting", "viewer"]

@@ -9,6 +9,10 @@ const optionalUrlSchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().url().optional()
 );
+const optionalStringSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().trim().min(2).optional()
+);
 
 export const startOnboardingSchema = z.object({
   owner: z
@@ -19,7 +23,7 @@ export const startOnboardingSchema = z.object({
     .optional(),
   tenant: z.object({
     name: z.string().min(2),
-    legalName: z.string().min(2),
+    legalName: optionalStringSchema,
     taxId: z
       .string()
       .regex(/^\d{11}$/, "El CUIT/CUIL debe tener exactamente 11 dígitos numéricos."),
@@ -44,37 +48,89 @@ export const startOnboardingSchema = z.object({
   })
 });
 
+export class StartOnboardingOwnerDto {
+  @ApiProperty({ example: "Mateo Alvarez" })
+  fullName!: string;
+
+  @ApiProperty({ example: "mateo@estudio.com" })
+  email!: string;
+}
+
+export class StartOnboardingTenantDto {
+  @ApiProperty({ example: "Estudio Alvarez" })
+  name!: string;
+
+  @ApiProperty({ required: false, example: "Estudio Juridico Alvarez" })
+  legalName?: string;
+
+  @ApiProperty({ example: "20123456789" })
+  taxId!: string;
+
+  @ApiProperty({ example: "Argentina" })
+  country!: string;
+
+  @ApiProperty({ example: "Tucuman" })
+  province!: string;
+
+  @ApiProperty({ example: "San Miguel de Tucuman" })
+  city!: string;
+
+  @ApiProperty({ example: "America/Argentina/Buenos_Aires" })
+  timezone!: string;
+
+  @ApiProperty({ example: "ARS" })
+  defaultCurrency!: string;
+
+  @ApiProperty({ required: false, example: "Calle 25 de Mayo 123" })
+  address?: string;
+
+  @ApiProperty({ required: false, example: "https://estudio.com" })
+  website?: string;
+
+  @ApiProperty({ required: false, example: "https://estudio.com/logo.png" })
+  logoUrl?: string;
+
+  @ApiProperty({ required: false, example: "small" })
+  size?: string;
+
+  @ApiProperty({ required: false, type: [String], example: ["derecho-civil", "derecho-familia"] })
+  mainPracticeAreas?: string[];
+
+  @ApiProperty({ required: false, example: "referido" })
+  referralSource?: string;
+}
+
+export class StartOnboardingWorkspaceDto {
+  @ApiProperty({ required: false, type: [String], example: ["derecho-civil", "derecho-familia"] })
+  practiceAreaCodes?: string[];
+
+  @ApiProperty({ required: false, type: [String], example: ["Derecho Civil"] })
+  practiceAreas?: string[];
+
+  @ApiProperty({ required: false, enum: ["admin", "lawyer", "paralegal", "accounting", "viewer"] })
+  defaultRoleForInvites?: z.infer<typeof roleCodeSchema>;
+
+  @ApiProperty({ required: false, enum: ["manual", "automatic"] })
+  caseNumberingMode?: z.infer<typeof caseNumberingModeSchema>;
+
+  @ApiProperty({ required: false, enum: ["local", "s3"] })
+  documentStorageMode?: z.infer<typeof documentStorageModeSchema>;
+}
+
 export class StartOnboardingDto extends createZodDto(startOnboardingSchema) {
   @ApiProperty({
     required: false,
-    example: {
-      fullName: "Mateo Alvarez",
-      email: "mateo@estudio.com"
-    }
+    type: StartOnboardingOwnerDto
   })
   owner?: z.infer<typeof startOnboardingSchema>["owner"];
 
   @ApiProperty({
-    example: {
-      name: "Estudio Alvarez",
-      legalName: "Estudio Juridico Alvarez",
-      taxId: "20123456789",
-      country: "Argentina",
-      province: "Tucuman",
-      city: "San Miguel de Tucuman",
-      timezone: "America/Argentina/Buenos_Aires",
-      defaultCurrency: "ARS"
-    }
+    type: StartOnboardingTenantDto
   })
   tenant!: z.infer<typeof startOnboardingSchema>["tenant"];
 
   @ApiProperty({
-    example: {
-      practiceAreaCodes: ["laboral", "familia"],
-      defaultRoleForInvites: "lawyer",
-      caseNumberingMode: "manual",
-      documentStorageMode: "local"
-    }
+    type: StartOnboardingWorkspaceDto
   })
   workspace!: z.infer<typeof startOnboardingSchema>["workspace"];
 }
@@ -97,7 +153,7 @@ export class StartOnboardingResponseDto {
   @ApiProperty()
   tenantId!: string;
 
-  @ApiProperty({ example: "owner" })
+  @ApiProperty({ example: "admin" })
   role!: string;
 
   @ApiProperty({ type: OnboardingTokenDto })

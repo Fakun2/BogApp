@@ -8,9 +8,9 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { compare, hash } from "bcryptjs";
 import { PrismaService } from "../database/prisma.service";
-import { LoginDto, CreateAccountDto } from "./auth.schemas";
-import { JwtPayload } from "./auth.types";
 import { RbacService } from "../rbac/rbac.service";
+import { CreateAccountDto, LoginDto } from "./auth.schemas";
+import { JwtPayload } from "./auth.types";
 
 @Injectable()
 export class AuthService {
@@ -52,20 +52,23 @@ export class AuthService {
       where: { email }
     });
 
-    if (!user || user.status !== "active") {
-      throw new UnauthorizedException("Email o contraseña inválidos.");
+    if (!user) {
+      throw new UnauthorizedException("Email o contrasena invalidos.");
+    }
+
+    if (user.status !== "active") {
+      throw new ForbiddenException("Esta cuenta se encuentra suspendida.");
     }
 
     const passwordMatches = await compare(input.password, user.passwordHash);
     if (!passwordMatches) {
-      throw new UnauthorizedException("Email o contraseña inválidos.");
+      throw new UnauthorizedException("Email o contrasena invalidos.");
     }
 
     const memberships = await this.prisma.tenantMembership.findMany({
       where: {
         userId: user.id,
-        status: "active",
-        tenantId: input.tenantId
+        ...(input.tenantId ? { tenantId: input.tenantId } : {})
       },
       include: {
         role: true,
@@ -74,7 +77,18 @@ export class AuthService {
     });
 
     if (input.tenantId && memberships.length === 0) {
-      throw new ForbiddenException("No tenés acceso activo a ese estudio.");
+      throw new ForbiddenException("No tenes acceso activo a ese estudio.");
+    }
+
+    const activeTenantMemberships = memberships.filter(
+      (membership) => membership.tenant.status === "active" && membership.status === "active"
+    );
+    const hasSuspendedMembership = memberships.some(
+      (membership) => membership.tenant.status === "active" && membership.status === "suspended"
+    );
+
+    if (activeTenantMemberships.length === 0 && hasSuspendedMembership) {
+      throw new ForbiddenException("Esta cuenta se encuentra suspendida para este estudio.");
     }
 
     await this.prisma.user.update({
@@ -82,16 +96,21 @@ export class AuthService {
       data: { lastLoginAt: new Date() }
     });
 
+    const tenantAccess = await Promise.all(
+      activeTenantMemberships.map(async (membership) => ({
+        tenantId: membership.tenantId,
+        role: membership.role?.code ?? null,
+        permissions: membership.role
+          ? await this.rbacService.getPermissionsForRole(membership.role.code)
+          : []
+      }))
+    );
+
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      tenantAccess: memberships
-        .filter((membership) => membership.tenant.status === "active")
-        .map((membership) => ({
-          tenantId: membership.tenantId,
-          role: membership.role.code,
-          permissions: this.rbacService.getPermissionsForRole(membership.role.code)
-        }))
+      sessionVersion: await this.getUserSessionVersion(user.id),
+      tenantAccess
     };
 
     return {
@@ -104,6 +123,8 @@ export class AuthService {
     const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
       secret: this.config.get<string>("JWT_REFRESH_SECRET") ?? "dev-refresh-secret-change-me"
     });
+
+    await this.assertSessionIsValid(payload);
 
     return this.issueTokens(payload);
   }
@@ -136,5 +157,39 @@ export class AuthService {
       phone: user.phone,
       status: user.status
     };
+  }
+
+  private async assertSessionIsValid(payload: JwtPayload) {
+    const user = await this.getUserSessionState(payload.sub);
+
+    if (
+      !user ||
+      user.status !== "active" ||
+      user.sessionVersion !== payload.sessionVersion
+    ) {
+      throw new UnauthorizedException("Sesion invalida.");
+    }
+  }
+
+  private async getUserSessionVersion(userId: string) {
+    const [user] = await this.prisma.$queryRaw<Array<{ sessionVersion: number }>>`
+      SELECT "session_version" AS "sessionVersion"
+      FROM "users"
+      WHERE "id" = ${userId}::uuid
+      LIMIT 1
+    `;
+
+    return user?.sessionVersion ?? 0;
+  }
+
+  private async getUserSessionState(userId: string) {
+    const [user] = await this.prisma.$queryRaw<Array<{ sessionVersion: number; status: string }>>`
+      SELECT "session_version" AS "sessionVersion", "status"
+      FROM "users"
+      WHERE "id" = ${userId}::uuid
+      LIMIT 1
+    `;
+
+    return user ?? null;
   }
 }

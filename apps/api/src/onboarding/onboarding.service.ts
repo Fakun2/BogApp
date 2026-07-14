@@ -73,11 +73,13 @@ export class OnboardingService {
         const savedRole = await tx.role.upsert({
           where: { code: role.code },
           update: {
+            description: role.description,
             name: role.name,
             isSystem: true
           },
           create: {
             code: role.code,
+            description: role.description,
             name: role.name,
             isSystem: true
           }
@@ -104,8 +106,8 @@ export class OnboardingService {
         }
       }
 
-      const ownerRole = await tx.role.findUniqueOrThrow({
-        where: { code: "owner" }
+      const adminRole = await tx.role.findUniqueOrThrow({
+        where: { code: "admin" }
       });
 
       const user = input.owner
@@ -192,7 +194,7 @@ export class OnboardingService {
         data: {
           tenantId: tenant.id,
           userId: user.id,
-          roleId: ownerRole.id,
+          roleId: adminRole.id,
           status: "active",
           joinedAt: new Date()
         }
@@ -204,11 +206,12 @@ export class OnboardingService {
     const payload: JwtPayload = {
       sub: result.user.id,
       email: result.user.email,
+      sessionVersion: await this.getUserSessionVersion(result.user.id),
       tenantAccess: [
         {
           tenantId: result.tenant.id,
-          role: "owner",
-          permissions: this.rbacService.getPermissionsForRole("owner")
+          role: "admin",
+          permissions: await this.rbacService.getPermissionsForRole("admin")
         }
       ]
     };
@@ -216,7 +219,7 @@ export class OnboardingService {
     return {
       userId: result.user.id,
       tenantId: result.tenant.id,
-      role: "owner",
+      role: "admin",
       tokens: await this.authService.issueTokens(payload)
     };
   }
@@ -261,5 +264,16 @@ export class OnboardingService {
       hasFirstDocument: false,
       missingSteps
     };
+  }
+
+  private async getUserSessionVersion(userId: string) {
+    const [user] = await this.prisma.$queryRaw<Array<{ sessionVersion: number }>>`
+      SELECT "session_version" AS "sessionVersion"
+      FROM "users"
+      WHERE "id" = ${userId}::uuid
+      LIMIT 1
+    `;
+
+    return user?.sessionVersion ?? 0;
   }
 }

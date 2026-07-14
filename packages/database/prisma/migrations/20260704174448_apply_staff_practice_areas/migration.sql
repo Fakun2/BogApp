@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "tenant_membership_practice_areas_tenant_membership_id_practice_" RENAME TO "tenant_membership_practice_areas_tenant_membership_id_pract_key";

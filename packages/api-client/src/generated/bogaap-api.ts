@@ -5,6 +5,7 @@
  * API del monolito modular BOGAP.
  * OpenAPI spec version: 0.1.0
  */
+import { bogaapFetch } from "../fetch-client";
 export interface CreateAccountDto {
   fullName: string;
   email: string;
@@ -67,21 +68,111 @@ export interface PermissionDto {
 }
 
 export interface RoleDto {
+  id: string;
+  active: boolean;
   code: string;
   name: string;
+  /** @nullable */
+  description: string | null;
+  isSystem: boolean;
+  /** @nullable */
+  tenantId: string | null;
   permissions: string[];
 }
 
-export type StartOnboardingDtoOwner = { [key: string]: unknown };
+export interface CreateRoleDto {
+  name: string;
+  description: string;
+  active?: boolean;
+  permissions: string[];
+}
 
-export type StartOnboardingDtoTenant = { [key: string]: unknown };
+export interface UpdateRoleDto {
+  name?: string;
+  description?: string;
+  active?: boolean;
+  permissions?: string[];
+}
 
-export type StartOnboardingDtoWorkspace = { [key: string]: unknown };
+/**
+ * @nullable
+ */
+export type PracticeAreaTemplateDtoDescription = { [key: string]: unknown } | null;
+
+export interface PracticeAreaTemplateDto {
+  id: string;
+  code: string;
+  name: string;
+  /** @nullable */
+  description?: PracticeAreaTemplateDtoDescription;
+  active: boolean;
+  displayOrder: number;
+}
+
+export interface StartOnboardingOwnerDto {
+  fullName: string;
+  email: string;
+}
+
+export interface StartOnboardingTenantDto {
+  name: string;
+  legalName?: string;
+  taxId: string;
+  country: string;
+  province: string;
+  city: string;
+  timezone: string;
+  defaultCurrency: string;
+  address?: string;
+  website?: string;
+  logoUrl?: string;
+  size?: string;
+  mainPracticeAreas?: string[];
+  referralSource?: string;
+}
+
+export type StartOnboardingWorkspaceDtoDefaultRoleForInvites =
+  (typeof StartOnboardingWorkspaceDtoDefaultRoleForInvites)[keyof typeof StartOnboardingWorkspaceDtoDefaultRoleForInvites];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StartOnboardingWorkspaceDtoDefaultRoleForInvites = {
+  admin: "admin",
+  lawyer: "lawyer",
+  paralegal: "paralegal",
+  accounting: "accounting",
+  viewer: "viewer"
+} as const;
+
+export type StartOnboardingWorkspaceDtoCaseNumberingMode =
+  (typeof StartOnboardingWorkspaceDtoCaseNumberingMode)[keyof typeof StartOnboardingWorkspaceDtoCaseNumberingMode];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StartOnboardingWorkspaceDtoCaseNumberingMode = {
+  manual: "manual",
+  automatic: "automatic"
+} as const;
+
+export type StartOnboardingWorkspaceDtoDocumentStorageMode =
+  (typeof StartOnboardingWorkspaceDtoDocumentStorageMode)[keyof typeof StartOnboardingWorkspaceDtoDocumentStorageMode];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StartOnboardingWorkspaceDtoDocumentStorageMode = {
+  local: "local",
+  s3: "s3"
+} as const;
+
+export interface StartOnboardingWorkspaceDto {
+  practiceAreaCodes?: string[];
+  practiceAreas?: string[];
+  defaultRoleForInvites?: StartOnboardingWorkspaceDtoDefaultRoleForInvites;
+  caseNumberingMode?: StartOnboardingWorkspaceDtoCaseNumberingMode;
+  documentStorageMode?: StartOnboardingWorkspaceDtoDocumentStorageMode;
+}
 
 export interface StartOnboardingDto {
-  owner?: StartOnboardingDtoOwner;
-  tenant: StartOnboardingDtoTenant;
-  workspace: StartOnboardingDtoWorkspace;
+  owner?: StartOnboardingOwnerDto;
+  tenant: StartOnboardingTenantDto;
+  workspace: StartOnboardingWorkspaceDto;
 }
 
 export interface OnboardingTokenDto {
@@ -109,6 +200,237 @@ export interface OnboardingStatusDto {
   missingSteps: string[];
 }
 
+export interface StaffRoleOptionDto {
+  code: string;
+  name: string;
+  /** @nullable */
+  description: string | null;
+}
+
+export interface StaffPracticeAreaDto {
+  id: string;
+  name: string;
+  /** @nullable */
+  description: string | null;
+  /** @nullable */
+  templateCode: string | null;
+  custom: boolean;
+}
+
+/**
+ * @nullable
+ */
+export type StaffWorkerDtoRole = StaffRoleOptionDto | null;
+
+export type StaffWorkerDtoStatus = (typeof StaffWorkerDtoStatus)[keyof typeof StaffWorkerDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StaffWorkerDtoStatus = {
+  active: "active",
+  invited: "invited",
+  suspended: "suspended"
+} as const;
+
+export interface StaffWorkerDto {
+  id: string;
+  userId: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** @nullable */
+  dni: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  role: StaffWorkerDtoRole;
+  status: StaffWorkerDtoStatus;
+  practiceAreas: StaffPracticeAreaDto[];
+}
+
+export interface StaffMetricsDto {
+  totalWorkers: number;
+  activeWorkers: number;
+  practiceAreasCount: number;
+}
+
+export type StaffStatusOptionDtoValue =
+  (typeof StaffStatusOptionDtoValue)[keyof typeof StaffStatusOptionDtoValue];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StaffStatusOptionDtoValue = {
+  active: "active",
+  invited: "invited",
+  suspended: "suspended"
+} as const;
+
+export interface StaffStatusOptionDto {
+  value: StaffStatusOptionDtoValue;
+  label: string;
+}
+
+export interface StaffFilterOptionsDto {
+  practiceAreas: StaffPracticeAreaDto[];
+  roles: StaffRoleOptionDto[];
+  statuses: StaffStatusOptionDto[];
+}
+
+export interface StaffPageInfoDto {
+  limit: number;
+  /** @nullable */
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
+export interface StaffListResponseDto {
+  workers: StaffWorkerDto[];
+  metrics: StaffMetricsDto;
+  filterOptions: StaffFilterOptionsDto;
+  pageInfo: StaffPageInfoDto;
+}
+
+export type CreateStaffDtoStatus = (typeof CreateStaffDtoStatus)[keyof typeof CreateStaffDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CreateStaffDtoStatus = {
+  active: "active",
+  suspended: "suspended"
+} as const;
+
+export interface CreateStaffDto {
+  /**
+   * @minLength 3
+   * @maxLength 40
+   */
+  firstName: string;
+  /**
+   * @minLength 3
+   * @maxLength 40
+   */
+  lastName: string;
+  /**
+   * @minLength 7
+   * @maxLength 8
+   */
+  dni: string;
+  email: string;
+  /**
+   * @minLength 8
+   * @maxLength 72
+   */
+  password: string;
+  role: string;
+  status?: CreateStaffDtoStatus;
+  practiceAreaIds?: string[];
+  phone?: string;
+  avatarUrl?: string;
+}
+
+/**
+ * @nullable
+ */
+export type StaffCreateResponseDtoRole = StaffRoleOptionDto | null;
+
+export type StaffCreateResponseDtoStatus =
+  (typeof StaffCreateResponseDtoStatus)[keyof typeof StaffCreateResponseDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StaffCreateResponseDtoStatus = {
+  active: "active",
+  invited: "invited",
+  suspended: "suspended"
+} as const;
+
+export interface StaffCreateResponseDto {
+  id: string;
+  userId: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** @nullable */
+  dni: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  role: StaffCreateResponseDtoRole;
+  status: StaffCreateResponseDtoStatus;
+  practiceAreas: StaffPracticeAreaDto[];
+}
+
+export type UpdateStaffDtoStatus = (typeof UpdateStaffDtoStatus)[keyof typeof UpdateStaffDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateStaffDtoStatus = {
+  active: "active",
+  suspended: "suspended"
+} as const;
+
+export interface UpdateStaffDto {
+  /**
+   * @minLength 3
+   * @maxLength 40
+   */
+  firstName: string;
+  /**
+   * @minLength 3
+   * @maxLength 40
+   */
+  lastName: string;
+  /**
+   * @minLength 7
+   * @maxLength 8
+   */
+  dni: string;
+  email: string;
+  /**
+   * @minLength 8
+   * @maxLength 72
+   */
+  password?: string;
+  role: string;
+  status?: UpdateStaffDtoStatus;
+  practiceAreaIds?: string[];
+  phone?: string;
+  avatarUrl?: string;
+}
+
+/**
+ * @nullable
+ */
+export type StaffUpdateResponseDtoRole = StaffRoleOptionDto | null;
+
+export type StaffUpdateResponseDtoStatus =
+  (typeof StaffUpdateResponseDtoStatus)[keyof typeof StaffUpdateResponseDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StaffUpdateResponseDtoStatus = {
+  active: "active",
+  invited: "invited",
+  suspended: "suspended"
+} as const;
+
+export interface StaffUpdateResponseDto {
+  id: string;
+  userId: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** @nullable */
+  dni: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  role: StaffUpdateResponseDtoRole;
+  status: StaffUpdateResponseDtoStatus;
+  practiceAreas: StaffPracticeAreaDto[];
+}
+
+export interface StaffDeleteResponseDto {
+  status: string;
+}
+
 export type authControllerCreateAccountResponse201 = {
   data: CreateAccountResponseDto;
   status: 201;
@@ -127,17 +449,12 @@ export const authControllerCreateAccount = async (
   createAccountDto: CreateAccountDto,
   options?: RequestInit
 ): Promise<authControllerCreateAccountResponse> => {
-  const res = await fetch(getAuthControllerCreateAccountUrl(), {
+  return bogaapFetch<authControllerCreateAccountResponse>(getAuthControllerCreateAccountUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(createAccountDto)
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: authControllerCreateAccountResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as authControllerCreateAccountResponse;
 };
 
 export type authControllerLoginResponse200 = {
@@ -158,17 +475,12 @@ export const authControllerLogin = async (
   loginDto: LoginDto,
   options?: RequestInit
 ): Promise<authControllerLoginResponse> => {
-  const res = await fetch(getAuthControllerLoginUrl(), {
+  return bogaapFetch<authControllerLoginResponse>(getAuthControllerLoginUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(loginDto)
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: authControllerLoginResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as authControllerLoginResponse;
 };
 
 export type authControllerRefreshResponse201 = {
@@ -189,17 +501,12 @@ export const authControllerRefresh = async (
   refreshTokenDto: RefreshTokenDto,
   options?: RequestInit
 ): Promise<authControllerRefreshResponse> => {
-  const res = await fetch(getAuthControllerRefreshUrl(), {
+  return bogaapFetch<authControllerRefreshResponse>(getAuthControllerRefreshUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(refreshTokenDto)
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: authControllerRefreshResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as authControllerRefreshResponse;
 };
 
 export type authControllerLogoutResponse200 = {
@@ -219,15 +526,10 @@ export const getAuthControllerLogoutUrl = () => {
 export const authControllerLogout = async (
   options?: RequestInit
 ): Promise<authControllerLogoutResponse> => {
-  const res = await fetch(getAuthControllerLogoutUrl(), {
+  return bogaapFetch<authControllerLogoutResponse>(getAuthControllerLogoutUrl(), {
     ...options,
     method: "POST"
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: authControllerLogoutResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as authControllerLogoutResponse;
 };
 
 export type rbacControllerPermissionsResponse200 = {
@@ -247,15 +549,10 @@ export const getRbacControllerPermissionsUrl = () => {
 export const rbacControllerPermissions = async (
   options?: RequestInit
 ): Promise<rbacControllerPermissionsResponse> => {
-  const res = await fetch(getRbacControllerPermissionsUrl(), {
+  return bogaapFetch<rbacControllerPermissionsResponse>(getRbacControllerPermissionsUrl(), {
     ...options,
     method: "GET"
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: rbacControllerPermissionsResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as rbacControllerPermissionsResponse;
 };
 
 export type rbacControllerRolesResponse200 = {
@@ -275,15 +572,115 @@ export const getRbacControllerRolesUrl = () => {
 export const rbacControllerRoles = async (
   options?: RequestInit
 ): Promise<rbacControllerRolesResponse> => {
-  const res = await fetch(getRbacControllerRolesUrl(), {
+  return bogaapFetch<rbacControllerRolesResponse>(getRbacControllerRolesUrl(), {
     ...options,
     method: "GET"
   });
+};
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+export type rbacControllerCreateRoleResponse201 = {
+  data: RoleDto;
+  status: 201;
+};
 
-  const data: rbacControllerRolesResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as rbacControllerRolesResponse;
+export type rbacControllerCreateRoleResponseSuccess = rbacControllerCreateRoleResponse201 & {
+  headers: Headers;
+};
+export type rbacControllerCreateRoleResponse = rbacControllerCreateRoleResponseSuccess;
+
+export const getRbacControllerCreateRoleUrl = () => {
+  return `/api/rbac/roles`;
+};
+
+export const rbacControllerCreateRole = async (
+  createRoleDto: CreateRoleDto,
+  options?: RequestInit
+): Promise<rbacControllerCreateRoleResponse> => {
+  return bogaapFetch<rbacControllerCreateRoleResponse>(getRbacControllerCreateRoleUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createRoleDto)
+  });
+};
+
+export type rbacControllerUpdateRoleResponse200 = {
+  data: RoleDto;
+  status: 200;
+};
+
+export type rbacControllerUpdateRoleResponseSuccess = rbacControllerUpdateRoleResponse200 & {
+  headers: Headers;
+};
+export type rbacControllerUpdateRoleResponse = rbacControllerUpdateRoleResponseSuccess;
+
+export const getRbacControllerUpdateRoleUrl = (id: string) => {
+  return `/api/rbac/roles/${id}`;
+};
+
+export const rbacControllerUpdateRole = async (
+  id: string,
+  updateRoleDto: UpdateRoleDto,
+  options?: RequestInit
+): Promise<rbacControllerUpdateRoleResponse> => {
+  return bogaapFetch<rbacControllerUpdateRoleResponse>(getRbacControllerUpdateRoleUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateRoleDto)
+  });
+};
+
+export type rbacControllerDeleteRoleResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type rbacControllerDeleteRoleResponseSuccess = rbacControllerDeleteRoleResponse200 & {
+  headers: Headers;
+};
+export type rbacControllerDeleteRoleResponse = rbacControllerDeleteRoleResponseSuccess;
+
+export const getRbacControllerDeleteRoleUrl = (id: string) => {
+  return `/api/rbac/roles/${id}`;
+};
+
+export const rbacControllerDeleteRole = async (
+  id: string,
+  options?: RequestInit
+): Promise<rbacControllerDeleteRoleResponse> => {
+  return bogaapFetch<rbacControllerDeleteRoleResponse>(getRbacControllerDeleteRoleUrl(id), {
+    ...options,
+    method: "DELETE"
+  });
+};
+
+export type practiceAreaTemplatesControllerListResponse200 = {
+  data: PracticeAreaTemplateDto[];
+  status: 200;
+};
+
+export type practiceAreaTemplatesControllerListResponseSuccess =
+  practiceAreaTemplatesControllerListResponse200 & {
+    headers: Headers;
+  };
+export type practiceAreaTemplatesControllerListResponse =
+  practiceAreaTemplatesControllerListResponseSuccess;
+
+export const getPracticeAreaTemplatesControllerListUrl = () => {
+  return `/api/practice-area-templates`;
+};
+
+export const practiceAreaTemplatesControllerList = async (
+  options?: RequestInit
+): Promise<practiceAreaTemplatesControllerListResponse> => {
+  return bogaapFetch<practiceAreaTemplatesControllerListResponse>(
+    getPracticeAreaTemplatesControllerListUrl(),
+    {
+      ...options,
+      method: "GET"
+    }
+  );
 };
 
 export type onboardingControllerStartResponse201 = {
@@ -304,17 +701,12 @@ export const onboardingControllerStart = async (
   startOnboardingDto: StartOnboardingDto,
   options?: RequestInit
 ): Promise<onboardingControllerStartResponse> => {
-  const res = await fetch(getOnboardingControllerStartUrl(), {
+  return bogaapFetch<onboardingControllerStartResponse>(getOnboardingControllerStartUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(startOnboardingDto)
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: onboardingControllerStartResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as onboardingControllerStartResponse;
 };
 
 export type onboardingControllerStatusResponse200 = {
@@ -334,15 +726,10 @@ export const getOnboardingControllerStatusUrl = () => {
 export const onboardingControllerStatus = async (
   options?: RequestInit
 ): Promise<onboardingControllerStatusResponse> => {
-  const res = await fetch(getOnboardingControllerStatusUrl(), {
+  return bogaapFetch<onboardingControllerStatusResponse>(getOnboardingControllerStatusUrl(), {
     ...options,
     method: "GET"
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: onboardingControllerStatusResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as onboardingControllerStatusResponse;
 };
 
 export type identityControllerMeResponse200 = {
@@ -362,15 +749,10 @@ export const getIdentityControllerMeUrl = () => {
 export const identityControllerMe = async (
   options?: RequestInit
 ): Promise<identityControllerMeResponse> => {
-  const res = await fetch(getIdentityControllerMeUrl(), {
+  return bogaapFetch<identityControllerMeResponse>(getIdentityControllerMeUrl(), {
     ...options,
     method: "GET"
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: identityControllerMeResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as identityControllerMeResponse;
 };
 
 export type identityControllerRolesResponse200 = {
@@ -390,15 +772,110 @@ export const getIdentityControllerRolesUrl = () => {
 export const identityControllerRoles = async (
   options?: RequestInit
 ): Promise<identityControllerRolesResponse> => {
-  const res = await fetch(getIdentityControllerRolesUrl(), {
+  return bogaapFetch<identityControllerRolesResponse>(getIdentityControllerRolesUrl(), {
     ...options,
     method: "GET"
   });
+};
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+export type staffControllerListResponse200 = {
+  data: StaffListResponseDto;
+  status: 200;
+};
 
-  const data: identityControllerRolesResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as identityControllerRolesResponse;
+export type staffControllerListResponseSuccess = staffControllerListResponse200 & {
+  headers: Headers;
+};
+export type staffControllerListResponse = staffControllerListResponseSuccess;
+
+export const getStaffControllerListUrl = () => {
+  return `/api/staff`;
+};
+
+export const staffControllerList = async (
+  options?: RequestInit
+): Promise<staffControllerListResponse> => {
+  return bogaapFetch<staffControllerListResponse>(getStaffControllerListUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type staffControllerCreateResponse201 = {
+  data: StaffCreateResponseDto;
+  status: 201;
+};
+
+export type staffControllerCreateResponseSuccess = staffControllerCreateResponse201 & {
+  headers: Headers;
+};
+export type staffControllerCreateResponse = staffControllerCreateResponseSuccess;
+
+export const getStaffControllerCreateUrl = () => {
+  return `/api/staff`;
+};
+
+export const staffControllerCreate = async (
+  createStaffDto: CreateStaffDto,
+  options?: RequestInit
+): Promise<staffControllerCreateResponse> => {
+  return bogaapFetch<staffControllerCreateResponse>(getStaffControllerCreateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createStaffDto)
+  });
+};
+
+export type staffControllerUpdateResponse200 = {
+  data: StaffUpdateResponseDto;
+  status: 200;
+};
+
+export type staffControllerUpdateResponseSuccess = staffControllerUpdateResponse200 & {
+  headers: Headers;
+};
+export type staffControllerUpdateResponse = staffControllerUpdateResponseSuccess;
+
+export const getStaffControllerUpdateUrl = (id: string) => {
+  return `/api/staff/${id}`;
+};
+
+export const staffControllerUpdate = async (
+  id: string,
+  updateStaffDto: UpdateStaffDto,
+  options?: RequestInit
+): Promise<staffControllerUpdateResponse> => {
+  return bogaapFetch<staffControllerUpdateResponse>(getStaffControllerUpdateUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateStaffDto)
+  });
+};
+
+export type staffControllerDeleteResponse200 = {
+  data: StaffDeleteResponseDto;
+  status: 200;
+};
+
+export type staffControllerDeleteResponseSuccess = staffControllerDeleteResponse200 & {
+  headers: Headers;
+};
+export type staffControllerDeleteResponse = staffControllerDeleteResponseSuccess;
+
+export const getStaffControllerDeleteUrl = (id: string) => {
+  return `/api/staff/${id}`;
+};
+
+export const staffControllerDelete = async (
+  id: string,
+  options?: RequestInit
+): Promise<staffControllerDeleteResponse> => {
+  return bogaapFetch<staffControllerDeleteResponse>(getStaffControllerDeleteUrl(id), {
+    ...options,
+    method: "DELETE"
+  });
 };
 
 export type healthControllerCheckResponse200 = {
@@ -418,13 +895,8 @@ export const getHealthControllerCheckUrl = () => {
 export const healthControllerCheck = async (
   options?: RequestInit
 ): Promise<healthControllerCheckResponse> => {
-  const res = await fetch(getHealthControllerCheckUrl(), {
+  return bogaapFetch<healthControllerCheckResponse>(getHealthControllerCheckUrl(), {
     ...options,
     method: "GET"
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: healthControllerCheckResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as healthControllerCheckResponse;
 };
