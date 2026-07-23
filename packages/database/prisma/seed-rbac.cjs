@@ -15,8 +15,8 @@ const permissions = [
   { code: "users:manage", resource: "users", action: "manage" },
   { code: "roles:read", resource: "roles", action: "read" },
   { code: "roles:create", resource: "roles", action: "create" },
-  { code: "roles:modify", resource: "roles", action: "modify" },
-  { code: "roles:eliminate", resource: "roles", action: "eliminate" },
+  { code: "roles:update", resource: "roles", action: "update" },
+  { code: "roles:delete", resource: "roles", action: "delete" },
   { code: "roles:manage", resource: "roles", action: "manage" },
   { code: "clients:read", resource: "clients", action: "read" },
   { code: "clients:create", resource: "clients", action: "create" },
@@ -28,6 +28,8 @@ const permissions = [
   { code: "cases:update", resource: "cases", action: "update" },
   { code: "cases:delete", resource: "cases", action: "delete" },
   { code: "cases:write", resource: "cases", action: "write" },
+  { code: "forums:read", resource: "forums", action: "read" },
+  { code: "provinces:read", resource: "provinces", action: "read" },
   { code: "documents:read", resource: "documents", action: "read" },
   { code: "documents:write", resource: "documents", action: "write" },
   { code: "tasks:read", resource: "tasks", action: "read" },
@@ -39,7 +41,6 @@ const permissions = [
   { code: "finance:create", resource: "finance", action: "create" },
   { code: "finance:update", resource: "finance", action: "update" },
   { code: "finance:delete", resource: "finance", action: "delete" },
-  { code: "finance:write", resource: "finance", action: "write" },
   { code: "billing:manage", resource: "billing", action: "manage" }
 ];
 
@@ -61,7 +62,11 @@ const systemRoles = [
     hierarchyLevel: 2,
     name: "Admin",
     permissions: allPermissionCodes.filter(
-      (permissionCode) => permissionCode !== "billing:manage" && !permissionCode.startsWith("roles:")
+      (permissionCode) =>
+        permissionCode !== "billing:manage" &&
+        !permissionCode.startsWith("roles:") &&
+        !permissionCode.startsWith("forums:") &&
+        !permissionCode.startsWith("provinces:")
     )
   },
   {
@@ -120,8 +125,7 @@ const systemRoles = [
       "finance:read",
       "finance:create",
       "finance:update",
-      "finance:delete",
-      "finance:write"
+      "finance:delete"
     ]
   },
   {

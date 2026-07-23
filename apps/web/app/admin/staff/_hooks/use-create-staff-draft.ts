@@ -1,44 +1,32 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import type { StaffDraft } from "../_types/staff-form.types";
 import type { StaffWorker } from "../_types/staff.types";
 
-type CreateStaffDraft = {
-  assignPracticeArea: boolean;
-  avatarUrl: string;
-  dni: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  password: string;
-  phone: string;
-  practiceAreaIds: string[];
-  role: string;
-  status: "active" | "suspended";
+const initialStaffDraft: StaffDraft = {
+  assignPracticeArea: false,
+  avatarUrl: "",
+  dni: "",
+  email: "",
+  firstName: "",
+  lastName: "",
+  password: "",
+  phone: "",
+  practiceAreaIds: [],
+  role: "",
+  status: "active"
 };
 
 export function useCreateStaffDraft() {
-  const initialDraft: CreateStaffDraft = {
-    assignPracticeArea: false,
-    avatarUrl: "",
-    dni: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    password: "",
-    phone: "",
-    practiceAreaIds: [],
-    role: "",
-    status: "active"
-  };
-  const [workerDraft, setWorkerDraft] = useState<CreateStaffDraft>(initialDraft);
+  const [workerDraft, setWorkerDraft] = useState<StaffDraft>(initialStaffDraft);
 
-  const updateWorkerDraft = useCallback(<K extends keyof CreateStaffDraft>(
-    key: K,
-    value: CreateStaffDraft[K]
-  ) => {
-    setWorkerDraft((current) => ({ ...current, [key]: value }));
-  }, []);
+  const updateWorkerDraft = useCallback(
+    <K extends keyof StaffDraft>(key: K, value: StaffDraft[K]) => {
+      setWorkerDraft((current) => ({ ...current, [key]: value }));
+    },
+    []
+  );
 
   const togglePracticeArea = useCallback((practiceAreaId: string) => {
     setWorkerDraft((current) => {
@@ -54,7 +42,7 @@ export function useCreateStaffDraft() {
   }, []);
 
   const resetWorkerDraft = useCallback(() => {
-    setWorkerDraft(initialDraft);
+    setWorkerDraft(initialStaffDraft);
   }, []);
 
   const loadWorkerDraft = useCallback((worker: StaffWorker) => {

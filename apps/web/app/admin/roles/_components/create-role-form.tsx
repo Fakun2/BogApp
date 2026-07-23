@@ -35,6 +35,8 @@ const allPermissionCodes = [
   "cases:update",
   "cases:delete",
   "cases:write",
+  "forums:read",
+  "provinces:read",
   "documents:read",
   "documents:write",
   "tasks:read",
@@ -46,7 +48,6 @@ const allPermissionCodes = [
   "finance:create",
   "finance:update",
   "finance:delete",
-  "finance:write",
   "billing:manage"
 ];
 
@@ -261,10 +262,10 @@ const hierarchyOptions = [
 
 function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLevel: number) {
   if (hierarchyLevel === 3) {
-    return withAdminAccess(allPermissionCodes);
+    return withoutOwnerOnlyPermissions(withAdminAccess(allPermissionCodes));
   }
 
-  const basePermissions = withAdminAccess(permissionCodes);
+  const basePermissions = withoutOwnerOnlyPermissions(withAdminAccess(permissionCodes));
 
   if (hierarchyLevel === 2) {
     return uniquePermissionCodes([
@@ -279,9 +280,17 @@ function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLe
   return uniquePermissionCodes(
     basePermissions.filter(
       (permissionCode) =>
-        permissionCode === adminAccessPermission ||
-        isAllowedOperationalPermission(permissionCode)
+        permissionCode === adminAccessPermission || isAllowedOperationalPermission(permissionCode)
     )
+  );
+}
+
+function withoutOwnerOnlyPermissions(permissionCodes: string[]) {
+  return permissionCodes.filter(
+    (permissionCode) =>
+      !permissionCode.startsWith("roles:") &&
+      !permissionCode.startsWith("forums:") &&
+      !permissionCode.startsWith("provinces:")
   );
 }
 
@@ -308,8 +317,7 @@ function isBlockedModeratePermission(permissionCode: string) {
     permissionCode === "staff:delete" ||
     permissionCode === "staff:manage" ||
     permissionCode === "finance:create" ||
-    permissionCode === "finance:delete" ||
-    permissionCode === "finance:write"
+    permissionCode === "finance:delete"
   );
 }
 
@@ -326,15 +334,7 @@ function getRoleHierarchyLevel(role?: RoleDto) {
   return hierarchyLevel === 1 || hierarchyLevel === 2 || hierarchyLevel === 3 ? hierarchyLevel : 1;
 }
 
-function Field({
-  children,
-  error,
-  label
-}: {
-  children: ReactNode;
-  error?: string;
-  label: string;
-}) {
+function Field({ children, error, label }: { children: ReactNode; error?: string; label: string }) {
   return (
     <div className="grid gap-2">
       <Label>{label}</Label>

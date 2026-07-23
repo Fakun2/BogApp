@@ -55,6 +55,7 @@ model Tenant {
   memberships   TenantMembership[]
   practiceAreas PracticeArea[]
   clients       Client[]
+  roles         Role[]
   createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -142,8 +143,8 @@ model PracticeArea {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  template PracticeAreaTemplate? @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  tenant                Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template              PracticeAreaTemplate?          @relation(fields: [templateId], references: [id], onDelete: Restrict)
   membershipAssignments TenantMembershipPracticeArea[]
 
   @@unique([tenantId, name])
@@ -152,6 +153,40 @@ model PracticeArea {
   @@index([tenantId, active, name])
   @@index([templateId])
   @@map("practice_areas")
+}
+
+model Province {
+  id             String          @id @default(uuid()) @db.Uuid
+  code           String          @unique
+  name           String
+  province       String?
+  country        String
+  active         Boolean         @default(true)
+  displayOrder   Int             @default(0) @map("display_order")
+  forumTemplates ForumTemplate[]
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, displayOrder])
+  @@map("provinces")
+}
+
+model ForumTemplate {
+  id           String   @id @default(uuid()) @db.Uuid
+  provinceId   String   @map("province_id") @db.Uuid
+  code         String   @unique
+  name         String
+  description  String?
+  active       Boolean  @default(true)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  province Province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+
+  @@unique([provinceId, name])
+  @@index([provinceId, active, displayOrder])
+  @@map("forum_templates")
 }
 
 model Client {
@@ -261,9 +296,9 @@ model TenantMembership {
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role?  @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  tenant        Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user          User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role          Role?                          @relation(fields: [roleId], references: [id], onDelete: SetNull)
   practiceAreas TenantMembershipPracticeArea[]
 
   @@unique([tenantId, userId])

@@ -3,6 +3,7 @@ import {
   Building2,
   Code2,
   FilePlus2,
+  Gavel,
   Plus,
   ShieldCheck,
   Settings,
@@ -79,6 +80,13 @@ export const adminCommandSections: AdminCommandSection[] = [
         requiredPermissions: ["roles:read"]
       },
       {
+        href: "/admin/legal-catalogs",
+        label: "Gestionar catalogos legales...",
+        icon: Gavel,
+        requiredPermissions: ["forums:read", "provinces:read"],
+        permissionMode: "any"
+      },
+      {
         href: "/admin/cases",
         label: "Abrir expediente...",
         icon: BriefcaseBusiness,
@@ -96,7 +104,7 @@ export const adminCommandSections: AdminCommandSection[] = [
         href: "/admin/cashbox",
         label: "Registrar movimiento...",
         icon: FilePlus2,
-        requiredPermissions: ["finance:write"],
+        requiredPermissions: ["finance:update"],
         status: "soon"
       }
     ]

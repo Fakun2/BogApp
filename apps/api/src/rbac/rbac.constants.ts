@@ -11,8 +11,8 @@ export const RBAC_PERMISSIONS = [
   { code: "users:manage", resource: "users", action: "manage" },
   { code: "roles:read", resource: "roles", action: "read" },
   { code: "roles:create", resource: "roles", action: "create" },
-  { code: "roles:modify", resource: "roles", action: "modify" },
-  { code: "roles:eliminate", resource: "roles", action: "eliminate" },
+  { code: "roles:update", resource: "roles", action: "update" },
+  { code: "roles:delete", resource: "roles", action: "delete" },
   { code: "roles:manage", resource: "roles", action: "manage" },
   { code: "clients:read", resource: "clients", action: "read" },
   { code: "clients:create", resource: "clients", action: "create" },
@@ -24,6 +24,8 @@ export const RBAC_PERMISSIONS = [
   { code: "cases:update", resource: "cases", action: "update" },
   { code: "cases:delete", resource: "cases", action: "delete" },
   { code: "cases:write", resource: "cases", action: "write" },
+  { code: "forums:read", resource: "forums", action: "read" },
+  { code: "provinces:read", resource: "provinces", action: "read" },
   { code: "documents:read", resource: "documents", action: "read" },
   { code: "documents:write", resource: "documents", action: "write" },
   { code: "tasks:read", resource: "tasks", action: "read" },
@@ -35,7 +37,6 @@ export const RBAC_PERMISSIONS = [
   { code: "finance:create", resource: "finance", action: "create" },
   { code: "finance:update", resource: "finance", action: "update" },
   { code: "finance:delete", resource: "finance", action: "delete" },
-  { code: "finance:write", resource: "finance", action: "write" },
   { code: "billing:manage", resource: "billing", action: "manage" }
 ] as const;
 
@@ -44,20 +45,27 @@ export const RBAC_ROLES = [
     code: "owner",
     name: "Owner",
     description: "Tiene control completo del estudio, permisos, facturacion y administracion.",
+    hierarchyLevel: 3,
     permissions: RBAC_PERMISSIONS.map((permission) => permission.code)
   },
   {
     code: "admin",
     name: "Admin",
     description: "Administra el estudio, equipo, roles y configuracion operativa.",
+    hierarchyLevel: 2,
     permissions: RBAC_PERMISSIONS.filter(
-      (permission) => permission.code !== "billing:manage" && permission.resource !== "roles"
+      (permission) =>
+        permission.code !== "billing:manage" &&
+        permission.resource !== "roles" &&
+        permission.resource !== "forums" &&
+        permission.resource !== "provinces"
     ).map((permission) => permission.code)
   },
   {
     code: "lawyer",
     name: "Abogado",
     description: "Gestiona clientes, expedientes, documentos, tareas y seguimiento legal.",
+    hierarchyLevel: 1,
     permissions: [
       ADMIN_ACCESS_PERMISSION,
       "clients:read",
@@ -81,6 +89,7 @@ export const RBAC_ROLES = [
     code: "paralegal",
     name: "Paralegal",
     description: "Colabora en expedientes, documentos y tareas sin administrar permisos.",
+    hierarchyLevel: 1,
     permissions: [
       ADMIN_ACCESS_PERMISSION,
       "clients:read",
@@ -97,6 +106,7 @@ export const RBAC_ROLES = [
     code: "accounting",
     name: "Contabilidad",
     description: "Accede a clientes, expedientes y gestion financiera del estudio.",
+    hierarchyLevel: 1,
     permissions: [
       ADMIN_ACCESS_PERMISSION,
       "clients:read",
@@ -104,14 +114,14 @@ export const RBAC_ROLES = [
       "finance:read",
       "finance:create",
       "finance:update",
-      "finance:delete",
-      "finance:write"
+      "finance:delete"
     ]
   },
   {
     code: "viewer",
     name: "Lectura",
     description: "Consulta informacion del estudio sin modificar datos operativos.",
+    hierarchyLevel: 1,
     permissions: [
       ADMIN_ACCESS_PERMISSION,
       "clients:read",

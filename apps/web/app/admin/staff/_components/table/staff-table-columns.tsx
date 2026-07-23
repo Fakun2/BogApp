@@ -8,6 +8,7 @@ import type {
   StaffSortKey,
   StaffWorker
 } from "../../_types/staff.types";
+import { staffTableCellClassNameByColumn } from "../../_constants/staff.constants";
 import { getInitials } from "../../_utils/staff-format";
 import { PracticeAreaList } from "./practice-area-list";
 import { SortableColumnHeader } from "./sortable-column-header";
@@ -137,11 +138,7 @@ export function getStaffTableColumns({
       enableSorting: false,
       header: "Acciones",
       cell: ({ row }) => (
-        <StaffRowActions
-          staffData={staffData}
-          worker={row.original}
-          onUpdated={onStaffUpdated}
-        />
+        <StaffRowActions staffData={staffData} worker={row.original} onUpdated={onStaffUpdated} />
       )
     }
   ];
@@ -154,18 +151,11 @@ export function StaffDataTableCell({
   children: ReactNode;
   columnId: string;
 }) {
-  const classNameByColumn: Record<string, string> = {
-    select: "w-10 px-4 py-4",
-    personal: "min-w-[240px] px-4 py-4",
-    dni: "min-w-[120px] px-4 py-4",
-    phone: "min-w-[150px] px-4 py-4",
-    practiceAreas: "min-w-[180px] px-4 py-4",
-    role: "px-4 py-4",
-    status: "px-4 py-4",
-    actions: "w-24 px-4 py-4"
-  };
-
-  return <TableCell className={classNameByColumn[columnId] ?? "px-4 py-4"}>{children}</TableCell>;
+  return (
+    <TableCell className={staffTableCellClassNameByColumn[columnId] ?? "px-4 py-4"}>
+      {children}
+    </TableCell>
+  );
 }
 
 function NullableText({ value }: { value: string | null }) {

@@ -43,10 +43,12 @@ Roles:
 
 - `roles:read`
 - `roles:create`
-- `roles:modify`
-- `roles:eliminate`
+- `roles:update`
+- `roles:delete`
 
-Los permisos de roles solo pertenecen al rol `owner`. Los roles custom no deben recibir permisos `roles:*`.
+Los permisos de roles y catalogos legales sensibles solo pertenecen al rol `owner`.
+Los roles custom no deben recibir permisos `roles:*`, `forums:*` ni `provinces:*`
+por defecto.
 
 ## Jerarquia
 

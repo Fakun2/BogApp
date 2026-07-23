@@ -67,6 +67,16 @@ export interface PermissionDto {
   action: string;
 }
 
+export type RoleDtoHierarchyLevel =
+  (typeof RoleDtoHierarchyLevel)[keyof typeof RoleDtoHierarchyLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RoleDtoHierarchyLevel = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3
+} as const;
+
 export interface RoleDto {
   id: string;
   active: boolean;
@@ -75,22 +85,45 @@ export interface RoleDto {
   /** @nullable */
   description: string | null;
   isSystem: boolean;
+  hierarchyLevel: RoleDtoHierarchyLevel;
   /** @nullable */
   tenantId: string | null;
   permissions: string[];
 }
 
+export type CreateRoleDtoHierarchyLevel =
+  (typeof CreateRoleDtoHierarchyLevel)[keyof typeof CreateRoleDtoHierarchyLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CreateRoleDtoHierarchyLevel = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3
+} as const;
+
 export interface CreateRoleDto {
   name: string;
   description: string;
   active?: boolean;
+  hierarchyLevel?: CreateRoleDtoHierarchyLevel;
   permissions: string[];
 }
+
+export type UpdateRoleDtoHierarchyLevel =
+  (typeof UpdateRoleDtoHierarchyLevel)[keyof typeof UpdateRoleDtoHierarchyLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateRoleDtoHierarchyLevel = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3
+} as const;
 
 export interface UpdateRoleDto {
   name?: string;
   description?: string;
   active?: boolean;
+  hierarchyLevel?: UpdateRoleDtoHierarchyLevel;
   permissions?: string[];
 }
 
@@ -107,6 +140,30 @@ export interface PracticeAreaTemplateDto {
   description?: PracticeAreaTemplateDtoDescription;
   active: boolean;
   displayOrder: number;
+}
+
+export interface ProvinceDto {
+  id: string;
+  code: string;
+  name: string;
+  /** @nullable */
+  province: string | null;
+  country: string;
+  active: boolean;
+  displayOrder: number;
+}
+
+export interface CatalogPageInfoDto {
+  limit: number;
+  offset: number;
+  total: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface ProvincesListResponseDto {
+  items: ProvinceDto[];
+  pageInfo: CatalogPageInfoDto;
 }
 
 export interface StartOnboardingOwnerDto {
@@ -200,11 +257,60 @@ export interface OnboardingStatusDto {
   missingSteps: string[];
 }
 
+export interface ForumProvinceDto {
+  id: string;
+  code: string;
+  name: string;
+  /** @nullable */
+  province: string | null;
+  country: string;
+}
+
+export interface ForumTemplateSummaryDto {
+  id: string;
+  code: string;
+}
+
+/**
+ * @nullable
+ */
+export type ForumDtoProvince = ForumProvinceDto | null;
+
+/**
+ * @nullable
+ */
+export type ForumDtoTemplate = ForumTemplateSummaryDto | null;
+
+export interface ForumDto {
+  id: string;
+  name: string;
+  provinceId: string;
+  templateId: string;
+  isSystem: boolean;
+  custom: boolean;
+  /** @nullable */
+  province: ForumDtoProvince;
+  /** @nullable */
+  template: ForumDtoTemplate;
+  /** @nullable */
+  description: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ForumsListResponseDto {
+  items: ForumDto[];
+  pageInfo: CatalogPageInfoDto;
+}
+
 export interface StaffRoleOptionDto {
   code: string;
   name: string;
   /** @nullable */
   description: string | null;
+  assignable?: boolean;
+  hierarchyLevel?: number;
 }
 
 export interface StaffPracticeAreaDto {
@@ -683,6 +789,29 @@ export const practiceAreaTemplatesControllerList = async (
   );
 };
 
+export type provincesControllerListResponse200 = {
+  data: ProvincesListResponseDto;
+  status: 200;
+};
+
+export type provincesControllerListResponseSuccess = provincesControllerListResponse200 & {
+  headers: Headers;
+};
+export type provincesControllerListResponse = provincesControllerListResponseSuccess;
+
+export const getProvincesControllerListUrl = () => {
+  return `/api/provinces`;
+};
+
+export const provincesControllerList = async (
+  options?: RequestInit
+): Promise<provincesControllerListResponse> => {
+  return bogaapFetch<provincesControllerListResponse>(getProvincesControllerListUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
 export type onboardingControllerStartResponse201 = {
   data: StartOnboardingResponseDto;
   status: 201;
@@ -773,6 +902,29 @@ export const identityControllerRoles = async (
   options?: RequestInit
 ): Promise<identityControllerRolesResponse> => {
   return bogaapFetch<identityControllerRolesResponse>(getIdentityControllerRolesUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type forumsControllerListResponse200 = {
+  data: ForumsListResponseDto;
+  status: 200;
+};
+
+export type forumsControllerListResponseSuccess = forumsControllerListResponse200 & {
+  headers: Headers;
+};
+export type forumsControllerListResponse = forumsControllerListResponseSuccess;
+
+export const getForumsControllerListUrl = () => {
+  return `/api/forums`;
+};
+
+export const forumsControllerList = async (
+  options?: RequestInit
+): Promise<forumsControllerListResponse> => {
+  return bogaapFetch<forumsControllerListResponse>(getForumsControllerListUrl(), {
     ...options,
     method: "GET"
   });

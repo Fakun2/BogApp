@@ -21,6 +21,16 @@ const scopeModules = [
     description: "Trabajo sobre expedientes, seguimiento y actividad legal."
   },
   {
+    resource: "forums",
+    label: "Fueros",
+    description: "Configuracion de fueros y centros judiciales del estudio."
+  },
+  {
+    resource: "provinces",
+    label: "Provincias",
+    description: "Consulta del catalogo global de provincias."
+  },
+  {
     resource: "tasks",
     label: "Tareas",
     description: "Organizacion de tareas, vencimientos y pendientes."
@@ -111,7 +121,9 @@ export function PermissionSelector({
               key={module.resource}
               className="grid gap-3 rounded-2xl border border-border/25 p-3"
             >
-              <label className={`flex items-start gap-3 ${moduleDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
+              <label
+                className={`flex items-start gap-3 ${moduleDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+              >
                 <Checkbox
                   checked={moduleChecked}
                   disabled={moduleDisabled}
@@ -191,6 +203,10 @@ function uniquePermissionCodes(permissionCodes: string[]) {
 }
 
 function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel: number) {
+  if (isOwnerOnlyPermission(permissionCode)) {
+    return false;
+  }
+
   if (hierarchyLevel === 3) {
     return true;
   }
@@ -202,7 +218,8 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
       "staff:manage",
       "finance:create",
       "finance:delete",
-      "finance:write"
+      "forums:read",
+      "provinces:read"
     ].includes(permissionCode);
   }
 
@@ -218,4 +235,8 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
     permissionCode === "tasks:update" ||
     permissionCode === "tasks:delete"
   );
+}
+
+function isOwnerOnlyPermission(permissionCode: string) {
+  return permissionCode.startsWith("forums:") || permissionCode.startsWith("provinces:");
 }

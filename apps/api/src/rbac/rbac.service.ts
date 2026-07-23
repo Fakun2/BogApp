@@ -259,7 +259,9 @@ export class RbacService implements OnModuleInit {
     let candidate = baseCode;
     let suffix = 2;
 
-    while (await this.prisma.role.findUnique({ where: { code: candidate }, select: { id: true } })) {
+    while (
+      await this.prisma.role.findUnique({ where: { code: candidate }, select: { id: true } })
+    ) {
       candidate = `${baseCode}_${suffix}`;
       suffix += 1;
     }
@@ -401,8 +403,7 @@ function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLe
   return uniquePermissionCodes(
     basePermissions.filter(
       (permissionCode) =>
-        permissionCode === ADMIN_ACCESS_PERMISSION ||
-        isAllowedOperationalPermission(permissionCode)
+        permissionCode === ADMIN_ACCESS_PERMISSION || isAllowedOperationalPermission(permissionCode)
     )
   );
 }
@@ -430,13 +431,17 @@ function isBlockedModeratePermission(permissionCode: string) {
     permissionCode === "staff:delete" ||
     permissionCode === "staff:manage" ||
     permissionCode === "finance:create" ||
-    permissionCode === "finance:delete" ||
-    permissionCode === "finance:write"
+    permissionCode === "finance:delete"
   );
 }
 
 function withoutOwnerOnlyPermissions(permissionCodes: string[]) {
-  return permissionCodes.filter((permissionCode) => !permissionCode.startsWith("roles:"));
+  return permissionCodes.filter(
+    (permissionCode) =>
+      !permissionCode.startsWith("roles:") &&
+      !permissionCode.startsWith("forums:") &&
+      !permissionCode.startsWith("provinces:")
+  );
 }
 
 function uniquePermissionCodes(permissionCodes: string[]) {

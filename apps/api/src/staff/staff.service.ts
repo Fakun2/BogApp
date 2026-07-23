@@ -25,31 +25,38 @@ export class StaffService {
     const practiceAreaIds = input.practiceAreaIds ?? [];
     const fullName = toFullName(input.firstName, input.lastName);
 
-    const [actorRole, existingTenantEmail, existingTenantDni, existingTenantName, existingUser, role, practiceAreas] =
-      await Promise.all([
-        findActorRole(this.prisma, tenantId, actorUserId),
-        this.prisma.tenantMembership.findFirst({
-          where: {
-            tenantId,
-            user: { email }
-          },
-          select: { id: true }
-        }),
-        findTenantMembershipByUserDni(this.prisma, tenantId, input.dni),
-        findTenantMembershipByFullName(this.prisma, tenantId, fullName),
-        this.prisma.user.findUnique({ where: { email } }),
-        findAssignableRole(this.prisma, tenantId, input.role),
-        practiceAreaIds.length
-          ? this.prisma.practiceArea.findMany({
-              where: {
-                active: true,
-                id: { in: practiceAreaIds },
-                tenantId
-              },
-              select: { id: true }
-            })
-          : Promise.resolve([])
-      ]);
+    const [
+      actorRole,
+      existingTenantEmail,
+      existingTenantDni,
+      existingTenantName,
+      existingUser,
+      role,
+      practiceAreas
+    ] = await Promise.all([
+      findActorRole(this.prisma, tenantId, actorUserId),
+      this.prisma.tenantMembership.findFirst({
+        where: {
+          tenantId,
+          user: { email }
+        },
+        select: { id: true }
+      }),
+      findTenantMembershipByUserDni(this.prisma, tenantId, input.dni),
+      findTenantMembershipByFullName(this.prisma, tenantId, fullName),
+      this.prisma.user.findUnique({ where: { email } }),
+      findAssignableRole(this.prisma, tenantId, input.role),
+      practiceAreaIds.length
+        ? this.prisma.practiceArea.findMany({
+            where: {
+              active: true,
+              id: { in: practiceAreaIds },
+              tenantId
+            },
+            select: { id: true }
+          })
+        : Promise.resolve([])
+    ]);
 
     if (existingTenantEmail || existingTenantDni) {
       throw new ConflictException("Ese email o DNI ya estan asignados a alguien mas.");
@@ -112,7 +119,12 @@ export class StaffService {
     return toWorkerDto(membership);
   }
 
-  async update(tenantId: string, actorUserId: string, membershipId: string, input: UpdateStaffInput) {
+  async update(
+    tenantId: string,
+    actorUserId: string,
+    membershipId: string,
+    input: UpdateStaffInput
+  ) {
     const email = input.email.toLowerCase();
     const practiceAreaIds = input.practiceAreaIds ?? [];
     const fullName = toFullName(input.firstName, input.lastName);
@@ -181,7 +193,7 @@ export class StaffService {
       throw new BadRequestException("El rol seleccionado no existe.");
     }
 
-    const currentRole = await hydrateRoleAccess(this.prisma, currentMembership.role);
+    const currentRole = normalizeRoleAccess(currentMembership.role);
     assertCanManageStaffMember(actorRole, currentRole, {
       actorUserId,
       targetUserId: currentMembership.userId
@@ -256,7 +268,7 @@ export class StaffService {
     const [actorRole, membership] = await Promise.all([
       findActorRole(this.prisma, tenantId, actorUserId),
       this.prisma.tenantMembership.findFirst({
-      where: { id: membershipId, tenantId },
+        where: { id: membershipId, tenantId },
         select: { id: true, role: { select: roleAccessSelect }, userId: true }
       })
     ]);
@@ -265,7 +277,7 @@ export class StaffService {
       throw new NotFoundException("El empleado no existe en el estudio activo.");
     }
 
-    const targetRole = await hydrateRoleAccess(this.prisma, membership.role);
+    const targetRole = normalizeRoleAccess(membership.role);
     assertCanManageStaffMember(actorRole, targetRole, {
       actorUserId,
       targetUserId: membership.userId
@@ -360,6 +372,7 @@ export class StaffService {
           select: {
             code: true,
             description: true,
+            hierarchyLevel: true,
             isSystem: true,
             tenantId: true,
             name: true
@@ -368,24 +381,10 @@ export class StaffService {
         })
       ]);
 
-    const roleCodes = [
-      ...new Set([
-        ...roles.map((role) => role.code),
-        ...memberships.map((membership) => membership.role?.code).filter(isDefined)
-      ])
-    ];
-    const hierarchyByRoleCode = await getRoleHierarchyLevelsByCodes(this.prisma, roleCodes);
-    const actorRoleAccess = actorRole?.role
-      ? {
-          ...actorRole.role,
-          hierarchyLevel: hierarchyByRoleCode.get(actorRole.role.code) ?? 1
-        }
-      : null;
+    const actorRoleAccess = actorRole?.role ? normalizeRoleAccess(actorRole.role) : null;
     const hasNextPage = memberships.length > query.limit;
     const pageMemberships = hasNextPage ? memberships.slice(0, query.limit) : memberships;
-    const workers: Worker[] = pageMemberships.map((membership) =>
-      toWorkerDto(membership, hierarchyByRoleCode)
-    );
+    const workers: Worker[] = pageMemberships.map(toWorkerDto);
 
     return {
       workers,
@@ -401,7 +400,7 @@ export class StaffService {
             code: role.code,
             name: role.name,
             description: role.description,
-            hierarchyLevel: hierarchyByRoleCode.get(role.code) ?? 1,
+            hierarchyLevel: normalizeHierarchyLevel(role.hierarchyLevel),
             isSystem: role.isSystem,
             tenantId: role.tenantId
           }))
@@ -416,7 +415,7 @@ export class StaffService {
       },
       pageInfo: {
         limit: query.limit,
-        nextCursor: hasNextPage ? pageMemberships.at(-1)?.id ?? null : null,
+        nextCursor: hasNextPage ? (pageMemberships.at(-1)?.id ?? null) : null,
         hasNextPage
       }
     };
@@ -452,6 +451,7 @@ const staffMembershipSelect = {
     select: {
       code: true,
       description: true,
+      hierarchyLevel: true,
       name: true
     }
   },
@@ -466,6 +466,7 @@ const staffMembershipSelect = {
 
 const roleAccessSelect = {
   code: true,
+  hierarchyLevel: true,
   isSystem: true,
   tenantId: true
 } satisfies Prisma.RoleSelect;
@@ -497,10 +498,7 @@ type PracticeAreaWithTemplate = Prisma.PracticeAreaGetPayload<{
   select: typeof practiceAreaSelect;
 }>;
 
-function toWorkerDto(
-  membership: StaffMembership,
-  hierarchyByRoleCode: Map<string, number> = new Map()
-): Worker {
+function toWorkerDto(membership: StaffMembership): Worker {
   const { firstName, lastName } = splitFullName(membership.user.fullName);
   const user = membership.user as StaffMembership["user"] & { dni: string | null };
 
@@ -518,7 +516,7 @@ function toWorkerDto(
           code: membership.role.code,
           name: membership.role.name,
           description: membership.role.description,
-          hierarchyLevel: hierarchyByRoleCode.get(membership.role.code) ?? 1
+          hierarchyLevel: normalizeHierarchyLevel(membership.role.hierarchyLevel)
         }
       : null,
     status: membership.status,
@@ -551,20 +549,24 @@ function findTenantMembershipByUserDni(
 
 function findAssignableRole(prisma: PrismaService, tenantId: string, code: string) {
   if (typeof prisma.role.findFirst !== "function") {
-    return prisma.role.findUnique({
-      where: { code },
-      select: { id: true, ...roleAccessSelect }
-    }).then((role) => hydrateRoleAccess(prisma, role));
+    return prisma.role
+      .findUnique({
+        where: { code },
+        select: { id: true, ...roleAccessSelect }
+      })
+      .then(normalizeRoleAccess);
   }
 
-  return prisma.role.findFirst({
-    where: {
-      active: true,
-      code,
-      OR: [{ isSystem: true, tenantId: null }, { tenantId }]
-    },
-    select: { id: true, ...roleAccessSelect }
-  }).then((role) => hydrateRoleAccess(prisma, role));
+  return prisma.role
+    .findFirst({
+      where: {
+        active: true,
+        code,
+        OR: [{ isSystem: true, tenantId: null }, { tenantId }]
+      },
+      select: { id: true, ...roleAccessSelect }
+    })
+    .then(normalizeRoleAccess);
 }
 
 async function findActorRole(
@@ -586,13 +588,12 @@ async function findActorRole(
   }
 
   return {
-    role: await hydrateRoleAccess(prisma, membership.role)
+    role: normalizeRoleAccess(membership.role)
   };
 }
 
-async function hydrateRoleAccess<T extends { code: string }>(
-  prisma: PrismaService,
-  role: T | null
+function normalizeRoleAccess<T extends { code: string }>(
+  role: (T & { hierarchyLevel?: number | null }) | null
 ) {
   if (!role) {
     return null;
@@ -600,33 +601,8 @@ async function hydrateRoleAccess<T extends { code: string }>(
 
   return {
     ...role,
-    hierarchyLevel: await getRoleHierarchyLevelByCode(prisma, role.code)
+    hierarchyLevel: normalizeHierarchyLevel(role.hierarchyLevel)
   };
-}
-
-async function getRoleHierarchyLevelByCode(prisma: PrismaService, roleCode: string) {
-  const [role] = await prisma.$queryRaw<Array<{ hierarchyLevel: number }>>`
-    SELECT "hierarchy_level" AS "hierarchyLevel"
-    FROM "roles"
-    WHERE "code" = ${roleCode}
-    LIMIT 1
-  `;
-
-  return role?.hierarchyLevel ?? 1;
-}
-
-async function getRoleHierarchyLevelsByCodes(prisma: PrismaService, roleCodes: string[]) {
-  if (roleCodes.length === 0) {
-    return new Map<string, number>();
-  }
-
-  const rows = await prisma.$queryRaw<Array<{ code: string; hierarchyLevel: number }>>`
-    SELECT "code", "hierarchy_level" AS "hierarchyLevel"
-    FROM "roles"
-    WHERE "code" = ANY(${roleCodes})
-  `;
-
-  return new Map(rows.map((role) => [role.code, role.hierarchyLevel]));
 }
 
 type RoleAccess = {
@@ -659,7 +635,7 @@ function assertCanChangeRole(
 ) {
   const actorRole = actorMembership?.role ?? null;
 
-  if (actorRole?.hierarchyLevel !== 3 && context.actorUserId === context.targetUserId) {
+  if (context.actorUserId === context.targetUserId) {
     throw new ForbiddenException("No podes cambiar tu propio rol.");
   }
 
@@ -693,7 +669,7 @@ function canAssignRole(actorRole: RoleAccess | null, targetRole: AssignableRole)
     return true;
   }
 
-  return getRoleRank(targetRole) < getRoleRank(actorRole);
+  return isStrictlyLowerHierarchy(actorRole, targetRole);
 }
 
 function canManageStaffMemberRole(actorRole: RoleAccess | null, currentRole: RoleAccess | null) {
@@ -713,11 +689,15 @@ function canManageStaffMemberRole(actorRole: RoleAccess | null, currentRole: Rol
 }
 
 function getRoleRank(role: RoleAccess | AssignableRole) {
-  return role.hierarchyLevel;
+  return normalizeHierarchyLevel(role.hierarchyLevel);
 }
 
-function isDefined<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined;
+function isStrictlyLowerHierarchy(actorRole: RoleAccess, targetRole: AssignableRole) {
+  return getRoleRank(targetRole) < getRoleRank(actorRole);
+}
+
+function normalizeHierarchyLevel(hierarchyLevel: number | null | undefined) {
+  return hierarchyLevel === 1 || hierarchyLevel === 2 || hierarchyLevel === 3 ? hierarchyLevel : 1;
 }
 
 function findTenantMembershipByFullName(

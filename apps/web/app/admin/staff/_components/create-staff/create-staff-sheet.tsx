@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { PencilLine, UserPlus } from "lucide-react";
 import {
   Sheet,
@@ -11,17 +10,8 @@ import {
   SheetTitle,
   SheetTrigger
 } from "@/components/ui/sheet";
-import {
-  createStaffFormSchema,
-  updateStaffFormSchema,
-  type CreateStaffFormValues
-} from "@/lib/validation/staff";
-import { getActiveTenantAccess } from "@/lib/auth/permissions";
-import { clearSession } from "@/lib/auth/session";
-import { useSession } from "@/lib/auth/use-session";
-import { useCreateStaffDraft } from "../../_hooks/use-create-staff-draft";
-import { useCreateStaffMutation } from "../../_hooks/use-create-staff-mutation";
-import { useUpdateStaffMutation } from "../../_hooks/use-update-staff-mutation";
+import { useStaffSheetController } from "../../_hooks/use-staff-sheet-controller";
+import type { StaffFormMode } from "../../_types/staff-form.types";
 import type { StaffListResponse, StaffWorker } from "../../_types/staff.types";
 import { CreateStaffAreaSection } from "./create-staff-area-section";
 import { CreateStaffField } from "./create-staff-field";
@@ -32,8 +22,6 @@ import { CreateStaffRoleSection } from "./create-staff-role-section";
 import { CreateStaffStatusSection } from "./create-staff-status-section";
 import { CreateStaffTrigger } from "./create-staff-trigger";
 
-type CreateStaffErrors = Partial<Record<keyof CreateStaffFormValues, string>>;
-
 export function CreateStaffSheet({
   mode = "create",
   onCreated,
@@ -41,112 +29,47 @@ export function CreateStaffSheet({
   trigger,
   worker
 }: {
-  mode?: "create" | "update";
+  mode?: StaffFormMode;
   onCreated?: () => void;
   staffData: StaffListResponse | undefined;
   trigger?: ReactNode;
   worker?: StaffWorker;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [errors, setErrors] = useState<CreateStaffErrors>({});
-  const session = useSession();
-  const createStaffMutation = useCreateStaffMutation();
-  const updateStaffMutation = useUpdateStaffMutation(worker?.id);
-  const { loadWorkerDraft, resetWorkerDraft, togglePracticeArea, updateWorkerDraft, workerDraft } =
-    useCreateStaffDraft();
-  const error = mode === "create" ? createStaffMutation.error : updateStaffMutation.error;
-  const submitting = mode === "create" ? createStaffMutation.isPending : updateStaffMutation.isPending;
-  const practiceAreaOptions = (staffData?.filterOptions.practiceAreas ?? []).map((area) => ({
-    description: area.description,
-    label: area.name,
-    templateCode: area.templateCode,
-    value: area.id
-  }));
-  const roleOptions = (staffData?.filterOptions.roles ?? []).map((role) => ({
-    assignable: getRoleAssignable(role),
-    code: role.code,
-    description: role.description,
-    label: role.name
-  }));
   const HeaderIcon = mode === "create" ? UserPlus : PencilLine;
-  const activeRole = getActiveTenantAccess(session)?.role;
-  const roleLocked = mode === "update" && worker?.userId === session?.user.id && activeRole !== "owner";
+  const {
+    error,
+    errors,
+    handleSubmit,
+    practiceAreaOptions,
+    prepareDraft,
+    roleLocked,
+    roleOptions,
+    submitting,
+    togglePracticeArea,
+    updateWorkerDraft,
+    workerDraft
+  } = useStaffSheetController({
+    mode,
+    onSuccess: () => {
+      onCreated?.();
+      setOpen(false);
+    },
+    staffData,
+    worker
+  });
 
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    setErrors({});
-    if (mode === "update" && worker) {
-      loadWorkerDraft(worker);
-      return;
-    }
-
-    resetWorkerDraft();
-  }, [loadWorkerDraft, mode, open, resetWorkerDraft, worker]);
-
-  async function logoutAndRedirectToLogin() {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
-    clearSession();
-    router.replace("/login");
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const payload = {
-      ...workerDraft,
-      practiceAreaIds: workerDraft.assignPracticeArea ? workerDraft.practiceAreaIds : []
-    };
-    if (mode === "create") {
-      const parsed = createStaffFormSchema.safeParse(payload);
-      if (!parsed.success) {
-        setErrors(toCreateStaffErrors(parsed.error.flatten().fieldErrors));
-        return;
-      }
-
-      setErrors({});
-      try {
-        await createStaffMutation.mutateAsync(parsed.data);
-        resetWorkerDraft();
-        onCreated?.();
-        setOpen(false);
-      } catch {
-        // The mutation exposes the error state in the form.
-      }
-      return;
-    }
-
-    const parsed = updateStaffFormSchema.safeParse(payload);
-    if (!parsed.success) {
-      setErrors(toCreateStaffErrors(parsed.error.flatten().fieldErrors));
-      return;
-    }
-
-    setErrors({});
-    try {
-      await updateStaffMutation.mutateAsync(parsed.data);
-
-      if (isOwnPasswordChange({ password: parsed.data.password, sessionUserId: session?.user.id, worker })) {
-        await logoutAndRedirectToLogin();
-        return;
-      }
-
-      resetWorkerDraft();
-      onCreated?.();
-      setOpen(false);
-    } catch {
-      // The mutation exposes the error state in the form.
-    }
-  }
+    prepareDraft();
+  }, [open, prepareDraft]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {trigger ?? <CreateStaffTrigger />}
-      </SheetTrigger>
+      <SheetTrigger asChild>{trigger ?? <CreateStaffTrigger />}</SheetTrigger>
       <SheetContent className="w-[780px] max-w-[94vw] overflow-hidden border-border bg-card sm:max-w-[780px]">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-3 text-lg">
@@ -167,8 +90,9 @@ export function CreateStaffSheet({
               error={errors.firstName}
               id="create-worker-first-name"
               label="Nombre"
+              maxLength={30}
               name="createWorkerFirstName"
-              onChange={(value) => updateWorkerDraft("firstName", value)}
+              onChange={(value) => updateWorkerDraft("firstName", value.slice(0, 30))}
               placeholder="Nombre"
               required
               value={workerDraft.firstName}
@@ -177,8 +101,9 @@ export function CreateStaffSheet({
               error={errors.lastName}
               id="create-worker-last-name"
               label="Apellido"
+              maxLength={30}
               name="createWorkerLastName"
-              onChange={(value) => updateWorkerDraft("lastName", value)}
+              onChange={(value) => updateWorkerDraft("lastName", value.slice(0, 30))}
               placeholder="Apellido"
               required
               value={workerDraft.lastName}
@@ -186,9 +111,12 @@ export function CreateStaffSheet({
             <CreateStaffField
               error={errors.dni}
               id="create-worker-dni"
+              inputMode="numeric"
               label="DNI"
+              maxLength={8}
               name="createWorkerDni"
-              onChange={(value) => updateWorkerDraft("dni", value.replace(/\D/g, ""))}
+              onChange={(value) => updateWorkerDraft("dni", value.replace(/\D/g, "").slice(0, 8))}
+              pattern="[0-9]*"
               placeholder="Documento"
               required
               value={workerDraft.dni}
@@ -196,9 +124,14 @@ export function CreateStaffSheet({
             <CreateStaffField
               error={errors.phone}
               id="create-worker-phone"
+              inputMode="numeric"
               label="Celular"
+              maxLength={13}
               name="createWorkerPhone"
-              onChange={(value) => updateWorkerDraft("phone", value.replace(/\D/g, ""))}
+              onChange={(value) =>
+                updateWorkerDraft("phone", value.replace(/\D/g, "").slice(0, 13))
+              }
+              pattern="[0-9]*"
               placeholder="Numero de telefono"
               type="tel"
               value={workerDraft.phone}
@@ -259,31 +192,4 @@ export function CreateStaffSheet({
       </SheetContent>
     </Sheet>
   );
-}
-
-function toCreateStaffErrors(fieldErrors: Partial<Record<keyof CreateStaffFormValues, string[]>>) {
-  return Object.fromEntries(
-    Object.entries(fieldErrors).map(([key, value]) => [key, value?.[0]])
-  ) as CreateStaffErrors;
-}
-
-function getRoleAssignable(role: unknown) {
-  if (!role || typeof role !== "object" || !("assignable" in role)) {
-    return true;
-  }
-
-  const assignable = (role as { assignable?: unknown }).assignable;
-  return typeof assignable === "boolean" ? assignable : true;
-}
-
-function isOwnPasswordChange({
-  password,
-  sessionUserId,
-  worker
-}: {
-  password?: string;
-  sessionUserId?: string;
-  worker?: StaffWorker;
-}) {
-  return Boolean(worker && sessionUserId && worker.userId === sessionUserId && password?.trim());
 }

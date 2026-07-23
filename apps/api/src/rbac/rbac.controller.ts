@@ -44,7 +44,7 @@ export class RbacController {
   }
 
   @Patch("roles/:id")
-  @Permissions("roles:modify")
+  @Permissions("roles:update")
   @ApiOkResponse({ type: RoleDto })
   updateRole(
     @ActiveTenant() tenantId: string,
@@ -55,7 +55,7 @@ export class RbacController {
   }
 
   @Delete("roles/:id")
-  @Permissions("roles:eliminate")
+  @Permissions("roles:delete")
   deleteRole(@ActiveTenant() tenantId: string, @Param("id") roleId: string) {
     return this.rbacService.deleteRole(tenantId, roleId);
   }

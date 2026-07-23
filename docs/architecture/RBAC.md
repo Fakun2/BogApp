@@ -20,6 +20,10 @@ RBAC se resuelve por tenant mediante `tenant_memberships`.
 - `staff:delete`
 - `staff:manage`
 - `users:manage`
+- `roles:read`
+- `roles:create`
+- `roles:update`
+- `roles:delete`
 - `roles:manage`
 - `clients:read`
 - `clients:create`
@@ -31,6 +35,8 @@ RBAC se resuelve por tenant mediante `tenant_memberships`.
 - `cases:update`
 - `cases:delete`
 - `cases:write`
+- `forums:read`
+- `provinces:read`
 - `documents:read`
 - `documents:write`
 - `tasks:read`
@@ -42,7 +48,6 @@ RBAC se resuelve por tenant mediante `tenant_memberships`.
 - `finance:create`
 - `finance:update`
 - `finance:delete`
-- `finance:write`
 - `billing:manage`
 
 ## Matriz esperada

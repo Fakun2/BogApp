@@ -74,12 +74,14 @@ export class OnboardingService {
           where: { code: role.code },
           update: {
             description: role.description,
+            hierarchyLevel: role.hierarchyLevel,
             name: role.name,
             isSystem: true
           },
           create: {
             code: role.code,
             description: role.description,
+            hierarchyLevel: role.hierarchyLevel,
             name: role.name,
             isSystem: true
           }
@@ -106,8 +108,8 @@ export class OnboardingService {
         }
       }
 
-      const adminRole = await tx.role.findUniqueOrThrow({
-        where: { code: "admin" }
+      const ownerRole = await tx.role.findUniqueOrThrow({
+        where: { code: "owner" }
       });
 
       const user = input.owner
@@ -194,7 +196,7 @@ export class OnboardingService {
         data: {
           tenantId: tenant.id,
           userId: user.id,
-          roleId: adminRole.id,
+          roleId: ownerRole.id,
           status: "active",
           joinedAt: new Date()
         }
@@ -210,8 +212,8 @@ export class OnboardingService {
       tenantAccess: [
         {
           tenantId: result.tenant.id,
-          role: "admin",
-          permissions: await this.rbacService.getPermissionsForRole("admin")
+          role: "owner",
+          permissions: await this.rbacService.getPermissionsForRole("owner")
         }
       ]
     };
@@ -219,7 +221,7 @@ export class OnboardingService {
     return {
       userId: result.user.id,
       tenantId: result.tenant.id,
-      role: "admin",
+      role: "owner",
       tokens: await this.authService.issueTokens(payload)
     };
   }

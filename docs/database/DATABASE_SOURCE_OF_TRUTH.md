@@ -31,6 +31,8 @@ los modelos MVP esten completos.
 - `TenantSettings` -> `tenant_settings`
 - `PracticeAreaTemplate` -> `practice_area_templates`
 - `PracticeArea` -> `practice_areas`
+- `Province` -> `provinces`
+- `ForumTemplate` -> `forum_templates`
 - `Client` -> `clients` (definido en Prisma en #19; migracion pendiente en #20)
 - `Currency` -> `currencies`
 - `Role` -> `roles`
@@ -79,6 +81,9 @@ Post-MVP o despues del core legal:
   desactiva o elimina; eso representa personal sin rol asignado.
 - `PracticeAreaTemplate` es catalogo global; `PracticeArea` representa las areas
   disponibles para un tenant, sean derivadas del catalogo o custom.
+- `Province` es catalogo global seeded; no se modifica desde la app.
+- `ForumTemplate` representa fueros del sistema asociados a una provincia; todos
+  los tenants consumen este catalogo global directamente.
 - La asignacion de areas de trabajo a miembros del tenant vive en
   `tenant_membership_practice_areas`.
 - Evitar arrays de IDs como columnas; usar relaciones 1:N o tablas puente.

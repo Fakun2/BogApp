@@ -3,6 +3,7 @@ import {
   BarChart3,
   BriefcaseBusiness,
   CircleHelp,
+  Gavel,
   Home,
   ShieldCheck,
   Scale,
@@ -14,7 +15,9 @@ import type { AdminNavSection, AdminPageTitle } from "../_types/admin";
 export const adminNavSections: AdminNavSection[] = [
   {
     title: "Main",
-    items: [{ href: "/admin", label: "Dashboard", icon: Home, requiredPermissions: ["admin:access"] }]
+    items: [
+      { href: "/admin", label: "Dashboard", icon: Home, requiredPermissions: ["admin:access"] }
+    ]
   },
   {
     title: "Operacion",
@@ -39,6 +42,13 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Roles",
         icon: ShieldCheck,
         requiredPermissions: ["roles:read"]
+      },
+      {
+        href: "/admin/legal-catalogs",
+        label: "Catalogos legales",
+        icon: Gavel,
+        requiredPermissions: ["forums:read", "provinces:read"],
+        permissionMode: "any"
       },
       {
         href: "/admin/cashbox",
@@ -79,6 +89,7 @@ export const adminNavSections: AdminNavSection[] = [
 
 export const adminPageTitles: AdminPageTitle[] = [
   { href: "/admin/roles", title: "Roles" },
+  { href: "/admin/legal-catalogs", title: "Catalogos legales" },
   { href: "/admin/staff", title: "Staff" },
   { href: "/admin/cases", title: "Casos" },
   { href: "/admin/clients", title: "Clientes" },

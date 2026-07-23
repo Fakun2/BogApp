@@ -9,7 +9,7 @@ export function useDeleteRoleMutation(roleId: string) {
   const queryClient = useQueryClient();
 
   return useDashboardMutation({
-    permission: "roles:eliminate",
+    permission: "roles:delete",
     mutationFn: (_: void, { session, tenantId }) => deleteRole({ roleId, session, tenantId }),
     onSuccess: async () => {
       await Promise.all([
