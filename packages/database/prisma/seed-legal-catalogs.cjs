@@ -1,3 +1,7 @@
+const { loadRootEnv } = require("./load-root-env.cjs");
+
+loadRootEnv();
+
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -145,6 +149,7 @@ const provinces = [
     name: "Tucuman",
     province: "Tucuman",
     country: "Argentina",
+    caseCatalogStrategy: "center_forum",
     displayOrder: 240
   },
   { code: "ar-federal", name: "Federal", province: null, country: "Argentina", displayOrder: 250 }
@@ -801,6 +806,12 @@ const forumTemplates = [
     name: "Civil y comercial comun",
     displayOrder: 60
   },
+  {
+    provinceCode: "ar-tucuman",
+    code: "ar-tucuman-secretaria-corte",
+    name: "Secretaria de Corte",
+    displayOrder: 65
+  },
   { provinceCode: "ar-tucuman", code: "ar-tucuman-paz", name: "De paz", displayOrder: 70 },
   {
     provinceCode: "ar-tucuman",
@@ -816,6 +827,121 @@ const forumTemplates = [
   }
 ];
 
+const judicialCenters = [
+  {
+    provinceCode: "ar-tucuman",
+    code: "ar-tucuman-centro-judicial-capital",
+    name: "Centro Judicial Capital",
+    displayOrder: 10
+  },
+  {
+    provinceCode: "ar-tucuman",
+    code: "ar-tucuman-centro-judicial-concepcion",
+    name: "Centro Judicial de Concepcion",
+    displayOrder: 20
+  },
+  {
+    provinceCode: "ar-tucuman",
+    code: "ar-tucuman-centro-judicial-monteros",
+    name: "Centro Judicial de Monteros",
+    displayOrder: 30
+  },
+  {
+    provinceCode: "ar-tucuman",
+    code: "ar-tucuman-centro-judicial-este",
+    name: "Centro Judicial Este",
+    displayOrder: 40
+  }
+];
+
+const judicialCenterForums = [
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-civil-cobros-apremios",
+    displayOrder: 10
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-civil-comercial-comun",
+    displayOrder: 20
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-civil-contencioso-administrativo",
+    displayOrder: 30
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-civil-documentos-locaciones",
+    displayOrder: 40
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-civil-familia-sucesiones",
+    displayOrder: 50
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-secretaria-corte",
+    displayOrder: 60
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-capital",
+    forumCode: "ar-tucuman-civil-trabajo",
+    displayOrder: 70
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-concepcion",
+    forumCode: "ar-tucuman-civil-cobros-apremios",
+    displayOrder: 10
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-concepcion",
+    forumCode: "ar-tucuman-civil-comercial-comun",
+    displayOrder: 20
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-concepcion",
+    forumCode: "ar-tucuman-civil-documentos-locaciones",
+    displayOrder: 30
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-concepcion",
+    forumCode: "ar-tucuman-civil-familia-sucesiones",
+    displayOrder: 40
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-concepcion",
+    forumCode: "ar-tucuman-civil-trabajo",
+    displayOrder: 50
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-monteros",
+    forumCode: "ar-tucuman-civil-comercial-comun",
+    displayOrder: 10
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-monteros",
+    forumCode: "ar-tucuman-civil-documentos-locaciones",
+    displayOrder: 20
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-monteros",
+    forumCode: "ar-tucuman-civil-familia-sucesiones",
+    displayOrder: 30
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-monteros",
+    forumCode: "ar-tucuman-civil-trabajo",
+    displayOrder: 40
+  },
+  {
+    centerCode: "ar-tucuman-centro-judicial-este",
+    forumCode: "ar-tucuman-civil-familia-sucesiones",
+    displayOrder: 10
+  }
+];
+
 async function seedLegalCatalogs() {
   await prisma.$transaction(async (tx) => {
     for (const province of provinces) {
@@ -823,6 +949,7 @@ async function seedLegalCatalogs() {
         where: { code: province.code },
         update: {
           active: true,
+          caseCatalogStrategy: province.caseCatalogStrategy ?? "manual",
           country: province.country,
           displayOrder: province.displayOrder,
           name: province.name,
@@ -830,6 +957,7 @@ async function seedLegalCatalogs() {
         },
         create: {
           active: true,
+          caseCatalogStrategy: province.caseCatalogStrategy ?? "manual",
           ...province
         }
       });
@@ -854,6 +982,57 @@ async function seedLegalCatalogs() {
           displayOrder: forumTemplate.displayOrder,
           name: forumTemplate.name,
           provinceId: province.id
+        }
+      });
+    }
+
+    for (const judicialCenter of judicialCenters) {
+      const province = await tx.province.findUniqueOrThrow({
+        where: { code: judicialCenter.provinceCode }
+      });
+
+      await tx.judicialCenter.upsert({
+        where: { code: judicialCenter.code },
+        update: {
+          active: true,
+          displayOrder: judicialCenter.displayOrder,
+          name: judicialCenter.name,
+          provinceId: province.id
+        },
+        create: {
+          active: true,
+          code: judicialCenter.code,
+          displayOrder: judicialCenter.displayOrder,
+          name: judicialCenter.name,
+          provinceId: province.id
+        }
+      });
+    }
+
+    for (const centerForum of judicialCenterForums) {
+      const judicialCenter = await tx.judicialCenter.findUniqueOrThrow({
+        where: { code: centerForum.centerCode }
+      });
+      const forumTemplate = await tx.forumTemplate.findUniqueOrThrow({
+        where: { code: centerForum.forumCode }
+      });
+
+      await tx.judicialCenterForum.upsert({
+        where: {
+          judicialCenterId_forumTemplateId: {
+            forumTemplateId: forumTemplate.id,
+            judicialCenterId: judicialCenter.id
+          }
+        },
+        update: {
+          active: true,
+          displayOrder: centerForum.displayOrder
+        },
+        create: {
+          active: true,
+          displayOrder: centerForum.displayOrder,
+          forumTemplateId: forumTemplate.id,
+          judicialCenterId: judicialCenter.id
         }
       });
     }

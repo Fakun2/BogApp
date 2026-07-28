@@ -15,6 +15,7 @@ type DashboardQueryOptions<TData> = Omit<
   UseQueryOptions<TData, Error, TData, QueryKey>,
   "enabled" | "queryFn" | "queryKey"
 > & {
+  enabled?: boolean;
   permission?: string;
   queryFn: (context: DashboardQueryContext) => Promise<TData>;
   queryKey: QueryKey;
@@ -24,13 +25,14 @@ export function useDashboardQuery<TData>({
   permission,
   queryFn,
   queryKey,
+  enabled: enabledOption = true,
   ...options
 }: DashboardQueryOptions<TData>) {
   const session = useSession();
   const tenantAccess = useMemo(() => getActiveTenantAccess(session), [session]);
   const tenantId = tenantAccess?.tenantId ?? null;
   const allowed = permission ? hasPermission(session, permission) : true;
-  const enabled = Boolean(session && tenantId && allowed);
+  const enabled = Boolean(enabledOption && session && tenantId && allowed);
 
   const query = useQuery<TData, Error>({
     ...options,

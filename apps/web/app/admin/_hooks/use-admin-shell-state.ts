@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { readSession, saveSession, type BogaapSession } from "@/lib/auth/session";
+import { clearSession, saveSession, type BogaapSession } from "@/lib/auth/session";
 
 export function useAdminShellState() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,16 +15,11 @@ export function useAdminShellState() {
     let cancelled = false;
 
     async function loadSession() {
-      const storedSession = readSession();
-      if (storedSession) {
-        setSession(storedSession);
-        setSessionReady(true);
-      }
-
       const response = await fetch("/api/auth/session");
       if (!response.ok) {
         if (!cancelled) {
-          setSession(storedSession ?? null);
+          clearSession();
+          setSession(null);
           setSessionReady(true);
         }
         return;

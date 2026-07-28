@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   clearSession,
   hasTenantAccess,
-  readSession,
   saveSession,
   type BogaapSession
 } from "@/lib/auth/session";
@@ -58,9 +57,15 @@ export function useOnboardingFlow() {
   const progress = useMemo(() => ((step + 1) / onboardingSteps.length) * 100, [step]);
 
   useEffect(() => {
-    const storedSession = readSession();
+    void loadInitialSession();
+  }, [router]);
+
+  async function loadInitialSession() {
+    const storedSession = await fetchClientSession();
 
     if (!storedSession) {
+      clearSession();
+      setSessionReady(true);
       router.replace("/login");
       return;
     }
@@ -85,7 +90,7 @@ export function useOnboardingFlow() {
       }
     }));
     setSessionReady(true);
-  }, [router]);
+  }
 
   function clearStepError(stepIndex: StepIndex) {
     setStepErrors((current) => ({ ...current, [stepIndex]: undefined }));

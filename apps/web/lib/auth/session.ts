@@ -3,6 +3,7 @@ import { decodeJwtPayload } from "./jwt";
 
 const sessionStorageKey = "bogaap.session";
 const sessionListeners = new Set<() => void>();
+let currentSession: BogaapSession | null = null;
 
 export type BogaapSession = {
   tenantAccess?: SessionTenantAccess[];
@@ -28,32 +29,22 @@ export function saveSession(session: BogaapSession) {
     session.tenantAccess ??
     (session.tokens?.accessToken ? decodeJwtPayload(session.tokens.accessToken).tenantAccess : []);
 
-  window.localStorage.setItem(
-    sessionStorageKey,
-    JSON.stringify({
-      tenantAccess,
-      user: session.user
-    })
-  );
+  currentSession = {
+    tenantAccess,
+    user: session.user
+  };
+  removeStoredSession();
   notifySessionListeners();
 }
 
 export function readSession(): BogaapSession | null {
-  const stored = window.localStorage.getItem(sessionStorageKey);
-  if (!stored) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(stored) as BogaapSession;
-  } catch {
-    window.localStorage.removeItem(sessionStorageKey);
-    return null;
-  }
+  removeStoredSession();
+  return currentSession;
 }
 
 export function clearSession() {
-  window.localStorage.removeItem(sessionStorageKey);
+  currentSession = null;
+  removeStoredSession();
   notifySessionListeners();
 }
 
@@ -67,6 +58,12 @@ export function subscribeSession(listener: () => void) {
 function notifySessionListeners() {
   for (const listener of sessionListeners) {
     listener();
+  }
+}
+
+function removeStoredSession() {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(sessionStorageKey);
   }
 }
 

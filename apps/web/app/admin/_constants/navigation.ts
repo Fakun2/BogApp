@@ -31,10 +31,9 @@ export const adminNavSections: AdminNavSection[] = [
       },
       {
         href: "/admin/cases",
-        label: "Casos",
+        label: "Expedientes",
         icon: BriefcaseBusiness,
-        requiredPermissions: ["cases:read"],
-        status: "soon"
+        requiredPermissions: ["cases:read"]
       },
       { href: "/admin/staff", label: "Staff", icon: Scale, requiredPermissions: ["staff:read"] },
       {
@@ -91,7 +90,7 @@ export const adminPageTitles: AdminPageTitle[] = [
   { href: "/admin/roles", title: "Roles" },
   { href: "/admin/legal-catalogs", title: "Catalogos legales" },
   { href: "/admin/staff", title: "Staff" },
-  { href: "/admin/cases", title: "Casos" },
+  { href: "/admin/cases", title: "Expedientes" },
   { href: "/admin/clients", title: "Clientes" },
   { href: "/admin/cashbox", title: "Caja" },
   { href: "/admin/reports", title: "Reportes" },

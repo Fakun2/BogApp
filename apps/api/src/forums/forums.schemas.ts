@@ -12,6 +12,7 @@ export const listForumsQuerySchema = z.object({
   includeInactive: z.coerce.boolean().default(false),
   limit: z.coerce.number().int().min(1).max(50).default(8),
   offset: z.coerce.number().int().min(0).default(0),
+  judicialCenterId: optionalTrimmedString.pipe(z.string().uuid().optional()),
   provinceId: optionalTrimmedString.pipe(z.string().uuid().optional()),
   search: optionalTrimmedString,
   sort: z.enum(["name:asc", "name:desc"]).default("name:asc")
@@ -56,6 +57,9 @@ export class ForumDto {
 
   @ApiProperty({ format: "uuid", type: String })
   templateId!: string;
+
+  @ApiProperty({ nullable: true, type: String, format: "uuid" })
+  judicialCenterForumId!: string | null;
 
   @ApiProperty({ example: true })
   isSystem!: boolean;

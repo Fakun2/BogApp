@@ -1,3 +1,7 @@
+const { loadRootEnv } = require("./load-root-env.cjs");
+
+loadRootEnv();
+
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -22,12 +26,10 @@ const permissions = [
   { code: "clients:create", resource: "clients", action: "create" },
   { code: "clients:update", resource: "clients", action: "update" },
   { code: "clients:delete", resource: "clients", action: "delete" },
-  { code: "clients:write", resource: "clients", action: "write" },
   { code: "cases:read", resource: "cases", action: "read" },
   { code: "cases:create", resource: "cases", action: "create" },
   { code: "cases:update", resource: "cases", action: "update" },
   { code: "cases:delete", resource: "cases", action: "delete" },
-  { code: "cases:write", resource: "cases", action: "write" },
   { code: "forums:read", resource: "forums", action: "read" },
   { code: "provinces:read", resource: "provinces", action: "read" },
   { code: "documents:read", resource: "documents", action: "read" },
@@ -36,7 +38,10 @@ const permissions = [
   { code: "tasks:create", resource: "tasks", action: "create" },
   { code: "tasks:update", resource: "tasks", action: "update" },
   { code: "tasks:delete", resource: "tasks", action: "delete" },
-  { code: "tasks:write", resource: "tasks", action: "write" },
+  { code: "expenses:read", resource: "expenses", action: "read" },
+  { code: "expenses:create", resource: "expenses", action: "create" },
+  { code: "expenses:update", resource: "expenses", action: "update" },
+  { code: "expenses:delete", resource: "expenses", action: "delete" },
   { code: "finance:read", resource: "finance", action: "read" },
   { code: "finance:create", resource: "finance", action: "create" },
   { code: "finance:update", resource: "finance", action: "update" },
@@ -45,6 +50,7 @@ const permissions = [
 ];
 
 const allPermissionCodes = permissions.map((permission) => permission.code);
+const stalePermissionCodes = ["clients:write", "tasks:write"];
 
 const systemRoles = [
   {
@@ -65,8 +71,8 @@ const systemRoles = [
       (permissionCode) =>
         permissionCode !== "billing:manage" &&
         !permissionCode.startsWith("roles:") &&
-        !permissionCode.startsWith("forums:") &&
-        !permissionCode.startsWith("provinces:")
+        !permissionCode.startsWith("cases:") &&
+        !permissionCode.startsWith("expenses:")
     )
   },
   {
@@ -80,18 +86,21 @@ const systemRoles = [
       "clients:read",
       "clients:create",
       "clients:update",
-      "clients:write",
       "cases:read",
       "cases:create",
       "cases:update",
-      "cases:write",
+      "forums:read",
+      "provinces:read",
       "documents:read",
       "documents:write",
       "tasks:read",
       "tasks:create",
       "tasks:update",
-      "tasks:write",
-      "finance:read"
+      "tasks:delete",
+      "expenses:read",
+      "expenses:create",
+      "expenses:update",
+      "expenses:delete"
     ]
   },
   {
@@ -102,26 +111,25 @@ const systemRoles = [
     name: "Paralegal",
     permissions: [
       adminAccessPermission,
-      "clients:read",
       "cases:read",
-      "documents:read",
-      "documents:write",
+      "forums:read",
+      "provinces:read",
       "tasks:read",
       "tasks:create",
       "tasks:update",
-      "tasks:write"
+      "expenses:read",
+      "expenses:create",
+      "expenses:update"
     ]
   },
   {
     active: true,
     code: "accounting",
-    description: "Accede a clientes, expedientes y gestion financiera del estudio.",
+    description: "Opera los permisos de caja del estudio.",
     hierarchyLevel: 1,
     name: "Contabilidad",
     permissions: [
       adminAccessPermission,
-      "clients:read",
-      "cases:read",
       "finance:read",
       "finance:create",
       "finance:update",
@@ -137,7 +145,8 @@ const systemRoles = [
     permissions: [
       adminAccessPermission,
       "clients:read",
-      "cases:read",
+      "forums:read",
+      "provinces:read",
       "documents:read",
       "tasks:read",
       "finance:read"
@@ -205,6 +214,21 @@ async function seedRbac() {
           };
         }),
         skipDuplicates: true
+      });
+    }
+
+    const stalePermissions = await tx.permission.findMany({
+      where: { code: { in: stalePermissionCodes } },
+      select: { id: true }
+    });
+    const stalePermissionIds = stalePermissions.map((permission) => permission.id);
+
+    if (stalePermissionIds.length > 0) {
+      await tx.rolePermission.deleteMany({
+        where: { permissionId: { in: stalePermissionIds } }
+      });
+      await tx.permission.deleteMany({
+        where: { id: { in: stalePermissionIds } }
       });
     }
   });

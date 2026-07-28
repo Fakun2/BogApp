@@ -4,9 +4,13 @@ const resourceLabels: Record<string, string> = {
   admin: "Administracion",
   cases: "Casos",
   clients: "Clientes",
+  expenses: "Gastos",
   finance: "Caja",
+  forums: "Fueros",
+  provinces: "Provincias",
   roles: "Roles",
   staff: "Personal",
+  tasks: "Tareas",
   tenants: "Configuracion"
 };
 
@@ -23,9 +27,13 @@ const resourceDescriptions: Record<string, string> = {
   admin: "Acceso general al panel administrativo.",
   cases: "Gestion de expedientes, seguimiento y trabajo legal.",
   clients: "Administracion de clientes y datos de contacto.",
+  expenses: "Gestion de gastos asociados a tareas y expedientes.",
   finance: "Consulta y control de caja del estudio.",
+  forums: "Consulta de fueros y centros judiciales.",
+  provinces: "Consulta del catalogo global de provincias.",
   roles: "Configuracion de roles y alcances del sistema.",
   staff: "Gestion del personal del estudio.",
+  tasks: "Gestion de tareas y vencimientos operativos.",
   tenants: "Configuracion operativa del estudio."
 };
 

@@ -27,6 +27,9 @@ export class ProvinceDto {
   @ApiProperty({ example: "Argentina" })
   country!: string;
 
+  @ApiProperty({ enum: ["manual", "center_forum"], example: "manual" })
+  caseCatalogStrategy!: "manual" | "center_forum";
+
   @ApiProperty({ example: true })
   active!: boolean;
 

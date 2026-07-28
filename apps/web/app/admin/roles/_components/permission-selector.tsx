@@ -36,6 +36,11 @@ const scopeModules = [
     description: "Organizacion de tareas, vencimientos y pendientes."
   },
   {
+    resource: "expenses",
+    label: "Gastos",
+    description: "Gastos asociados a tareas y expedientes."
+  },
+  {
     resource: "finance",
     label: "Caja",
     description: "Operacion financiera y movimientos de caja."
@@ -203,10 +208,6 @@ function uniquePermissionCodes(permissionCodes: string[]) {
 }
 
 function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel: number) {
-  if (isOwnerOnlyPermission(permissionCode)) {
-    return false;
-  }
-
   if (hierarchyLevel === 3) {
     return true;
   }
@@ -217,9 +218,7 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
       "staff:delete",
       "staff:manage",
       "finance:create",
-      "finance:delete",
-      "forums:read",
-      "provinces:read"
+      "finance:delete"
     ].includes(permissionCode);
   }
 
@@ -230,13 +229,16 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
     permissionCode === "cases:read" ||
     permissionCode === "cases:create" ||
     permissionCode === "cases:update" ||
+    permissionCode === "cases:delete" ||
+    permissionCode === "forums:read" ||
+    permissionCode === "provinces:read" ||
     permissionCode === "tasks:read" ||
     permissionCode === "tasks:create" ||
     permissionCode === "tasks:update" ||
-    permissionCode === "tasks:delete"
+    permissionCode === "tasks:delete" ||
+    permissionCode === "expenses:read" ||
+    permissionCode === "expenses:create" ||
+    permissionCode === "expenses:update" ||
+    permissionCode === "expenses:delete"
   );
-}
-
-function isOwnerOnlyPermission(permissionCode: string) {
-  return permissionCode.startsWith("forums:") || permissionCode.startsWith("provinces:");
 }

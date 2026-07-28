@@ -68,6 +68,19 @@ function authCookieOptions() {
     httpOnly: true,
     path: "/",
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production"
+    secure: shouldUseSecureCookies()
   };
+}
+
+function shouldUseSecureCookies() {
+  const configuredValue = process.env.AUTH_COOKIE_SECURE;
+  if (configuredValue !== undefined) {
+    return configuredValue.toLowerCase() === "true";
+  }
+
+  return [
+    process.env.FRONTEND_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ].some((url) => url?.startsWith("https://"));
 }

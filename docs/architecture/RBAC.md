@@ -29,12 +29,10 @@ RBAC se resuelve por tenant mediante `tenant_memberships`.
 - `clients:create`
 - `clients:update`
 - `clients:delete`
-- `clients:write`
 - `cases:read`
 - `cases:create`
 - `cases:update`
 - `cases:delete`
-- `cases:write`
 - `forums:read`
 - `provinces:read`
 - `documents:read`
@@ -43,7 +41,10 @@ RBAC se resuelve por tenant mediante `tenant_memberships`.
 - `tasks:create`
 - `tasks:update`
 - `tasks:delete`
-- `tasks:write`
+- `expenses:read`
+- `expenses:create`
+- `expenses:update`
+- `expenses:delete`
 - `finance:read`
 - `finance:create`
 - `finance:update`
@@ -59,25 +60,26 @@ causas, documentos, tareas, finanzas, caja y auditoria.
 
 ### admin
 
-Puede gestionar usuarios salvo transferir ownership, clientes, causas,
-documentos, tareas, reportes y configuracion limitada.
+Puede gestionar usuarios salvo transferir ownership, clientes, documentos,
+tareas, reportes y configuracion limitada. No accede a expedientes ni gastos
+del expediente por defecto.
 
 ### lawyer
 
-Puede gestionar sus causas asignadas, ver clientes vinculados, crear tareas,
-subir documentos, ver documentos autorizados y ver agenda. No gestiona roles ni
-tenant.
+Puede leer, crear y modificar expedientes; leer, crear, modificar y eliminar
+tareas; y leer, crear, modificar y eliminar gastos asociados a tareas. No
+gestiona roles ni tenant.
 
 ### paralegal
 
-Puede ver causas asignadas, cargar documentos, completar tareas y crear notas o
-movimientos simples. No elimina causas ni ve finanzas sensibles.
+Puede leer expedientes, crear y modificar tareas, y leer, crear y modificar
+gastos asociados a tareas. No elimina expedientes, tareas ni gastos.
 
 ### accounting
 
-Puede ver clientes, ver causas en modo limitado, gestionar gastos, cuenta
-corriente, caja y reportes financieros. No modifica estrategia legal ni
-documentos sensibles salvo permiso explicito.
+Tiene permisos de caja (`finance:*`). Por ahora Caja no existe como modulo
+operativo completo, por lo que no accede a expedientes ni a gastos asociados a
+tareas.
 
 ### viewer
 

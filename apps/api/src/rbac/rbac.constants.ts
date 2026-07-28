@@ -18,12 +18,10 @@ export const RBAC_PERMISSIONS = [
   { code: "clients:create", resource: "clients", action: "create" },
   { code: "clients:update", resource: "clients", action: "update" },
   { code: "clients:delete", resource: "clients", action: "delete" },
-  { code: "clients:write", resource: "clients", action: "write" },
   { code: "cases:read", resource: "cases", action: "read" },
   { code: "cases:create", resource: "cases", action: "create" },
   { code: "cases:update", resource: "cases", action: "update" },
   { code: "cases:delete", resource: "cases", action: "delete" },
-  { code: "cases:write", resource: "cases", action: "write" },
   { code: "forums:read", resource: "forums", action: "read" },
   { code: "provinces:read", resource: "provinces", action: "read" },
   { code: "documents:read", resource: "documents", action: "read" },
@@ -32,7 +30,10 @@ export const RBAC_PERMISSIONS = [
   { code: "tasks:create", resource: "tasks", action: "create" },
   { code: "tasks:update", resource: "tasks", action: "update" },
   { code: "tasks:delete", resource: "tasks", action: "delete" },
-  { code: "tasks:write", resource: "tasks", action: "write" },
+  { code: "expenses:read", resource: "expenses", action: "read" },
+  { code: "expenses:create", resource: "expenses", action: "create" },
+  { code: "expenses:update", resource: "expenses", action: "update" },
+  { code: "expenses:delete", resource: "expenses", action: "delete" },
   { code: "finance:read", resource: "finance", action: "read" },
   { code: "finance:create", resource: "finance", action: "create" },
   { code: "finance:update", resource: "finance", action: "update" },
@@ -57,8 +58,8 @@ export const RBAC_ROLES = [
       (permission) =>
         permission.code !== "billing:manage" &&
         permission.resource !== "roles" &&
-        permission.resource !== "forums" &&
-        permission.resource !== "provinces"
+        permission.resource !== "cases" &&
+        permission.resource !== "expenses"
     ).map((permission) => permission.code)
   },
   {
@@ -71,18 +72,21 @@ export const RBAC_ROLES = [
       "clients:read",
       "clients:create",
       "clients:update",
-      "clients:write",
       "cases:read",
       "cases:create",
       "cases:update",
-      "cases:write",
+      "forums:read",
+      "provinces:read",
       "documents:read",
       "documents:write",
       "tasks:read",
       "tasks:create",
       "tasks:update",
-      "tasks:write",
-      "finance:read"
+      "tasks:delete",
+      "expenses:read",
+      "expenses:create",
+      "expenses:update",
+      "expenses:delete"
     ]
   },
   {
@@ -92,25 +96,24 @@ export const RBAC_ROLES = [
     hierarchyLevel: 1,
     permissions: [
       ADMIN_ACCESS_PERMISSION,
-      "clients:read",
       "cases:read",
-      "documents:read",
-      "documents:write",
+      "forums:read",
+      "provinces:read",
       "tasks:read",
       "tasks:create",
       "tasks:update",
-      "tasks:write"
+      "expenses:read",
+      "expenses:create",
+      "expenses:update"
     ]
   },
   {
     code: "accounting",
     name: "Contabilidad",
-    description: "Accede a clientes, expedientes y gestion financiera del estudio.",
+    description: "Opera los permisos de caja del estudio.",
     hierarchyLevel: 1,
     permissions: [
       ADMIN_ACCESS_PERMISSION,
-      "clients:read",
-      "cases:read",
       "finance:read",
       "finance:create",
       "finance:update",
@@ -125,7 +128,8 @@ export const RBAC_ROLES = [
     permissions: [
       ADMIN_ACCESS_PERMISSION,
       "clients:read",
-      "cases:read",
+      "forums:read",
+      "provinces:read",
       "documents:read",
       "tasks:read",
       "finance:read"

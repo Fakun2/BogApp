@@ -416,10 +416,17 @@ function isAllowedOperationalPermission(permissionCode: string) {
     permissionCode === "cases:read" ||
     permissionCode === "cases:create" ||
     permissionCode === "cases:update" ||
+    permissionCode === "cases:delete" ||
+    permissionCode === "forums:read" ||
+    permissionCode === "provinces:read" ||
     permissionCode === "tasks:read" ||
     permissionCode === "tasks:create" ||
     permissionCode === "tasks:update" ||
     permissionCode === "tasks:delete" ||
+    permissionCode === "expenses:read" ||
+    permissionCode === "expenses:create" ||
+    permissionCode === "expenses:update" ||
+    permissionCode === "expenses:delete" ||
     permissionCode === "documents:read" ||
     permissionCode === "documents:write"
   );
@@ -436,12 +443,7 @@ function isBlockedModeratePermission(permissionCode: string) {
 }
 
 function withoutOwnerOnlyPermissions(permissionCodes: string[]) {
-  return permissionCodes.filter(
-    (permissionCode) =>
-      !permissionCode.startsWith("roles:") &&
-      !permissionCode.startsWith("forums:") &&
-      !permissionCode.startsWith("provinces:")
-  );
+  return permissionCodes.filter((permissionCode) => !permissionCode.startsWith("roles:"));
 }
 
 function uniquePermissionCodes(permissionCodes: string[]) {

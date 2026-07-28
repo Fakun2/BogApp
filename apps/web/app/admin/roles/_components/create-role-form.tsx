@@ -29,12 +29,10 @@ const allPermissionCodes = [
   "clients:create",
   "clients:update",
   "clients:delete",
-  "clients:write",
   "cases:read",
   "cases:create",
   "cases:update",
   "cases:delete",
-  "cases:write",
   "forums:read",
   "provinces:read",
   "documents:read",
@@ -43,7 +41,10 @@ const allPermissionCodes = [
   "tasks:create",
   "tasks:update",
   "tasks:delete",
-  "tasks:write",
+  "expenses:read",
+  "expenses:create",
+  "expenses:update",
+  "expenses:delete",
   "finance:read",
   "finance:create",
   "finance:update",
@@ -286,12 +287,7 @@ function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLe
 }
 
 function withoutOwnerOnlyPermissions(permissionCodes: string[]) {
-  return permissionCodes.filter(
-    (permissionCode) =>
-      !permissionCode.startsWith("roles:") &&
-      !permissionCode.startsWith("forums:") &&
-      !permissionCode.startsWith("provinces:")
-  );
+  return permissionCodes.filter((permissionCode) => !permissionCode.startsWith("roles:"));
 }
 
 function isAllowedOperationalPermission(permissionCode: string) {
@@ -302,10 +298,17 @@ function isAllowedOperationalPermission(permissionCode: string) {
     permissionCode === "cases:read" ||
     permissionCode === "cases:create" ||
     permissionCode === "cases:update" ||
+    permissionCode === "cases:delete" ||
+    permissionCode === "forums:read" ||
+    permissionCode === "provinces:read" ||
     permissionCode === "tasks:read" ||
     permissionCode === "tasks:create" ||
     permissionCode === "tasks:update" ||
     permissionCode === "tasks:delete" ||
+    permissionCode === "expenses:read" ||
+    permissionCode === "expenses:create" ||
+    permissionCode === "expenses:update" ||
+    permissionCode === "expenses:delete" ||
     permissionCode === "documents:read" ||
     permissionCode === "documents:write"
   );

@@ -1,0 +1,294 @@
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+  StreamableFile,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import {
+  ApiBody,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiSecurity,
+  ApiTags
+} from "@nestjs/swagger";
+import type { AuthenticatedRequest } from "../auth/auth.types";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { Permissions } from "../auth/permissions.decorator";
+import { PermissionsGuard } from "../auth/permissions.guard";
+import { ActiveTenant } from "../tenancy/active-tenant.decorator";
+import { TenantGuard } from "../tenancy/tenant.guard";
+import { CaseExpenseAttachmentUploadRateLimitGuard } from "./guards/case-expense-attachment-upload-rate-limit.guard";
+import {
+  CaseDetailDto,
+  CaseDeleteResponseDto,
+  CaseDto,
+  CaseExpenseAttachmentDto,
+  CaseExpenseAttachmentsListResponseDto,
+  CaseExpenseDto,
+  CaseExpensesListResponseDto,
+  CaseTaskDto,
+  CaseTasksListResponseDto,
+  CasesListResponseDto,
+  CreateCaseDto,
+  CreateCaseExpenseDto,
+  CreateCaseTaskDto,
+  ListCaseExpensesQueryDto,
+  ListCaseTasksQueryDto,
+  ListCasesQueryDto,
+  UpdateCaseDto,
+  UpdateCaseExpenseDto,
+  UpdateCaseTaskDto
+} from "./cases.schemas";
+import { CasesService } from "./cases.service";
+import { maxCaseExpenseAttachmentSizeBytes } from "./use-cases/case-expense-attachments.use-case";
+
+@ApiTags("cases")
+@ApiBearerAuth()
+@ApiSecurity("tenant")
+@Controller("cases")
+@UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
+export class CasesController {
+  constructor(private readonly casesService: CasesService) {}
+
+  @Get()
+  @Permissions("cases:read")
+  @ApiOkResponse({ type: CasesListResponseDto })
+  list(@ActiveTenant() tenantId: string, @Query() query: ListCasesQueryDto) {
+    return this.casesService.list(tenantId, query);
+  }
+
+  @Post()
+  @Permissions("cases:create")
+  @ApiCreatedResponse({ type: CaseDto })
+  create(@ActiveTenant() tenantId: string, @Body() input: CreateCaseDto) {
+    return this.casesService.create(tenantId, input);
+  }
+
+  @Get(":id")
+  @Permissions("cases:read")
+  @ApiOkResponse({ type: CaseDetailDto })
+  getDetail(@ActiveTenant() tenantId: string, @Param("id") caseId: string) {
+    return this.casesService.getDetail(tenantId, caseId);
+  }
+
+  @Get(":caseId/tasks")
+  @Permissions("cases:read", "tasks:read")
+  @ApiOkResponse({ type: CaseTasksListResponseDto })
+  listTasks(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Query() query: ListCaseTasksQueryDto
+  ) {
+    return this.casesService.listTasks(tenantId, caseId, query);
+  }
+
+  @Post(":caseId/tasks")
+  @Permissions("cases:read", "tasks:create")
+  @ApiCreatedResponse({ type: CaseTaskDto })
+  createTask(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Body() input: CreateCaseTaskDto
+  ) {
+    return this.casesService.createTask(tenantId, caseId, input);
+  }
+
+  @Patch(":caseId/tasks/:taskId")
+  @Permissions("cases:read", "tasks:update")
+  @ApiOkResponse({ type: CaseTaskDto })
+  updateTask(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("taskId") taskId: string,
+    @Body() input: UpdateCaseTaskDto
+  ) {
+    return this.casesService.updateTask(tenantId, caseId, taskId, input);
+  }
+
+  @Delete(":caseId/tasks/:taskId")
+  @Permissions("cases:read", "tasks:delete")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  deleteTask(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("taskId") taskId: string
+  ) {
+    return this.casesService.deleteTask(tenantId, caseId, taskId);
+  }
+
+  @Get(":caseId/expenses")
+  @Permissions("cases:read", "expenses:read")
+  @ApiOkResponse({ type: CaseExpensesListResponseDto })
+  listExpenses(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Query() query: ListCaseExpensesQueryDto
+  ) {
+    return this.casesService.listExpenses(tenantId, caseId, query);
+  }
+
+  @Post(":caseId/expenses")
+  @Permissions("cases:read", "expenses:create")
+  @ApiCreatedResponse({ type: CaseExpenseDto })
+  createExpense(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Body() input: CreateCaseExpenseDto
+  ) {
+    return this.casesService.createExpense(tenantId, caseId, input);
+  }
+
+  @Patch(":caseId/expenses/:expenseId")
+  @Permissions("cases:read", "expenses:update")
+  @ApiOkResponse({ type: CaseExpenseDto })
+  updateExpense(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string,
+    @Body() input: UpdateCaseExpenseDto
+  ) {
+    return this.casesService.updateExpense(tenantId, caseId, expenseId, input);
+  }
+
+  @Delete(":caseId/expenses/:expenseId")
+  @Permissions("cases:read", "expenses:delete")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  deleteExpense(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string
+  ) {
+    return this.casesService.deleteExpense(tenantId, caseId, expenseId);
+  }
+
+  @Get(":caseId/expenses/:expenseId/attachments")
+  @Permissions("cases:read", "expenses:read")
+  @ApiOkResponse({ type: CaseExpenseAttachmentsListResponseDto })
+  listExpenseAttachments(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string
+  ) {
+    return this.casesService.listExpenseAttachments(tenantId, caseId, expenseId);
+  }
+
+  @Post(":caseId/expenses/:expenseId/attachments")
+  @Permissions("cases:read", "expenses:update")
+  @UseGuards(CaseExpenseAttachmentUploadRateLimitGuard)
+  @UseInterceptors(
+    FileInterceptor("file", {
+      limits: { fileSize: maxCaseExpenseAttachmentSizeBytes }
+    })
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        file: {
+          type: "string",
+          format: "binary"
+        }
+      },
+      required: ["file"]
+    }
+  })
+  @ApiCreatedResponse({ type: CaseExpenseAttachmentDto })
+  createExpenseAttachment(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string,
+    @Req() request: AuthenticatedRequest,
+    @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string; size: number }
+  ) {
+    return this.casesService.createExpenseAttachment(
+      tenantId,
+      caseId,
+      expenseId,
+      request.user?.sub ?? missingAuthenticatedUser(),
+      file
+    );
+  }
+
+  @Get(":caseId/expenses/:expenseId/attachments/:attachmentId/download")
+  @Permissions("cases:read", "expenses:read")
+  async downloadExpenseAttachment(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string,
+    @Param("attachmentId") attachmentId: string,
+    @Res({ passthrough: true }) response: {
+      setHeader: (name: string, value: string | number) => void;
+    }
+  ) {
+    const { attachment, object } = await this.casesService.downloadExpenseAttachment(
+      tenantId,
+      caseId,
+      expenseId,
+      attachmentId
+    );
+
+    response.setHeader("Content-Type", object.contentType ?? attachment.mimeType);
+    if (object.contentLength !== undefined) {
+      response.setHeader("Content-Length", object.contentLength);
+    }
+    response.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${toDownloadFilename(attachment.originalName)}"`
+    );
+
+    return new StreamableFile(object.body);
+  }
+
+  @Delete(":caseId/expenses/:expenseId/attachments/:attachmentId")
+  @Permissions("cases:read", "expenses:update")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  deleteExpenseAttachment(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string,
+    @Param("attachmentId") attachmentId: string
+  ) {
+    return this.casesService.deleteExpenseAttachment(tenantId, caseId, expenseId, attachmentId);
+  }
+
+  @Patch(":id")
+  @Permissions("cases:update")
+  @ApiOkResponse({ type: CaseDto })
+  update(
+    @ActiveTenant() tenantId: string,
+    @Param("id") caseId: string,
+    @Body() input: UpdateCaseDto
+  ) {
+    return this.casesService.update(tenantId, caseId, input);
+  }
+
+  @Delete(":id")
+  @Permissions("cases:delete")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  delete(@ActiveTenant() tenantId: string, @Param("id") caseId: string) {
+    return this.casesService.delete(tenantId, caseId);
+  }
+}
+
+function toDownloadFilename(filename: string) {
+  return filename.replace(/["\\\r\n]/g, "_");
+}
+
+function missingAuthenticatedUser(): never {
+  throw new BadRequestException("No se pudo identificar al usuario autenticado.");
+}

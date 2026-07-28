@@ -18,9 +18,8 @@ export const adminCommandSections: AdminCommandSection[] = [
       {
         href: "/admin/cases",
         label: "Nuevo caso",
-        requiredPermissions: ["cases:write"],
-        shortcut: "N",
-        status: "soon"
+        requiredPermissions: ["cases:create"],
+        shortcut: "N"
       },
       {
         href: "/admin/clients",
@@ -57,8 +56,7 @@ export const adminCommandSections: AdminCommandSection[] = [
         href: "/admin/cases",
         label: "Crear...",
         icon: Plus,
-        requiredPermissions: ["cases:write"],
-        status: "soon"
+        requiredPermissions: ["cases:create"]
       },
       {
         href: "/admin/settings",
@@ -90,8 +88,7 @@ export const adminCommandSections: AdminCommandSection[] = [
         href: "/admin/cases",
         label: "Abrir expediente...",
         icon: BriefcaseBusiness,
-        requiredPermissions: ["cases:read"],
-        status: "soon"
+        requiredPermissions: ["cases:read"]
       },
       {
         href: "/admin/clients",
