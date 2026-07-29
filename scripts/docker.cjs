@@ -43,10 +43,10 @@ switch (command) {
     compose(["stop", "api", "web", "nginx"]);
     break;
   case "infra:down":
-    compose(["down", "--remove-orphans"]);
+    compose(["stop"]);
     break;
   case "down":
-    compose(["down", "--remove-orphans"]);
+    compose(["stop"]);
     break;
   default:
     fail(`Comando Docker desconocido: ${command}`);
