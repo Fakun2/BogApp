@@ -3,6 +3,7 @@ import {
   Building2,
   Code2,
   FilePlus2,
+  Gavel,
   Plus,
   ShieldCheck,
   Settings,
@@ -17,9 +18,8 @@ export const adminCommandSections: AdminCommandSection[] = [
       {
         href: "/admin/cases",
         label: "Nuevo caso",
-        requiredPermissions: ["cases:write"],
-        shortcut: "N",
-        status: "soon"
+        requiredPermissions: ["cases:create"],
+        shortcut: "N"
       },
       {
         href: "/admin/clients",
@@ -56,8 +56,7 @@ export const adminCommandSections: AdminCommandSection[] = [
         href: "/admin/cases",
         label: "Crear...",
         icon: Plus,
-        requiredPermissions: ["cases:write"],
-        status: "soon"
+        requiredPermissions: ["cases:create"]
       },
       {
         href: "/admin/settings",
@@ -79,11 +78,17 @@ export const adminCommandSections: AdminCommandSection[] = [
         requiredPermissions: ["roles:read"]
       },
       {
+        href: "/admin/legal-catalogs",
+        label: "Gestionar catalogos legales...",
+        icon: Gavel,
+        requiredPermissions: ["forums:read", "provinces:read"],
+        permissionMode: "any"
+      },
+      {
         href: "/admin/cases",
         label: "Abrir expediente...",
         icon: BriefcaseBusiness,
-        requiredPermissions: ["cases:read"],
-        status: "soon"
+        requiredPermissions: ["cases:read"]
       },
       {
         href: "/admin/clients",
@@ -96,7 +101,7 @@ export const adminCommandSections: AdminCommandSection[] = [
         href: "/admin/cashbox",
         label: "Registrar movimiento...",
         icon: FilePlus2,
-        requiredPermissions: ["finance:write"],
+        requiredPermissions: ["finance:update"],
         status: "soon"
       }
     ]

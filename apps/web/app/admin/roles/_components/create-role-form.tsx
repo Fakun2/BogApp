@@ -29,24 +29,26 @@ const allPermissionCodes = [
   "clients:create",
   "clients:update",
   "clients:delete",
-  "clients:write",
   "cases:read",
   "cases:create",
   "cases:update",
   "cases:delete",
-  "cases:write",
+  "forums:read",
+  "provinces:read",
   "documents:read",
   "documents:write",
   "tasks:read",
   "tasks:create",
   "tasks:update",
   "tasks:delete",
-  "tasks:write",
+  "expenses:read",
+  "expenses:create",
+  "expenses:update",
+  "expenses:delete",
   "finance:read",
   "finance:create",
   "finance:update",
   "finance:delete",
-  "finance:write",
   "billing:manage"
 ];
 
@@ -261,10 +263,10 @@ const hierarchyOptions = [
 
 function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLevel: number) {
   if (hierarchyLevel === 3) {
-    return withAdminAccess(allPermissionCodes);
+    return withoutOwnerOnlyPermissions(withAdminAccess(allPermissionCodes));
   }
 
-  const basePermissions = withAdminAccess(permissionCodes);
+  const basePermissions = withoutOwnerOnlyPermissions(withAdminAccess(permissionCodes));
 
   if (hierarchyLevel === 2) {
     return uniquePermissionCodes([
@@ -279,10 +281,13 @@ function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLe
   return uniquePermissionCodes(
     basePermissions.filter(
       (permissionCode) =>
-        permissionCode === adminAccessPermission ||
-        isAllowedOperationalPermission(permissionCode)
+        permissionCode === adminAccessPermission || isAllowedOperationalPermission(permissionCode)
     )
   );
+}
+
+function withoutOwnerOnlyPermissions(permissionCodes: string[]) {
+  return permissionCodes.filter((permissionCode) => !permissionCode.startsWith("roles:"));
 }
 
 function isAllowedOperationalPermission(permissionCode: string) {
@@ -293,10 +298,17 @@ function isAllowedOperationalPermission(permissionCode: string) {
     permissionCode === "cases:read" ||
     permissionCode === "cases:create" ||
     permissionCode === "cases:update" ||
+    permissionCode === "cases:delete" ||
+    permissionCode === "forums:read" ||
+    permissionCode === "provinces:read" ||
     permissionCode === "tasks:read" ||
     permissionCode === "tasks:create" ||
     permissionCode === "tasks:update" ||
     permissionCode === "tasks:delete" ||
+    permissionCode === "expenses:read" ||
+    permissionCode === "expenses:create" ||
+    permissionCode === "expenses:update" ||
+    permissionCode === "expenses:delete" ||
     permissionCode === "documents:read" ||
     permissionCode === "documents:write"
   );
@@ -308,8 +320,7 @@ function isBlockedModeratePermission(permissionCode: string) {
     permissionCode === "staff:delete" ||
     permissionCode === "staff:manage" ||
     permissionCode === "finance:create" ||
-    permissionCode === "finance:delete" ||
-    permissionCode === "finance:write"
+    permissionCode === "finance:delete"
   );
 }
 
@@ -326,15 +337,7 @@ function getRoleHierarchyLevel(role?: RoleDto) {
   return hierarchyLevel === 1 || hierarchyLevel === 2 || hierarchyLevel === 3 ? hierarchyLevel : 1;
 }
 
-function Field({
-  children,
-  error,
-  label
-}: {
-  children: ReactNode;
-  error?: string;
-  label: string;
-}) {
+function Field({ children, error, label }: { children: ReactNode; error?: string; label: string }) {
   return (
     <div className="grid gap-2">
       <Label>{label}</Label>

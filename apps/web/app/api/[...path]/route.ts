@@ -76,7 +76,7 @@ async function forwardRequest(
   }
 
   const response = await fetch(targetUrl, {
-    body: ["GET", "HEAD"].includes(request.method) ? undefined : await request.text(),
+    body: ["GET", "HEAD"].includes(request.method) ? undefined : await request.arrayBuffer(),
     headers,
     method: request.method
   });
@@ -107,7 +107,8 @@ async function refreshAccessToken() {
 }
 
 async function toProxyResponse(response: Response) {
-  const text = await response.text();
+  const body = await response.arrayBuffer();
+  const text = new TextDecoder().decode(body);
   const json = parseJson(text);
 
   if (json && hasTokenPair(json)) {
@@ -125,12 +126,31 @@ async function toProxyResponse(response: Response) {
     });
   }
 
-  return new NextResponse(text, {
+  return new NextResponse(body, {
     headers: {
-      "Content-Type": response.headers.get("Content-Type") ?? "application/json"
+      ...getPassthroughHeaders(response)
     },
     status: response.status
   });
+}
+
+function getPassthroughHeaders(response: Response) {
+  const headers: Record<string, string> = {};
+  const contentType = response.headers.get("Content-Type");
+  const contentDisposition = response.headers.get("Content-Disposition");
+  const contentLength = response.headers.get("Content-Length");
+
+  if (contentType) {
+    headers["Content-Type"] = contentType;
+  }
+  if (contentDisposition) {
+    headers["Content-Disposition"] = contentDisposition;
+  }
+  if (contentLength) {
+    headers["Content-Length"] = contentLength;
+  }
+
+  return headers;
 }
 
 function parseJson(text: string) {

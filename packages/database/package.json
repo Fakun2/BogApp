@@ -10,13 +10,15 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed:rbac": "node prisma/seed-rbac.cjs",
-    "db:prepare": "prisma migrate deploy && npm run db:seed:rbac",
+    "db:seed:practice-area-templates": "node prisma/seed-practice-area-templates.cjs",
+    "db:prepare": "prisma migrate deploy && npm run db:seed:rbac && npm run db:seed:practice-area-templates",
     "db:studio": "prisma studio",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0"
+    "@prisma/client": "^6.19.0",
+    "dotenv": "^16.4.0"
   },
   "devDependencies": {
     "prisma": "^6.19.0"

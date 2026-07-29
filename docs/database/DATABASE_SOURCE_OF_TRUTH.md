@@ -31,7 +31,16 @@ los modelos MVP esten completos.
 - `TenantSettings` -> `tenant_settings`
 - `PracticeAreaTemplate` -> `practice_area_templates`
 - `PracticeArea` -> `practice_areas`
+- `Province` -> `provinces`
+- `ForumTemplate` -> `forum_templates`
+- `JudicialCenter` -> `judicial_centers`
+- `JudicialCenterForum` -> `judicial_center_forums`
 - `Client` -> `clients` (definido en Prisma en #19; migracion pendiente en #20)
+- `Case` -> `cases`
+- `CaseParticipant` -> `case_participants`
+- `CaseTask` -> `case_tasks`
+- `CaseExpense` -> `case_expenses`
+- `CaseExpenseAttachment` -> `case_expense_attachments`
 - `Currency` -> `currencies`
 - `Role` -> `roles`
 - `Permission` -> `permissions`
@@ -43,11 +52,8 @@ los modelos MVP esten completos.
 MVP:
 
 - `opposing_parties`
-- `cases`
-- `case_participants`
 - `document_categories`
 - `documents`
-- `tasks`
 - `task_responsibles`
 - `notifications`
 
@@ -70,6 +76,18 @@ Post-MVP o despues del core legal:
 - `clients` es tenant-aware mediante `tenant_id` y pertenece a `tenants`.
 - `opposing_parties` sigue siendo una entidad separada de `clients`; no mezclar
   partes contrarias con clientes del estudio.
+- `case_participants` permite cargar sujetos procesales manuales en v1 mediante
+  `participant_kind`, `display_name`, `role` y datos de contacto. `client_id`
+  queda opcional para vincular clientes existentes; `opposing_parties` se
+  mantiene como entidad futura separada.
+- `case_tasks` representa tareas operativas tenant-scoped asociadas a un
+  expediente; no almacena costos contables.
+- `case_expenses` representa gastos tenant-scoped del expediente. Puede
+  asociarse opcionalmente a una tarea mediante `task_id`; las metricas de gastos
+  del expediente se calculan desde esta tabla, excluyendo gastos cancelados.
+- `case_expense_attachments` representa comprobantes privados asociados a gastos.
+  Guarda metadata tenant-scoped y el `object_key` del storage S3-compatible; el
+  acceso al archivo se resuelve desde API, no exponiendo bucket/key al frontend.
 - `users` es global y no lleva `tenant_id`.
 - `currencies` es global y no lleva `tenant_id`.
 - `permissions` es catalogo global. `roles` mezcla roles de sistema globales
@@ -79,6 +97,21 @@ Post-MVP o despues del core legal:
   desactiva o elimina; eso representa personal sin rol asignado.
 - `PracticeAreaTemplate` es catalogo global; `PracticeArea` representa las areas
   disponibles para un tenant, sean derivadas del catalogo o custom.
+- `Province` es catalogo global seeded; no se modifica desde la app.
+- `Province.case_catalog_strategy` define la estrategia de captura judicial en
+  expedientes. `manual` usa centro judicial texto + fuero por provincia;
+  `center_forum` usa centros judiciales catalogados y tabla puente
+  centro-fuero.
+- `ForumTemplate` representa fueros del sistema asociados a una provincia; todos
+  los tenants consumen este catalogo global directamente.
+- `JudicialCenter` representa centros judiciales globales asociados a una
+  provincia. `JudicialCenterForum` es la tabla puente que habilita fueros por
+  centro judicial sin duplicar `ForumTemplate`.
+- En expedientes, `Case.judicial_center_forum_id` referencia opcionalmente la
+  combinacion centro-fuero cuando la provincia usa strategy `center_forum`.
+  `Case.judicial_center_text` guarda el centro manual para provincias con
+  strategy `manual`. `court` queda como texto ingresado por el usuario hasta
+  modelar juzgados/tribunales.
 - La asignacion de areas de trabajo a miembros del tenant vive en
   `tenant_membership_practice_areas`.
 - Evitar arrays de IDs como columnas; usar relaciones 1:N o tablas puente.

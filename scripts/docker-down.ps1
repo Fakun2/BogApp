@@ -15,4 +15,4 @@ if (-not $resolvedTarget.StartsWith($tmpRoot, [System.StringComparison]::Ordinal
 
 $env:COMPOSE_BAKE = "false"
 Set-Location $resolvedTarget
-docker compose down
+docker compose stop

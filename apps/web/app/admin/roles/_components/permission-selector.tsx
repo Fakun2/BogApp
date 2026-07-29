@@ -21,9 +21,24 @@ const scopeModules = [
     description: "Trabajo sobre expedientes, seguimiento y actividad legal."
   },
   {
+    resource: "forums",
+    label: "Fueros",
+    description: "Configuracion de fueros y centros judiciales del estudio."
+  },
+  {
+    resource: "provinces",
+    label: "Provincias",
+    description: "Consulta del catalogo global de provincias."
+  },
+  {
     resource: "tasks",
     label: "Tareas",
     description: "Organizacion de tareas, vencimientos y pendientes."
+  },
+  {
+    resource: "expenses",
+    label: "Gastos",
+    description: "Gastos asociados a tareas y expedientes."
   },
   {
     resource: "finance",
@@ -111,7 +126,9 @@ export function PermissionSelector({
               key={module.resource}
               className="grid gap-3 rounded-2xl border border-border/25 p-3"
             >
-              <label className={`flex items-start gap-3 ${moduleDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
+              <label
+                className={`flex items-start gap-3 ${moduleDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+              >
                 <Checkbox
                   checked={moduleChecked}
                   disabled={moduleDisabled}
@@ -201,8 +218,7 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
       "staff:delete",
       "staff:manage",
       "finance:create",
-      "finance:delete",
-      "finance:write"
+      "finance:delete"
     ].includes(permissionCode);
   }
 
@@ -213,9 +229,16 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
     permissionCode === "cases:read" ||
     permissionCode === "cases:create" ||
     permissionCode === "cases:update" ||
+    permissionCode === "cases:delete" ||
+    permissionCode === "forums:read" ||
+    permissionCode === "provinces:read" ||
     permissionCode === "tasks:read" ||
     permissionCode === "tasks:create" ||
     permissionCode === "tasks:update" ||
-    permissionCode === "tasks:delete"
+    permissionCode === "tasks:delete" ||
+    permissionCode === "expenses:read" ||
+    permissionCode === "expenses:create" ||
+    permissionCode === "expenses:update" ||
+    permissionCode === "expenses:delete"
   );
 }

@@ -208,6 +208,20 @@ class InMemoryPrismaService {
     return callback(this);
   }
 
+  async $queryRaw<T>(strings: TemplateStringsArray, ...values: unknown[]): Promise<T> {
+    const user = this.users.get(String(values[0]));
+
+    if (!user) {
+      return [] as T;
+    }
+
+    if (strings.join("").includes('"status"')) {
+      return [{ sessionVersion: 0, status: user.status }] as T;
+    }
+
+    return [{ sessionVersion: 0 }] as T;
+  }
+
   seedUser(user: StoredUser) {
     this.users.set(user.id, user);
   }
@@ -307,7 +321,7 @@ describe("Onboarding endpoints (e2e)", () => {
       .expect(401);
   });
 
-  it("creates a tenant and admin membership for the authenticated user", async () => {
+  it("creates a tenant and owner membership for the authenticated user", async () => {
     const accessToken = jwt.sign({
       sub: user.id,
       email: user.email,
@@ -322,14 +336,14 @@ describe("Onboarding endpoints (e2e)", () => {
       .expect(201);
 
     assert.equal(response.body.userId, user.id);
-    assert.equal(response.body.role, "admin");
+    assert.equal(response.body.role, "owner");
     assert.equal(typeof response.body.tenantId, "string");
     assert.equal(typeof response.body.tokens.accessToken, "string");
     assert.equal(typeof response.body.tokens.refreshToken, "string");
     const issuedPayload = jwt.decode(response.body.tokens.accessToken) as {
       tenantAccess: Array<{ permissions: string[]; role: string; tenantId: string }>;
     };
-    assert.deepEqual(issuedPayload.tenantAccess[0]?.role, "admin");
+    assert.deepEqual(issuedPayload.tenantAccess[0]?.role, "owner");
     assert.equal(issuedPayload.tenantAccess[0]?.tenantId, response.body.tenantId);
     assert.ok(issuedPayload.tenantAccess[0]?.permissions.includes("admin:access"));
     assert.ok(issuedPayload.tenantAccess[0]?.permissions.includes("staff:read"));

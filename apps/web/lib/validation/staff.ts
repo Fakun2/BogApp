@@ -3,9 +3,12 @@ import { z } from "zod";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const createStaffFormSchema = z.object({
-  firstName: z.string().trim().min(3, "Minimo 3 caracteres.").max(40, "Maximo 40 caracteres."),
-  lastName: z.string().trim().min(3, "Minimo 3 caracteres.").max(40, "Maximo 40 caracteres."),
-  dni: z.string().trim().regex(/^\d{7,8}$/, "El DNI debe tener 7 u 8 digitos."),
+  firstName: z.string().trim().min(3, "Minimo 3 caracteres.").max(50, "Maximo 50 caracteres."),
+  lastName: z.string().trim().min(3, "Minimo 3 caracteres.").max(50, "Maximo 50 caracteres."),
+  dni: z
+    .string()
+    .trim()
+    .regex(/^\d{1,8}$/, "El DNI debe tener solo numeros y maximo 8 digitos."),
   email: z.string().trim().toLowerCase().regex(emailRegex, "Ingresa un email valido."),
   password: z
     .string()
@@ -21,17 +24,15 @@ export const createStaffFormSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(/^(?:\d{10}|54\d{10}|549\d{10})$/, "Usa solo numeros de Argentina.")
+    .regex(/^\d{10,13}$/, "El telefono debe tener solo numeros, minimo 10 y maximo 13 digitos.")
     .optional()
     .or(z.literal("")),
   avatarUrl: z.string().trim().url("La URL del avatar no es valida.").optional().or(z.literal(""))
 });
 
-export const updateStaffFormSchema = createStaffFormSchema
-  .omit({ password: true })
-  .extend({
-    password: createStaffFormSchema.shape.password.optional().or(z.literal(""))
-  });
+export const updateStaffFormSchema = createStaffFormSchema.omit({ password: true }).extend({
+  password: createStaffFormSchema.shape.password.optional().or(z.literal(""))
+});
 
 export type CreateStaffFormValues = z.infer<typeof createStaffFormSchema>;
 export type UpdateStaffFormValues = z.infer<typeof updateStaffFormSchema>;

@@ -10,7 +10,7 @@ export function useUpdateRoleMutation(roleId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useDashboardMutation({
-    permission: "roles:modify",
+    permission: "roles:update",
     mutationFn: (input: UpdateRoleFormValues, { session, tenantId }) => {
       if (!roleId) {
         throw new Error("No se encontro el rol a actualizar.");

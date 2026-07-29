@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: bogaap-postgres
+    container_name: ${CONTAINER_PREFIX:-bogaap}-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -18,7 +18,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: bogaap-redis
+    container_name: ${CONTAINER_PREFIX:-bogaap}-redis
     ports:
       - "6379:6379"
     volumes:
@@ -29,41 +29,84 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: ${CONTAINER_PREFIX:-bogaap}-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY_ID:-bogaap_minio}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_ACCESS_KEY:-bogaap_minio_dev_12345}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: ${CONTAINER_PREFIX:-bogaap}-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 ${STORAGE_ACCESS_KEY_ID:-bogaap_minio} ${STORAGE_SECRET_ACCESS_KEY:-bogaap_minio_dev_12345}; do
+        echo 'Waiting for MinIO...';
+        sleep 2;
+      done;
+      mc mb --ignore-existing local/${STORAGE_BUCKET:-bogaap-dev};
+      "
+
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: bogaap-api
+    container_name: ${CONTAINER_PREFIX:-bogaap}-api
     environment:
       NODE_ENV: production
+      API_CORS_MODE: strict
       API_HOST: 0.0.0.0
       API_PORT: 3001
+      FRONTEND_PUBLIC_URL: http://localhost
+      API_CORS_ALLOWED_ORIGINS: http://localhost,http://127.0.0.1,http://localhost:3000,http://127.0.0.1:3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-bogaap}?schema=public
       REDIS_URL: redis://redis:6379
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret-change-me}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-change-me}
       JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
       JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-minio}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-bogaap-dev}
+      STORAGE_REGION: ${STORAGE_REGION:-us-east-1}
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-bogaap_minio}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-bogaap_minio_dev_12345}
+      STORAGE_FORCE_PATH_STYLE: ${STORAGE_FORCE_PATH_STYLE:-true}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
 
   web:
     build:
       context: .
       dockerfile: Dockerfile.web
-    container_name: bogaap-web
+    container_name: ${CONTAINER_PREFIX:-bogaap}-web
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost/api}
+      FRONTEND_PUBLIC_URL: http://localhost
+      AUTH_COOKIE_SECURE: "false"
+      NEXT_PUBLIC_API_BASE_URL: /api
+      NEXT_PUBLIC_API_PROXY_ORIGIN: http://api:3001
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret-change-me}
     depends_on:
       - api
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: bogaap-nginx
+    container_name: ${CONTAINER_PREFIX:-bogaap}-nginx
     ports:
       - "80:80"
     volumes:
@@ -75,3 +118,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

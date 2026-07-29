@@ -259,7 +259,9 @@ export class RbacService implements OnModuleInit {
     let candidate = baseCode;
     let suffix = 2;
 
-    while (await this.prisma.role.findUnique({ where: { code: candidate }, select: { id: true } })) {
+    while (
+      await this.prisma.role.findUnique({ where: { code: candidate }, select: { id: true } })
+    ) {
       candidate = `${baseCode}_${suffix}`;
       suffix += 1;
     }
@@ -401,8 +403,7 @@ function normalizePermissionsForHierarchy(permissionCodes: string[], hierarchyLe
   return uniquePermissionCodes(
     basePermissions.filter(
       (permissionCode) =>
-        permissionCode === ADMIN_ACCESS_PERMISSION ||
-        isAllowedOperationalPermission(permissionCode)
+        permissionCode === ADMIN_ACCESS_PERMISSION || isAllowedOperationalPermission(permissionCode)
     )
   );
 }
@@ -415,10 +416,17 @@ function isAllowedOperationalPermission(permissionCode: string) {
     permissionCode === "cases:read" ||
     permissionCode === "cases:create" ||
     permissionCode === "cases:update" ||
+    permissionCode === "cases:delete" ||
+    permissionCode === "forums:read" ||
+    permissionCode === "provinces:read" ||
     permissionCode === "tasks:read" ||
     permissionCode === "tasks:create" ||
     permissionCode === "tasks:update" ||
     permissionCode === "tasks:delete" ||
+    permissionCode === "expenses:read" ||
+    permissionCode === "expenses:create" ||
+    permissionCode === "expenses:update" ||
+    permissionCode === "expenses:delete" ||
     permissionCode === "documents:read" ||
     permissionCode === "documents:write"
   );
@@ -430,8 +438,7 @@ function isBlockedModeratePermission(permissionCode: string) {
     permissionCode === "staff:delete" ||
     permissionCode === "staff:manage" ||
     permissionCode === "finance:create" ||
-    permissionCode === "finance:delete" ||
-    permissionCode === "finance:write"
+    permissionCode === "finance:delete"
   );
 }
 

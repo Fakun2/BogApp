@@ -60,10 +60,10 @@ export const updateStaffSchema = createStaffSchema
 export class ListStaffQueryDto extends createZodDto(listStaffQuerySchema) {}
 
 export class CreateStaffDto extends createZodDto(createStaffSchema) {
-  @ApiProperty({ minLength: 3, maxLength: 40, example: "Mateo" })
+  @ApiProperty({ minLength: 3, maxLength: 50, example: "Mateo" })
   firstName!: string;
 
-  @ApiProperty({ minLength: 3, maxLength: 40, example: "Alvarez" })
+  @ApiProperty({ minLength: 3, maxLength: 50, example: "Alvarez" })
   lastName!: string;
 
   @ApiProperty({ minLength: 7, maxLength: 8, example: "30111222" })
@@ -92,10 +92,10 @@ export class CreateStaffDto extends createZodDto(createStaffSchema) {
 }
 
 export class UpdateStaffDto extends createZodDto(updateStaffSchema) {
-  @ApiProperty({ minLength: 3, maxLength: 40, example: "Mateo" })
+  @ApiProperty({ minLength: 3, maxLength: 50, example: "Mateo" })
   firstName!: string;
 
-  @ApiProperty({ minLength: 3, maxLength: 40, example: "Alvarez" })
+  @ApiProperty({ minLength: 3, maxLength: 50, example: "Alvarez" })
   lastName!: string;
 
   @ApiProperty({ minLength: 7, maxLength: 8, example: "30111222" })

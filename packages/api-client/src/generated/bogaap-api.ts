@@ -67,6 +67,16 @@ export interface PermissionDto {
   action: string;
 }
 
+export type RoleDtoHierarchyLevel =
+  (typeof RoleDtoHierarchyLevel)[keyof typeof RoleDtoHierarchyLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RoleDtoHierarchyLevel = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3
+} as const;
+
 export interface RoleDto {
   id: string;
   active: boolean;
@@ -75,22 +85,45 @@ export interface RoleDto {
   /** @nullable */
   description: string | null;
   isSystem: boolean;
+  hierarchyLevel: RoleDtoHierarchyLevel;
   /** @nullable */
   tenantId: string | null;
   permissions: string[];
 }
 
+export type CreateRoleDtoHierarchyLevel =
+  (typeof CreateRoleDtoHierarchyLevel)[keyof typeof CreateRoleDtoHierarchyLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CreateRoleDtoHierarchyLevel = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3
+} as const;
+
 export interface CreateRoleDto {
   name: string;
   description: string;
   active?: boolean;
+  hierarchyLevel?: CreateRoleDtoHierarchyLevel;
   permissions: string[];
 }
+
+export type UpdateRoleDtoHierarchyLevel =
+  (typeof UpdateRoleDtoHierarchyLevel)[keyof typeof UpdateRoleDtoHierarchyLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateRoleDtoHierarchyLevel = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3
+} as const;
 
 export interface UpdateRoleDto {
   name?: string;
   description?: string;
   active?: boolean;
+  hierarchyLevel?: UpdateRoleDtoHierarchyLevel;
   permissions?: string[];
 }
 
@@ -107,6 +140,40 @@ export interface PracticeAreaTemplateDto {
   description?: PracticeAreaTemplateDtoDescription;
   active: boolean;
   displayOrder: number;
+}
+
+export type ProvinceDtoCaseCatalogStrategy =
+  (typeof ProvinceDtoCaseCatalogStrategy)[keyof typeof ProvinceDtoCaseCatalogStrategy];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProvinceDtoCaseCatalogStrategy = {
+  manual: "manual",
+  center_forum: "center_forum"
+} as const;
+
+export interface ProvinceDto {
+  id: string;
+  code: string;
+  name: string;
+  /** @nullable */
+  province: string | null;
+  country: string;
+  caseCatalogStrategy: ProvinceDtoCaseCatalogStrategy;
+  active: boolean;
+  displayOrder: number;
+}
+
+export interface CatalogPageInfoDto {
+  limit: number;
+  offset: number;
+  total: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface ProvincesListResponseDto {
+  items: ProvinceDto[];
+  pageInfo: CatalogPageInfoDto;
 }
 
 export interface StartOnboardingOwnerDto {
@@ -200,11 +267,387 @@ export interface OnboardingStatusDto {
   missingSteps: string[];
 }
 
+export interface CaseProvinceDto {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface CaseForumDto {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface CaseJudicialCenterDto {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export type CaseParticipantDtoParticipantKind =
+  (typeof CaseParticipantDtoParticipantKind)[keyof typeof CaseParticipantDtoParticipantKind];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseParticipantDtoParticipantKind = {
+  client: "client",
+  opposing_party: "opposing_party",
+  third_party: "third_party",
+  other: "other"
+} as const;
+
+export type CaseParticipantDtoRole =
+  (typeof CaseParticipantDtoRole)[keyof typeof CaseParticipantDtoRole];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseParticipantDtoRole = {
+  claimant: "claimant",
+  defendant: "defendant",
+  complainant: "complainant",
+  accused: "accused",
+  third_party: "third_party",
+  client: "client",
+  opposing_party: "opposing_party",
+  other: "other"
+} as const;
+
+export interface CaseParticipantDto {
+  id: string;
+  participantKind: CaseParticipantDtoParticipantKind;
+  role: CaseParticipantDtoRole;
+  displayName: string;
+  /** @nullable */
+  document: string | null;
+  /** @nullable */
+  address: string | null;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  notes: string | null;
+  /** @nullable */
+  clientId: string | null;
+}
+
+/**
+ * @nullable
+ */
+export type CaseDtoJudicialCenter = CaseJudicialCenterDto | null;
+
+export type CaseDtoInstance = (typeof CaseDtoInstance)[keyof typeof CaseDtoInstance];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseDtoInstance = {
+  first: "first",
+  second: "second",
+  third: "third"
+} as const;
+
+export type CaseDtoStatus = (typeof CaseDtoStatus)[keyof typeof CaseDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseDtoStatus = {
+  open: "open",
+  paused: "paused",
+  closed: "closed"
+} as const;
+
+export interface CaseDto {
+  id: string;
+  caseNumber: string;
+  caption: string;
+  /** @nullable */
+  subject: string | null;
+  /** @nullable */
+  description: string | null;
+  province: CaseProvinceDto;
+  forum: CaseForumDto;
+  /** @nullable */
+  judicialCenterForumId: string | null;
+  /** @nullable */
+  judicialCenter: CaseDtoJudicialCenter;
+  /** @nullable */
+  judicialCenterText: string | null;
+  /** @nullable */
+  court: string | null;
+  instance: CaseDtoInstance;
+  status: CaseDtoStatus;
+  /** @nullable */
+  filingDate: string | null;
+  /** @nullable */
+  primaryClientId: string | null;
+  /** @nullable */
+  practiceAreaId: string | null;
+  /** @nullable */
+  responsibleMembershipId: string | null;
+  participants: CaseParticipantDto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CasesPageInfoDto {
+  limit: number;
+  /** @deprecated */
+  offset: number;
+  /** @nullable */
+  nextCursor: string | null;
+  hasNextPage: boolean;
+  /** @deprecated */
+  total: number;
+}
+
+export interface CasesListResponseDto {
+  items: CaseDto[];
+  pageInfo: CasesPageInfoDto;
+}
+
+export interface CreateCaseDto {
+  [key: string]: unknown;
+}
+
+export interface CaseMetricsDto {
+  totalExpenses: number;
+  pendingPayments: number;
+  totalTasks: number;
+  pendingTasks: number;
+}
+
+/**
+ * @nullable
+ */
+export type CaseDetailDtoJudicialCenter = CaseJudicialCenterDto | null;
+
+export type CaseDetailDtoInstance =
+  (typeof CaseDetailDtoInstance)[keyof typeof CaseDetailDtoInstance];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseDetailDtoInstance = {
+  first: "first",
+  second: "second",
+  third: "third"
+} as const;
+
+export type CaseDetailDtoStatus = (typeof CaseDetailDtoStatus)[keyof typeof CaseDetailDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseDetailDtoStatus = {
+  open: "open",
+  paused: "paused",
+  closed: "closed"
+} as const;
+
+export interface CaseDetailDto {
+  id: string;
+  caseNumber: string;
+  caption: string;
+  /** @nullable */
+  subject: string | null;
+  /** @nullable */
+  description: string | null;
+  province: CaseProvinceDto;
+  forum: CaseForumDto;
+  /** @nullable */
+  judicialCenterForumId: string | null;
+  /** @nullable */
+  judicialCenter: CaseDetailDtoJudicialCenter;
+  /** @nullable */
+  judicialCenterText: string | null;
+  /** @nullable */
+  court: string | null;
+  instance: CaseDetailDtoInstance;
+  status: CaseDetailDtoStatus;
+  /** @nullable */
+  filingDate: string | null;
+  /** @nullable */
+  primaryClientId: string | null;
+  /** @nullable */
+  practiceAreaId: string | null;
+  /** @nullable */
+  responsibleMembershipId: string | null;
+  participants: CaseParticipantDto[];
+  createdAt: string;
+  updatedAt: string;
+  metrics: CaseMetricsDto;
+}
+
+export type CaseTaskDtoStatus = (typeof CaseTaskDtoStatus)[keyof typeof CaseTaskDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseTaskDtoStatus = {
+  pending: "pending",
+  in_progress: "in_progress",
+  completed: "completed",
+  cancelled: "cancelled"
+} as const;
+
+export interface CaseTaskDto {
+  id: string;
+  caseId: string;
+  name: string;
+  /** @nullable */
+  startDate: string | null;
+  /** @nullable */
+  endDate: string | null;
+  status: CaseTaskDtoStatus;
+  /** @nullable */
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CaseTasksListResponseDto {
+  items: CaseTaskDto[];
+  pageInfo: CasesPageInfoDto;
+}
+
+export interface CreateCaseTaskDto {
+  [key: string]: unknown;
+}
+
+export interface UpdateCaseTaskDto {
+  [key: string]: unknown;
+}
+
+export interface CaseDeleteResponseDto {
+  status: string;
+}
+
+export interface CaseExpenseTaskDto {
+  id: string;
+  name: string;
+}
+
+/**
+ * @nullable
+ */
+export type CaseExpenseDtoTask = CaseExpenseTaskDto | null;
+
+export type CaseExpenseDtoStatus = (typeof CaseExpenseDtoStatus)[keyof typeof CaseExpenseDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CaseExpenseDtoStatus = {
+  pending: "pending",
+  paid: "paid",
+  cancelled: "cancelled",
+  overdue: "overdue"
+} as const;
+
+export interface CaseExpenseDto {
+  id: string;
+  caseId: string;
+  /** @nullable */
+  taskId: string | null;
+  /** @nullable */
+  task: CaseExpenseDtoTask;
+  concept: string;
+  amount: number;
+  expenseDate: string;
+  paymentDate: string;
+  status: CaseExpenseDtoStatus;
+  /** @nullable */
+  notes: string | null;
+  alertEnabled: boolean;
+  /** @nullable */
+  alertAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CaseExpensesListResponseDto {
+  items: CaseExpenseDto[];
+  pageInfo: CasesPageInfoDto;
+}
+
+export interface CreateCaseExpenseDto {
+  [key: string]: unknown;
+}
+
+export interface UpdateCaseExpenseDto {
+  [key: string]: unknown;
+}
+
+export interface UpdateCaseDto {
+  [key: string]: unknown;
+}
+
+export interface ForumProvinceDto {
+  id: string;
+  code: string;
+  name: string;
+  /** @nullable */
+  province: string | null;
+  country: string;
+}
+
+export interface ForumTemplateSummaryDto {
+  id: string;
+  code: string;
+}
+
+/**
+ * @nullable
+ */
+export type ForumDtoProvince = ForumProvinceDto | null;
+
+/**
+ * @nullable
+ */
+export type ForumDtoTemplate = ForumTemplateSummaryDto | null;
+
+export interface ForumDto {
+  id: string;
+  name: string;
+  provinceId: string;
+  templateId: string;
+  /** @nullable */
+  judicialCenterForumId: string | null;
+  isSystem: boolean;
+  custom: boolean;
+  /** @nullable */
+  province: ForumDtoProvince;
+  /** @nullable */
+  template: ForumDtoTemplate;
+  /** @nullable */
+  description: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ForumsListResponseDto {
+  items: ForumDto[];
+  pageInfo: CatalogPageInfoDto;
+}
+
+export interface JudicialCenterProvinceDto {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface JudicialCenterDto {
+  id: string;
+  code: string;
+  name: string;
+  provinceId: string;
+  province: JudicialCenterProvinceDto;
+  active: boolean;
+  displayOrder: number;
+}
+
+export interface JudicialCentersListResponseDto {
+  items: JudicialCenterDto[];
+  pageInfo: CatalogPageInfoDto;
+}
+
 export interface StaffRoleOptionDto {
   code: string;
   name: string;
   /** @nullable */
   description: string | null;
+  assignable?: boolean;
+  hierarchyLevel?: number;
 }
 
 export interface StaffPracticeAreaDto {
@@ -300,12 +743,12 @@ export const CreateStaffDtoStatus = {
 export interface CreateStaffDto {
   /**
    * @minLength 3
-   * @maxLength 40
+   * @maxLength 50
    */
   firstName: string;
   /**
    * @minLength 3
-   * @maxLength 40
+   * @maxLength 50
    */
   lastName: string;
   /**
@@ -369,12 +812,12 @@ export const UpdateStaffDtoStatus = {
 export interface UpdateStaffDto {
   /**
    * @minLength 3
-   * @maxLength 40
+   * @maxLength 50
    */
   firstName: string;
   /**
    * @minLength 3
-   * @maxLength 40
+   * @maxLength 50
    */
   lastName: string;
   /**
@@ -683,6 +1126,29 @@ export const practiceAreaTemplatesControllerList = async (
   );
 };
 
+export type provincesControllerListResponse200 = {
+  data: ProvincesListResponseDto;
+  status: 200;
+};
+
+export type provincesControllerListResponseSuccess = provincesControllerListResponse200 & {
+  headers: Headers;
+};
+export type provincesControllerListResponse = provincesControllerListResponseSuccess;
+
+export const getProvincesControllerListUrl = () => {
+  return `/api/provinces`;
+};
+
+export const provincesControllerList = async (
+  options?: RequestInit
+): Promise<provincesControllerListResponse> => {
+  return bogaapFetch<provincesControllerListResponse>(getProvincesControllerListUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
 export type onboardingControllerStartResponse201 = {
   data: StartOnboardingResponseDto;
   status: 201;
@@ -773,6 +1239,406 @@ export const identityControllerRoles = async (
   options?: RequestInit
 ): Promise<identityControllerRolesResponse> => {
   return bogaapFetch<identityControllerRolesResponse>(getIdentityControllerRolesUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type casesControllerListResponse200 = {
+  data: CasesListResponseDto;
+  status: 200;
+};
+
+export type casesControllerListResponseSuccess = casesControllerListResponse200 & {
+  headers: Headers;
+};
+export type casesControllerListResponse = casesControllerListResponseSuccess;
+
+export const getCasesControllerListUrl = () => {
+  return `/api/cases`;
+};
+
+export const casesControllerList = async (
+  options?: RequestInit
+): Promise<casesControllerListResponse> => {
+  return bogaapFetch<casesControllerListResponse>(getCasesControllerListUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type casesControllerCreateResponse201 = {
+  data: CaseDto;
+  status: 201;
+};
+
+export type casesControllerCreateResponseSuccess = casesControllerCreateResponse201 & {
+  headers: Headers;
+};
+export type casesControllerCreateResponse = casesControllerCreateResponseSuccess;
+
+export const getCasesControllerCreateUrl = () => {
+  return `/api/cases`;
+};
+
+export const casesControllerCreate = async (
+  createCaseDto: CreateCaseDto,
+  options?: RequestInit
+): Promise<casesControllerCreateResponse> => {
+  return bogaapFetch<casesControllerCreateResponse>(getCasesControllerCreateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCaseDto)
+  });
+};
+
+export type casesControllerGetDetailResponse200 = {
+  data: CaseDetailDto;
+  status: 200;
+};
+
+export type casesControllerGetDetailResponseSuccess = casesControllerGetDetailResponse200 & {
+  headers: Headers;
+};
+export type casesControllerGetDetailResponse = casesControllerGetDetailResponseSuccess;
+
+export const getCasesControllerGetDetailUrl = (id: string) => {
+  return `/api/cases/${id}`;
+};
+
+export const casesControllerGetDetail = async (
+  id: string,
+  options?: RequestInit
+): Promise<casesControllerGetDetailResponse> => {
+  return bogaapFetch<casesControllerGetDetailResponse>(getCasesControllerGetDetailUrl(id), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type casesControllerUpdateResponse200 = {
+  data: CaseDto;
+  status: 200;
+};
+
+export type casesControllerUpdateResponseSuccess = casesControllerUpdateResponse200 & {
+  headers: Headers;
+};
+export type casesControllerUpdateResponse = casesControllerUpdateResponseSuccess;
+
+export const getCasesControllerUpdateUrl = (id: string) => {
+  return `/api/cases/${id}`;
+};
+
+export const casesControllerUpdate = async (
+  id: string,
+  updateCaseDto: UpdateCaseDto,
+  options?: RequestInit
+): Promise<casesControllerUpdateResponse> => {
+  return bogaapFetch<casesControllerUpdateResponse>(getCasesControllerUpdateUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateCaseDto)
+  });
+};
+
+export type casesControllerDeleteResponse200 = {
+  data: CaseDeleteResponseDto;
+  status: 200;
+};
+
+export type casesControllerDeleteResponseSuccess = casesControllerDeleteResponse200 & {
+  headers: Headers;
+};
+export type casesControllerDeleteResponse = casesControllerDeleteResponseSuccess;
+
+export const getCasesControllerDeleteUrl = (id: string) => {
+  return `/api/cases/${id}`;
+};
+
+export const casesControllerDelete = async (
+  id: string,
+  options?: RequestInit
+): Promise<casesControllerDeleteResponse> => {
+  return bogaapFetch<casesControllerDeleteResponse>(getCasesControllerDeleteUrl(id), {
+    ...options,
+    method: "DELETE"
+  });
+};
+
+export type casesControllerListTasksResponse200 = {
+  data: CaseTasksListResponseDto;
+  status: 200;
+};
+
+export type casesControllerListTasksResponseSuccess = casesControllerListTasksResponse200 & {
+  headers: Headers;
+};
+export type casesControllerListTasksResponse = casesControllerListTasksResponseSuccess;
+
+export const getCasesControllerListTasksUrl = (caseId: string) => {
+  return `/api/cases/${caseId}/tasks`;
+};
+
+export const casesControllerListTasks = async (
+  caseId: string,
+  options?: RequestInit
+): Promise<casesControllerListTasksResponse> => {
+  return bogaapFetch<casesControllerListTasksResponse>(getCasesControllerListTasksUrl(caseId), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type casesControllerCreateTaskResponse201 = {
+  data: CaseTaskDto;
+  status: 201;
+};
+
+export type casesControllerCreateTaskResponseSuccess = casesControllerCreateTaskResponse201 & {
+  headers: Headers;
+};
+export type casesControllerCreateTaskResponse = casesControllerCreateTaskResponseSuccess;
+
+export const getCasesControllerCreateTaskUrl = (caseId: string) => {
+  return `/api/cases/${caseId}/tasks`;
+};
+
+export const casesControllerCreateTask = async (
+  caseId: string,
+  createCaseTaskDto: CreateCaseTaskDto,
+  options?: RequestInit
+): Promise<casesControllerCreateTaskResponse> => {
+  return bogaapFetch<casesControllerCreateTaskResponse>(getCasesControllerCreateTaskUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCaseTaskDto)
+  });
+};
+
+export type casesControllerUpdateTaskResponse200 = {
+  data: CaseTaskDto;
+  status: 200;
+};
+
+export type casesControllerUpdateTaskResponseSuccess = casesControllerUpdateTaskResponse200 & {
+  headers: Headers;
+};
+export type casesControllerUpdateTaskResponse = casesControllerUpdateTaskResponseSuccess;
+
+export const getCasesControllerUpdateTaskUrl = (caseId: string, taskId: string) => {
+  return `/api/cases/${caseId}/tasks/${taskId}`;
+};
+
+export const casesControllerUpdateTask = async (
+  caseId: string,
+  taskId: string,
+  updateCaseTaskDto: UpdateCaseTaskDto,
+  options?: RequestInit
+): Promise<casesControllerUpdateTaskResponse> => {
+  return bogaapFetch<casesControllerUpdateTaskResponse>(
+    getCasesControllerUpdateTaskUrl(caseId, taskId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateCaseTaskDto)
+    }
+  );
+};
+
+export type casesControllerDeleteTaskResponse200 = {
+  data: CaseDeleteResponseDto;
+  status: 200;
+};
+
+export type casesControllerDeleteTaskResponseSuccess = casesControllerDeleteTaskResponse200 & {
+  headers: Headers;
+};
+export type casesControllerDeleteTaskResponse = casesControllerDeleteTaskResponseSuccess;
+
+export const getCasesControllerDeleteTaskUrl = (caseId: string, taskId: string) => {
+  return `/api/cases/${caseId}/tasks/${taskId}`;
+};
+
+export const casesControllerDeleteTask = async (
+  caseId: string,
+  taskId: string,
+  options?: RequestInit
+): Promise<casesControllerDeleteTaskResponse> => {
+  return bogaapFetch<casesControllerDeleteTaskResponse>(
+    getCasesControllerDeleteTaskUrl(caseId, taskId),
+    {
+      ...options,
+      method: "DELETE"
+    }
+  );
+};
+
+export type casesControllerListExpensesResponse200 = {
+  data: CaseExpensesListResponseDto;
+  status: 200;
+};
+
+export type casesControllerListExpensesResponseSuccess = casesControllerListExpensesResponse200 & {
+  headers: Headers;
+};
+export type casesControllerListExpensesResponse = casesControllerListExpensesResponseSuccess;
+
+export const getCasesControllerListExpensesUrl = (caseId: string) => {
+  return `/api/cases/${caseId}/expenses`;
+};
+
+export const casesControllerListExpenses = async (
+  caseId: string,
+  options?: RequestInit
+): Promise<casesControllerListExpensesResponse> => {
+  return bogaapFetch<casesControllerListExpensesResponse>(
+    getCasesControllerListExpensesUrl(caseId),
+    {
+      ...options,
+      method: "GET"
+    }
+  );
+};
+
+export type casesControllerCreateExpenseResponse201 = {
+  data: CaseExpenseDto;
+  status: 201;
+};
+
+export type casesControllerCreateExpenseResponseSuccess =
+  casesControllerCreateExpenseResponse201 & {
+    headers: Headers;
+  };
+export type casesControllerCreateExpenseResponse = casesControllerCreateExpenseResponseSuccess;
+
+export const getCasesControllerCreateExpenseUrl = (caseId: string) => {
+  return `/api/cases/${caseId}/expenses`;
+};
+
+export const casesControllerCreateExpense = async (
+  caseId: string,
+  createCaseExpenseDto: CreateCaseExpenseDto,
+  options?: RequestInit
+): Promise<casesControllerCreateExpenseResponse> => {
+  return bogaapFetch<casesControllerCreateExpenseResponse>(
+    getCasesControllerCreateExpenseUrl(caseId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createCaseExpenseDto)
+    }
+  );
+};
+
+export type casesControllerUpdateExpenseResponse200 = {
+  data: CaseExpenseDto;
+  status: 200;
+};
+
+export type casesControllerUpdateExpenseResponseSuccess =
+  casesControllerUpdateExpenseResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerUpdateExpenseResponse = casesControllerUpdateExpenseResponseSuccess;
+
+export const getCasesControllerUpdateExpenseUrl = (caseId: string, expenseId: string) => {
+  return `/api/cases/${caseId}/expenses/${expenseId}`;
+};
+
+export const casesControllerUpdateExpense = async (
+  caseId: string,
+  expenseId: string,
+  updateCaseExpenseDto: UpdateCaseExpenseDto,
+  options?: RequestInit
+): Promise<casesControllerUpdateExpenseResponse> => {
+  return bogaapFetch<casesControllerUpdateExpenseResponse>(
+    getCasesControllerUpdateExpenseUrl(caseId, expenseId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateCaseExpenseDto)
+    }
+  );
+};
+
+export type casesControllerDeleteExpenseResponse200 = {
+  data: CaseDeleteResponseDto;
+  status: 200;
+};
+
+export type casesControllerDeleteExpenseResponseSuccess =
+  casesControllerDeleteExpenseResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerDeleteExpenseResponse = casesControllerDeleteExpenseResponseSuccess;
+
+export const getCasesControllerDeleteExpenseUrl = (caseId: string, expenseId: string) => {
+  return `/api/cases/${caseId}/expenses/${expenseId}`;
+};
+
+export const casesControllerDeleteExpense = async (
+  caseId: string,
+  expenseId: string,
+  options?: RequestInit
+): Promise<casesControllerDeleteExpenseResponse> => {
+  return bogaapFetch<casesControllerDeleteExpenseResponse>(
+    getCasesControllerDeleteExpenseUrl(caseId, expenseId),
+    {
+      ...options,
+      method: "DELETE"
+    }
+  );
+};
+
+export type forumsControllerListResponse200 = {
+  data: ForumsListResponseDto;
+  status: 200;
+};
+
+export type forumsControllerListResponseSuccess = forumsControllerListResponse200 & {
+  headers: Headers;
+};
+export type forumsControllerListResponse = forumsControllerListResponseSuccess;
+
+export const getForumsControllerListUrl = () => {
+  return `/api/forums`;
+};
+
+export const forumsControllerList = async (
+  options?: RequestInit
+): Promise<forumsControllerListResponse> => {
+  return bogaapFetch<forumsControllerListResponse>(getForumsControllerListUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type judicialCentersControllerListResponse200 = {
+  data: JudicialCentersListResponseDto;
+  status: 200;
+};
+
+export type judicialCentersControllerListResponseSuccess =
+  judicialCentersControllerListResponse200 & {
+    headers: Headers;
+  };
+export type judicialCentersControllerListResponse = judicialCentersControllerListResponseSuccess;
+
+export const getJudicialCentersControllerListUrl = () => {
+  return `/api/judicial-centers`;
+};
+
+export const judicialCentersControllerList = async (
+  options?: RequestInit
+): Promise<judicialCentersControllerListResponse> => {
+  return bogaapFetch<judicialCentersControllerListResponse>(getJudicialCentersControllerListUrl(), {
     ...options,
     method: "GET"
   });

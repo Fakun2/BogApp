@@ -1,0 +1,13 @@
+import type { ReactNode } from "react";
+import type { CaseTaskFormValues } from "@/lib/validation/cases";
+import type { CaseTaskDto } from "../../../_types/cases.types";
+
+export type CaseTaskSheetProps = {
+  caseId: string;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
+  task?: CaseTaskDto;
+  trigger?: ReactNode;
+};
+
+export type CaseTaskFieldErrors = Partial<Record<keyof CaseTaskFormValues, string>>;

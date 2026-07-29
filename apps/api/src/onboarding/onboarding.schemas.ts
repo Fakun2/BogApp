@@ -153,7 +153,7 @@ export class StartOnboardingResponseDto {
   @ApiProperty()
   tenantId!: string;
 
-  @ApiProperty({ example: "admin" })
+  @ApiProperty({ example: "owner" })
   role!: string;
 
   @ApiProperty({ type: OnboardingTokenDto })

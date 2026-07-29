@@ -22,8 +22,11 @@ type UserRecord = {
 type RoleRecord = {
   code: string;
   description: string | null;
+  hierarchyLevel: 1 | 2 | 3;
   id: string;
+  isSystem: boolean;
   name: string;
+  tenantId: string | null;
 };
 
 type PracticeAreaRecord = {
@@ -74,7 +77,9 @@ class InMemoryStaffPrismaService {
           const comparison = left.user.fullName.localeCompare(right.user.fullName, "es");
           return direction === "asc" ? comparison : -comparison;
         });
-      const cursorIndex = cursor ? sorted.findIndex((membership) => membership.id === cursor.id) : -1;
+      const cursorIndex = cursor
+        ? sorted.findIndex((membership) => membership.id === cursor.id)
+        : -1;
       const startIndex = cursorIndex >= 0 ? cursorIndex + skip : 0;
 
       return typeof take === "number" ? sorted.slice(startIndex, startIndex + take) : sorted;
@@ -130,6 +135,10 @@ class InMemoryStaffPrismaService {
       this.roles.sort((left, right) => left.name.localeCompare(right.name, "es"))
   };
 
+  async $queryRaw() {
+    return [{ sessionVersion: 0, status: "active" }];
+  }
+
   readonly user = {
     findUnique: async ({ where }: { where: { dni?: string; email?: string } }) =>
       this.users.find(
@@ -176,9 +185,7 @@ class InMemoryStaffPrismaService {
   };
 
   async $transaction(
-    operations:
-      | Array<Promise<unknown>>
-      | ((tx: InMemoryStaffPrismaService) => Promise<unknown>)
+    operations: Array<Promise<unknown>> | ((tx: InMemoryStaffPrismaService) => Promise<unknown>)
   ) {
     if (typeof operations === "function") {
       return operations(this);
@@ -188,10 +195,11 @@ class InMemoryStaffPrismaService {
   }
 
   reset() {
-    const adminRole = makeRole("role-admin", "admin", "Administrador");
-    const lawyerRole = makeRole("role-lawyer", "lawyer", "Abogado");
-    const paralegalRole = makeRole("role-paralegal", "paralegal", "Paralegal");
-    this.roles = [adminRole, lawyerRole, paralegalRole];
+    const ownerRole = makeRole("role-owner", "owner", "Owner", 3);
+    const adminRole = makeRole("role-admin", "admin", "Administrador", 2);
+    const lawyerRole = makeRole("role-lawyer", "lawyer", "Abogado", 1);
+    const paralegalRole = makeRole("role-paralegal", "paralegal", "Paralegal", 1);
+    this.roles = [ownerRole, adminRole, lawyerRole, paralegalRole];
 
     const civil = makePracticeArea("area-civil", "tenant-a", "Derecho Civil", "derecho-civil");
     const custom = makePracticeArea("area-custom", "tenant-a", "Marcas y Patentes", null);
@@ -210,16 +218,27 @@ class InMemoryStaffPrismaService {
         [],
         "suspended"
       ),
-      makeMembership("membership-4", "tenant-b", "user-4", "Camila Rojas", lawyerRole, [labor])
+      makeMembership("membership-4", "tenant-b", "user-4", "Camila Rojas", lawyerRole, [labor]),
+      makeMembership("membership-5", "tenant-owner", "user-5", "Olivia Owner", ownerRole, [])
     ];
-    const tenantBMembership = this.memberships.find((membership) => membership.id === "membership-4");
+    const tenantBMembership = this.memberships.find(
+      (membership) => membership.id === "membership-4"
+    );
     assert.ok(tenantBMembership);
     tenantBMembership.user.dni = "39111222";
+    const ownerMembership = this.memberships.find((membership) => membership.id === "membership-5");
+    assert.ok(ownerMembership);
+    ownerMembership.user.dni = "40111222";
+    ownerMembership.user.email = "owner@estudio.com";
     this.users = this.memberships.map((membership) => membership.user);
   }
 
   private matchesMembership(membership: MembershipRecord, where: StaffWhere) {
-    if (where.id?.not && membership.id === where.id.not) {
+    if (typeof where.id === "string" && membership.id !== where.id) {
+      return false;
+    }
+
+    if (typeof where.id === "object" && where.id.not && membership.id === where.id.not) {
       return false;
     }
 
@@ -271,7 +290,7 @@ class InMemoryStaffPrismaService {
 }
 
 type StaffWhere = {
-  id?: { not: string };
+  id?: string | { not: string };
   practiceAreas?: { some: { practiceArea: { id: string; tenantId: string } } };
   role?: { code: string };
   status?: "active" | "invited" | "suspended";
@@ -478,6 +497,49 @@ describe("Staff endpoints (e2e)", () => {
     assert.equal(response.body.passwordHash, undefined);
   });
 
+  it("prevents an admin from assigning a role with equal or higher hierarchy", async () => {
+    await request(app.getHttpServer())
+      .post("/api/staff")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["staff:create"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({
+        ...makeCreateStaffPayload(),
+        role: "admin"
+      })
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post("/api/staff")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["staff:create"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({
+        ...makeCreateStaffPayload(),
+        role: "owner"
+      })
+      .expect(403);
+  });
+
+  it("prevents an owner from changing their own role", async () => {
+    await request(app.getHttpServer())
+      .patch("/api/staff/membership-5")
+      .set(
+        "Authorization",
+        `Bearer ${makeToken(jwt, ["staff:update"], "tenant-owner", "user-5", "owner")}`
+      )
+      .set("x-tenant-id", "tenant-owner")
+      .send({
+        dni: "40111222",
+        email: "owner@estudio.com",
+        firstName: "Olivia",
+        lastName: "Owner",
+        phone: "5491155555555",
+        practiceAreaIds: [],
+        role: "admin",
+        status: "active"
+      })
+      .expect(403);
+  });
+
   it("rejects invalid create staff input", async () => {
     await request(app.getHttpServer())
       .post("/api/staff")
@@ -540,15 +602,21 @@ describe("Staff endpoints (e2e)", () => {
   });
 });
 
-function makeToken(jwt: JwtService, permissions: string[], tenantId = "tenant-a") {
+function makeToken(
+  jwt: JwtService,
+  permissions: string[],
+  tenantId = "tenant-a",
+  userId = "user-1",
+  role = "admin"
+) {
   return jwt.sign({
-    sub: "user-1",
+    sub: userId,
     email: "mateo@estudio.com",
     sessionVersion: 0,
     tenantAccess: [
       {
         tenantId,
-        role: "admin",
+        role,
         permissions
       }
     ]
@@ -572,11 +640,14 @@ function makePracticeArea(
   };
 }
 
-function makeRole(id: string, code: string, name: string): RoleRecord {
+function makeRole(id: string, code: string, name: string, hierarchyLevel: 1 | 2 | 3): RoleRecord {
   return {
     code,
     description: null,
+    hierarchyLevel,
     id,
+    isSystem: true,
+    tenantId: null,
     name
   };
 }

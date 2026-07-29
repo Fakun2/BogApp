@@ -1,3 +1,7 @@
+const { loadRootEnv } = require("./load-root-env.cjs");
+
+loadRootEnv();
+
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -15,35 +19,38 @@ const permissions = [
   { code: "users:manage", resource: "users", action: "manage" },
   { code: "roles:read", resource: "roles", action: "read" },
   { code: "roles:create", resource: "roles", action: "create" },
-  { code: "roles:modify", resource: "roles", action: "modify" },
-  { code: "roles:eliminate", resource: "roles", action: "eliminate" },
+  { code: "roles:update", resource: "roles", action: "update" },
+  { code: "roles:delete", resource: "roles", action: "delete" },
   { code: "roles:manage", resource: "roles", action: "manage" },
   { code: "clients:read", resource: "clients", action: "read" },
   { code: "clients:create", resource: "clients", action: "create" },
   { code: "clients:update", resource: "clients", action: "update" },
   { code: "clients:delete", resource: "clients", action: "delete" },
-  { code: "clients:write", resource: "clients", action: "write" },
   { code: "cases:read", resource: "cases", action: "read" },
   { code: "cases:create", resource: "cases", action: "create" },
   { code: "cases:update", resource: "cases", action: "update" },
   { code: "cases:delete", resource: "cases", action: "delete" },
-  { code: "cases:write", resource: "cases", action: "write" },
+  { code: "forums:read", resource: "forums", action: "read" },
+  { code: "provinces:read", resource: "provinces", action: "read" },
   { code: "documents:read", resource: "documents", action: "read" },
   { code: "documents:write", resource: "documents", action: "write" },
   { code: "tasks:read", resource: "tasks", action: "read" },
   { code: "tasks:create", resource: "tasks", action: "create" },
   { code: "tasks:update", resource: "tasks", action: "update" },
   { code: "tasks:delete", resource: "tasks", action: "delete" },
-  { code: "tasks:write", resource: "tasks", action: "write" },
+  { code: "expenses:read", resource: "expenses", action: "read" },
+  { code: "expenses:create", resource: "expenses", action: "create" },
+  { code: "expenses:update", resource: "expenses", action: "update" },
+  { code: "expenses:delete", resource: "expenses", action: "delete" },
   { code: "finance:read", resource: "finance", action: "read" },
   { code: "finance:create", resource: "finance", action: "create" },
   { code: "finance:update", resource: "finance", action: "update" },
   { code: "finance:delete", resource: "finance", action: "delete" },
-  { code: "finance:write", resource: "finance", action: "write" },
   { code: "billing:manage", resource: "billing", action: "manage" }
 ];
 
 const allPermissionCodes = permissions.map((permission) => permission.code);
+const stalePermissionCodes = ["clients:write", "tasks:write"];
 
 const systemRoles = [
   {
@@ -61,7 +68,11 @@ const systemRoles = [
     hierarchyLevel: 2,
     name: "Admin",
     permissions: allPermissionCodes.filter(
-      (permissionCode) => permissionCode !== "billing:manage" && !permissionCode.startsWith("roles:")
+      (permissionCode) =>
+        permissionCode !== "billing:manage" &&
+        !permissionCode.startsWith("roles:") &&
+        !permissionCode.startsWith("cases:") &&
+        !permissionCode.startsWith("expenses:")
     )
   },
   {
@@ -75,18 +86,21 @@ const systemRoles = [
       "clients:read",
       "clients:create",
       "clients:update",
-      "clients:write",
       "cases:read",
       "cases:create",
       "cases:update",
-      "cases:write",
+      "forums:read",
+      "provinces:read",
       "documents:read",
       "documents:write",
       "tasks:read",
       "tasks:create",
       "tasks:update",
-      "tasks:write",
-      "finance:read"
+      "tasks:delete",
+      "expenses:read",
+      "expenses:create",
+      "expenses:update",
+      "expenses:delete"
     ]
   },
   {
@@ -97,31 +111,29 @@ const systemRoles = [
     name: "Paralegal",
     permissions: [
       adminAccessPermission,
-      "clients:read",
       "cases:read",
-      "documents:read",
-      "documents:write",
+      "forums:read",
+      "provinces:read",
       "tasks:read",
       "tasks:create",
       "tasks:update",
-      "tasks:write"
+      "expenses:read",
+      "expenses:create",
+      "expenses:update"
     ]
   },
   {
     active: true,
     code: "accounting",
-    description: "Accede a clientes, expedientes y gestion financiera del estudio.",
+    description: "Opera los permisos de caja del estudio.",
     hierarchyLevel: 1,
     name: "Contabilidad",
     permissions: [
       adminAccessPermission,
-      "clients:read",
-      "cases:read",
       "finance:read",
       "finance:create",
       "finance:update",
-      "finance:delete",
-      "finance:write"
+      "finance:delete"
     ]
   },
   {
@@ -133,7 +145,8 @@ const systemRoles = [
     permissions: [
       adminAccessPermission,
       "clients:read",
-      "cases:read",
+      "forums:read",
+      "provinces:read",
       "documents:read",
       "tasks:read",
       "finance:read"
@@ -201,6 +214,21 @@ async function seedRbac() {
           };
         }),
         skipDuplicates: true
+      });
+    }
+
+    const stalePermissions = await tx.permission.findMany({
+      where: { code: { in: stalePermissionCodes } },
+      select: { id: true }
+    });
+    const stalePermissionIds = stalePermissions.map((permission) => permission.id);
+
+    if (stalePermissionIds.length > 0) {
+      await tx.rolePermission.deleteMany({
+        where: { permissionId: { in: stalePermissionIds } }
+      });
+      await tx.permission.deleteMany({
+        where: { id: { in: stalePermissionIds } }
       });
     }
   });
