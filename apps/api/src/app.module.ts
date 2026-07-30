@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { AuthModule } from "./auth/auth.module";
 import { CasesModule } from "./cases/cases.module";
+import { ClientsModule } from "./clients/clients.module";
 import { DatabaseModule } from "./database/database.module";
 import { HealthModule } from "./health/health.module";
 import { IdentityModule } from "./identity/identity.module";
@@ -33,6 +34,7 @@ import { TenancyModule } from "./tenancy/tenancy.module";
     OnboardingModule,
     IdentityModule,
     CasesModule,
+    ClientsModule,
     ForumsModule,
     JudicialCentersModule,
     StaffModule,
