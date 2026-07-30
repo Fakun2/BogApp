@@ -5,29 +5,31 @@ import { z } from "zod";
 const emptyStringToUndefined = (value: unknown) =>
   typeof value === "string" && value.trim() === "" ? undefined : value;
 
-const optionalText = (max: number) =>
+const optionalQueryText = (max: number) =>
   z.preprocess(emptyStringToUndefined, z.string().trim().max(max).optional());
+const optionalText = (max: number) =>
+  z.preprocess(emptyStringToUndefined, z.string().trim().max(max).nullable().optional());
 const optionalEmail = z.preprocess(
   emptyStringToUndefined,
-  z.string().trim().toLowerCase().email().max(160).optional()
+  z.string().trim().toLowerCase().email().max(160).nullable().optional()
 );
 const optionalDni = z.preprocess(
   (value) => (typeof value === "number" ? String(value) : emptyStringToUndefined(value)),
-  z.string().trim().regex(/^\d{7,8}$/).optional()
+  z.string().trim().regex(/^\d{7,8}$/).nullable().optional()
 );
 const optionalTaxId = z.preprocess(
   (value) => (typeof value === "number" ? String(value) : emptyStringToUndefined(value)),
-  z.string().trim().regex(/^\d{11}$/).optional()
+  z.string().trim().regex(/^\d{11}$/).nullable().optional()
 );
 const optionalCbu = z.preprocess(
   (value) => (typeof value === "number" ? String(value) : emptyStringToUndefined(value)),
-  z.string().trim().regex(/^\d{22}$/).optional()
+  z.string().trim().regex(/^\d{22}$/).nullable().optional()
 );
 
 export const listClientsQuerySchema = z.object({
-  cursor: optionalText(100),
+  cursor: optionalQueryText(100),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  search: optionalText(120),
+  search: optionalQueryText(120),
   sortBy: z.enum(["name", "createdAt", "status", "type"]).default("name"),
   sortDirection: z.enum(["asc", "desc"]).default("asc"),
   status: z.enum(["active", "inactive", "archived"]).optional(),
@@ -39,7 +41,10 @@ const clientFieldsSchema = z.object({
   status: z.enum(["active", "inactive", "archived"]).default("active"),
   firstName: optionalText(80),
   lastName: optionalText(80),
-  age: z.coerce.number().int().min(0).max(120).optional(),
+  age: z.preprocess(
+    emptyStringToUndefined,
+    z.coerce.number().int().min(0).max(120).nullable().optional()
+  ),
   dni: optionalDni,
   cuil: optionalTaxId,
   cuit: optionalTaxId,
