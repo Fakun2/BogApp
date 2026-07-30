@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { ClientType, Prisma } from "@prisma/client";
+import { Prisma, type ClientType } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import type {
   CreateClientInput,
@@ -143,11 +143,10 @@ export class ClientsService {
     input: { dni?: string | null; cuil?: string | null; cuit?: string | null },
     excludedClientId?: string
   ) {
-    const documents = [
-      input.dni ? { dni: input.dni } : null,
-      input.cuil ? { cuil: input.cuil } : null,
-      input.cuit ? { cuit: input.cuit } : null
-    ].filter((item): item is { dni: string } | { cuil: string } | { cuit: string } => item !== null);
+    const documents: Prisma.ClientWhereInput[] = [];
+    if (input.dni) documents.push({ dni: input.dni });
+    if (input.cuil) documents.push({ cuil: input.cuil });
+    if (input.cuit) documents.push({ cuit: input.cuit });
 
     if (documents.length === 0) {
       return;
@@ -206,52 +205,51 @@ function assertClientTypeFields(type: ClientType, input: ClientFields) {
 }
 
 function toWritableData(type: ClientType, input: ClientFields, clearOtherType = true) {
-  const data: Prisma.ClientUpdateInput = {};
-  const commonFields = ["email", "phone", "address", "notes", "cbu"] as const;
-  const humanFields = ["firstName", "lastName", "age", "dni", "cuil", "salaryReceiptRef"] as const;
-  const legalFields = ["businessName", "cuit", "statute"] as const;
-
-  for (const field of commonFields) {
-    if (input[field] !== undefined) {
-      data[field] = nullable(input[field]) as never;
-    }
-  }
+  const commonData = {
+    ...(input.email !== undefined ? { email: nullableString(input.email) } : {}),
+    ...(input.phone !== undefined ? { phone: nullableString(input.phone) } : {}),
+    ...(input.address !== undefined ? { address: nullableString(input.address) } : {}),
+    ...(input.notes !== undefined ? { notes: nullableString(input.notes) } : {}),
+    ...(input.cbu !== undefined ? { cbu: nullableString(input.cbu) } : {})
+  };
 
   if (type === "human") {
-    for (const field of humanFields) {
-      if (input[field] !== undefined) {
-        data[field] = nullable(input[field]) as never;
-      }
-    }
-    if (clearOtherType) {
-      data.businessName = null;
-      data.cuit = null;
-      data.statute = null;
-    }
-  } else {
-    for (const field of legalFields) {
-      if (input[field] !== undefined) {
-        data[field] = nullable(input[field]) as never;
-      }
-    }
-    if (clearOtherType) {
-      data.firstName = null;
-      data.lastName = null;
-      data.age = null;
-      data.dni = null;
-      data.cuil = null;
-      data.salaryReceiptRef = null;
-    }
+    return {
+      ...commonData,
+      ...(input.firstName !== undefined ? { firstName: nullableString(input.firstName) } : {}),
+      ...(input.lastName !== undefined ? { lastName: nullableString(input.lastName) } : {}),
+      ...(input.age !== undefined ? { age: input.age } : {}),
+      ...(input.dni !== undefined ? { dni: nullableString(input.dni) } : {}),
+      ...(input.cuil !== undefined ? { cuil: nullableString(input.cuil) } : {}),
+      ...(input.salaryReceiptRef !== undefined
+        ? { salaryReceiptRef: nullableString(input.salaryReceiptRef) }
+        : {}),
+      ...(clearOtherType ? { businessName: null, cuit: null, statute: null } : {})
+    };
   }
 
-  return data;
+  return {
+    ...commonData,
+    ...(input.businessName !== undefined
+      ? { businessName: nullableString(input.businessName) }
+      : {}),
+    ...(input.cuit !== undefined ? { cuit: nullableString(input.cuit) } : {}),
+    ...(input.statute !== undefined ? { statute: nullableString(input.statute) } : {}),
+    ...(clearOtherType
+      ? {
+          firstName: null,
+          lastName: null,
+          age: null,
+          dni: null,
+          cuil: null,
+          salaryReceiptRef: null
+        }
+      : {})
+  };
 }
 
-function nullable(value: string | number | null | undefined) {
-  if (typeof value === "string") {
-    return value.trim() || null;
-  }
-  return value ?? null;
+function nullableString(value: string | null | undefined) {
+  return typeof value === "string" ? value.trim() || null : null;
 }
 
 function contains(value: string) {
@@ -287,7 +285,10 @@ function toClientDto(client: ClientWithCounts) {
   };
 }
 
-function getOrderBy(sortBy: ListClientsQuery["sortBy"], direction: "asc" | "desc") {
+function getOrderBy(
+  sortBy: ListClientsQuery["sortBy"],
+  direction: "asc" | "desc"
+): Prisma.ClientOrderByWithRelationInput[] {
   const tieBreaker = { id: direction } as const;
 
   if (sortBy === "createdAt") {
