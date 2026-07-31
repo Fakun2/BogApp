@@ -27,6 +27,8 @@
     "db:seed:rbac": "node scripts/with-root-env.cjs node packages/database/prisma/seed-rbac.cjs",
     "db:seed:practice-area-templates": "node scripts/with-root-env.cjs node packages/database/prisma/seed-practice-area-templates.cjs",
     "db:seed:legal-catalogs": "node scripts/with-root-env.cjs node packages/database/prisma/seed-legal-catalogs.cjs",
+    "db:seed:demo": "node scripts/with-root-env.cjs node packages/database/prisma/seed-demo-data.cjs",
+    "db:clear:demo": "node scripts/with-root-env.cjs node packages/database/prisma/clear-demo-data.cjs",
     "db:copy-data": "node scripts/db-copy-data.cjs",
     "db:prepare": "node scripts/with-root-env.cjs prisma migrate deploy --schema packages/database/prisma/schema.prisma && npm run db:seed:rbac && npm run db:seed:practice-area-templates && npm run db:seed:legal-catalogs",
     "db:studio": "node scripts/with-root-env.cjs prisma studio --schema packages/database/prisma/schema.prisma",

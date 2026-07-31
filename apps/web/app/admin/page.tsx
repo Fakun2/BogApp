@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminMetricsGrid } from "./_components/admin-metrics-grid";
 import {
   adminMetrics,
   adminQuickLinks,
   adminSurfaceClassName,
-  adminSurfaceMutedClassName,
   adminSurfacePrimaryClassName,
   adminWorkspaceStatus
 } from "./_constants/dashboard";
@@ -28,33 +28,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {adminMetrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <Card
-              data-admin-surface
-              key={metric.label}
-              className={`${adminSurfaceClassName} gap-4 rounded-xl border-0 py-4 shadow-[var(--admin-card-shadow)]`}
-            >
-              <CardHeader className="flex-row items-center justify-between gap-3 px-4">
-                <CardTitle className={`text-sm font-medium ${adminSurfaceMutedClassName}`}>
-                  {metric.label}
-                </CardTitle>
-                <span className="flex size-9 items-center justify-center rounded-lg bg-secondary/70 text-secondary-foreground">
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-              </CardHeader>
-              <CardContent className="px-4">
-                <div className={`font-mono text-2xl font-semibold ${adminSurfacePrimaryClassName}`}>
-                  {metric.value}
-                </div>
-                <p className={`mt-1 text-xs ${adminSurfaceMutedClassName}`}>{metric.detail}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </section>
+      <AdminMetricsGrid metrics={adminMetrics} />
 
       <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
         <Card
@@ -75,12 +49,12 @@ export default function AdminPage() {
                   <span className={`block font-medium ${adminSurfacePrimaryClassName}`}>
                     {link.label}
                   </span>
-                  <span className={`mt-1 block text-xs ${adminSurfaceMutedClassName}`}>
+                  <span className="mt-1 block text-xs text-muted-foreground">
                     {link.description}
                   </span>
                 </span>
                 <ArrowRight
-                  className={`h-4 w-4 ${adminSurfaceMutedClassName}`}
+                  className="h-4 w-4 text-muted-foreground"
                   aria-hidden="true"
                 />
               </Link>

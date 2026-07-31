@@ -78,7 +78,7 @@ export function AdminShell({ children }: AdminShellProps) {
         className="h-screen overflow-auto"
         onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 4)}
       >
-        <div className="w-full px-6 py-8 md:px-10 md:py-10">
+        <div className="w-full px-4 py-10 md:px-10 md:py-10 overflow-y-auto">
           {canAccessAdmin ? children : <RestrictedAdminAccess />}
         </div>
       </SidebarInset>

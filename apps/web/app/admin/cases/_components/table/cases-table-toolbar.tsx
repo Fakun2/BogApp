@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Columns3, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -26,7 +26,7 @@ import { emptyCaseFilters, toCaseFilterQueryUpdates } from "../../_utils/case-fi
 import { allCasesTableColumns, serializeCasesTableColumns } from "../../_utils/case-table-columns";
 import { CaseSheet } from "../sheet/case-sheet";
 import { CaseFiltersPopover } from "./case-filters-popover";
-import { CaseSortMenu, casesTableActionButtonClassName } from "./case-sort-menu";
+import { CaseSortMenu } from "./case-sort-menu";
 
 export function CasesTableToolbar({
   canCreate,
@@ -97,6 +97,11 @@ export function CasesTableToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {canCreate ? (
+        <CaseSheet
+          trigger={<AdminTableHeaderActionButton icon={Plus} label="Nuevo" tone="primary" />}
+        />
+      ) : null}
       <CaseFiltersPopover
         disabled={isPending}
         filters={filters}
@@ -105,10 +110,7 @@ export function CasesTableToolbar({
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="outline" className={casesTableActionButtonClassName()}>
-            <Columns3 className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Columnas</span>
-          </Button>
+          <AdminTableHeaderActionButton icon={Columns3} label="Columnas" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Mostrar columnas</DropdownMenuLabel>
@@ -126,16 +128,6 @@ export function CasesTableToolbar({
         </DropdownMenuContent>
       </DropdownMenu>
       <CaseSortMenu sortBy={sortBy} sortDirection={sortDirection} onSort={updateSort} />
-      {canCreate ? (
-        <CaseSheet
-          trigger={
-            <Button className="h-10 gap-2">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Nuevo</span>
-            </Button>
-          }
-        />
-      ) : null}
     </div>
   );
 }

@@ -72,13 +72,24 @@ export type CaseDto = {
 export type CaseTaskDto = {
   id: string;
   caseId: string;
+  assignedMembershipId: string | null;
+  assignedTo: TaskAssigneeOption | null;
   name: string;
   startDate: string | null;
   endDate: string | null;
   status: CaseTaskStatus;
   notes: string | null;
+  lastSeenAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type TaskAssigneeOption = {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  roleName: string | null;
 };
 
 export type CaseExpenseDto = {
@@ -118,6 +129,13 @@ export type CaseDetailDto = CaseDto & {
   metrics: CaseMetricsDto;
 };
 
+export type CasesMetricsDto = {
+  totalCases: number;
+  openCases: number;
+  closedCases: number;
+  pendingTasks: number;
+};
+
 export type CaseTasksListResponse = {
   items: CaseTaskDto[];
   pageInfo: {
@@ -140,8 +158,49 @@ export type CaseExpensesListResponse = {
   };
 };
 
+export type CaseExpenseSummaryItemDto = {
+  id: string;
+  concept: string;
+  amount: number;
+  percentage: number;
+};
+
+export type CaseExpensesSummaryDto = {
+  totalAmount: number;
+  totalCount: number;
+  items: CaseExpenseSummaryItemDto[];
+};
+
+export type CaseCalendarEventDto = {
+  amount?: number;
+  date: string;
+  id: string;
+  status?: CaseExpenseStatus | string;
+  title: string;
+  type: "payment_due" | "hearing";
+};
+
+export type CaseCalendarResponseDto = {
+  events: CaseCalendarEventDto[];
+  month: string;
+  pageInfo?: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
 export type CaseExpenseAttachmentsListResponse = {
   items: CaseExpenseAttachmentDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
 };
 
 export type CasesListResponse = {

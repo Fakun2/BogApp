@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { adminPrimaryActionButtonClassName } from "../../../_constants/dashboard";
 import {
   caseInputClassName,
   caseSelectTriggerClassName,
@@ -57,9 +58,13 @@ export function CaseParticipantsSection({
             Carga clientes, partes contrarias, terceros u otros intervinientes.
           </p>
         </div>
-        <Button type="button" variant="outline" onClick={onAdd}>
+        <Button
+          type="button"
+          className={`px-3 sm:px-4 ${adminPrimaryActionButtonClassName}`}
+          onClick={onAdd}
+        >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Agregar
+          <span className="hidden sm:inline">Agregar</span>
         </Button>
       </div>
 
@@ -165,22 +170,32 @@ function ParticipantCard({
             aria-invalid={Boolean(errors?.displayName)}
           />
         </CaseField>
-        <CaseField label="Documento / CUIT / CUIL">
+        <CaseField error={errors?.document} label="DNI">
           <Input
             autoComplete="off"
             className={caseInputClassName}
-            placeholder="Documento"
+            inputMode="numeric"
+            maxLength={8}
+            placeholder="DNI"
             value={participant.document ?? ""}
-            onChange={(event) => onUpdate(index, "document", event.target.value)}
+            onChange={(event) =>
+              onUpdate(index, "document", event.target.value.replace(/\D/g, "").slice(0, 8))
+            }
+            aria-invalid={Boolean(errors?.document)}
           />
         </CaseField>
-        <CaseField label="Telefono">
+        <CaseField error={errors?.phone} label="Telefono">
           <Input
             autoComplete="off"
             className={caseInputClassName}
+            inputMode="numeric"
+            maxLength={15}
             placeholder="Telefono"
             value={participant.phone ?? ""}
-            onChange={(event) => onUpdate(index, "phone", event.target.value)}
+            onChange={(event) =>
+              onUpdate(index, "phone", event.target.value.replace(/\D/g, "").slice(0, 15))
+            }
+            aria-invalid={Boolean(errors?.phone)}
           />
         </CaseField>
         <CaseField label="Email">

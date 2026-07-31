@@ -2,6 +2,10 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -22,8 +26,11 @@ import type {
   CaseSortKey,
   CasesTableColumn
 } from "../../_types/cases.types";
+import { casesMutations } from "../../_api/cases.mutation-controller";
+import { useCasesMutation } from "../../_hooks/use-cases-mutation";
 import { CaseRowActions } from "./case-row-actions";
 import { CaseSortableColumnHeader } from "./case-sortable-column-header";
+import { DeleteCasesDialog } from "./delete-cases-dialog";
 import { TableStateRow } from "./table-state-row";
 
 export function CasesTable({
@@ -44,6 +51,9 @@ export function CasesTable({
   sortDirection: CaseSortDirection;
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const deleteMutation = useCasesMutation(casesMutations.deleteCase());
+  const router = useRouter();
   const hasActions = true;
   const columnCount = columns.length + 1 + (hasActions ? 1 : 0);
   const fillerRows = Math.max(0, casesPageSize - cases.length);
@@ -82,6 +92,20 @@ export function CasesTable({
     });
   }
 
+  async function handleBulkDelete() {
+    const idsToDelete = [...selectedIds];
+    try {
+      for (const id of idsToDelete) {
+        await deleteMutation.mutateAsync(id);
+      }
+      setBulkDeleteOpen(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    } catch {
+      // The mutation exposes its error state in the confirmation panel.
+    }
+  }
+
   if (error) {
     return <TableStateRow text={error.message} />;
   }
@@ -91,8 +115,31 @@ export function CasesTable({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-2xl">
-      <Table className="min-w-full text-xs">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {canDelete && selectedPageCount > 0 ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/50 bg-muted/35 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            {selectedPageCount === 1
+              ? "1 expediente seleccionado"
+              : `${selectedPageCount} expedientes seleccionados`}
+          </p>
+          <Button
+            type="button"
+            className="h-9 bg-destructive px-3 text-destructive-foreground hover:bg-destructive/85 sm:gap-2 sm:px-4"
+            disabled={deleteMutation.isPending}
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            {deleteMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span className="hidden sm:inline">Eliminar</span>
+          </Button>
+        </div>
+      ) : null}
+      <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-2xl">
+        <Table className="min-w-full text-xs">
         <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
           <TableRow className="hover:bg-transparent">
             <TableHead className="h-11 w-10 px-4 text-sm font-medium text-foreground">
@@ -154,7 +201,16 @@ export function CasesTable({
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
+      <DeleteCasesDialog
+        count={selectedPageCount}
+        error={deleteMutation.error?.message}
+        loading={deleteMutation.isPending}
+        open={bulkDeleteOpen}
+        onConfirm={() => void handleBulkDelete()}
+        onOpenChange={setBulkDeleteOpen}
+      />
     </div>
   );
 }
@@ -191,10 +247,22 @@ function renderCaseTableHeader({
 
 function renderCaseTableCell(column: CasesTableColumn, item: CaseDto) {
   const cellRenderMap: Record<CasesTableColumn, ReactNode> = {
-    caseNumber: <span className="font-medium text-foreground">{item.caseNumber}</span>,
+    caseNumber: (
+      <Link
+        className="font-medium text-foreground underline-offset-4 transition-colors hover:text-btn-primary hover:underline"
+        href={`/admin/cases/${item.id}`}
+      >
+        {item.caseNumber}
+      </Link>
+    ),
     caption: (
       <span className="block min-w-0">
-        <span className="block truncate text-sm font-medium text-foreground">{item.caption}</span>
+        <Link
+          className="block truncate text-sm font-medium text-foreground underline-offset-4 transition-colors hover:text-btn-primary hover:underline"
+          href={`/admin/cases/${item.id}`}
+        >
+          {item.caption}
+        </Link>
         <span className="mt-0.5 block truncate text-xs text-muted-foreground">
           {item.subject || "Sin asunto"}
         </span>

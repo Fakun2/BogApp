@@ -402,6 +402,13 @@ export interface CasesListResponseDto {
   pageInfo: CasesPageInfoDto;
 }
 
+export interface CasesMetricsDto {
+  totalCases: number;
+  openCases: number;
+  closedCases: number;
+  pendingTasks: number;
+}
+
 export interface CreateCaseDto {
   [key: string]: unknown;
 }
@@ -471,6 +478,20 @@ export interface CaseDetailDto {
   metrics: CaseMetricsDto;
 }
 
+export interface CaseTaskAssigneeDto {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  /** @nullable */
+  roleName: string | null;
+}
+
+/**
+ * @nullable
+ */
+export type CaseTaskDtoAssignedTo = CaseTaskAssigneeDto | null;
+
 export type CaseTaskDtoStatus = (typeof CaseTaskDtoStatus)[keyof typeof CaseTaskDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -484,6 +505,10 @@ export const CaseTaskDtoStatus = {
 export interface CaseTaskDto {
   id: string;
   caseId: string;
+  /** @nullable */
+  assignedMembershipId: string | null;
+  /** @nullable */
+  assignedTo: CaseTaskDtoAssignedTo;
   name: string;
   /** @nullable */
   startDate: string | null;
@@ -492,6 +517,8 @@ export interface CaseTaskDto {
   status: CaseTaskDtoStatus;
   /** @nullable */
   notes: string | null;
+  /** @nullable */
+  lastSeenAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -513,9 +540,45 @@ export interface CaseDeleteResponseDto {
   status: string;
 }
 
+export interface CaseCalendarEventDto {
+  type: string;
+  id: string;
+  title: string;
+  date: string;
+  amount?: number;
+  status?: string;
+}
+
+export interface CaseCalendarResponseDto {
+  month: string;
+  events: CaseCalendarEventDto[];
+  pageInfo?: CasesPageInfoDto;
+}
+
+export interface CaseExpenseSummaryItemDto {
+  id: string;
+  concept: string;
+  amount: number;
+  percentage: number;
+}
+
+export interface CaseExpensesSummaryDto {
+  totalAmount: number;
+  totalCount: number;
+  items: CaseExpenseSummaryItemDto[];
+}
+
 export interface CaseExpenseTaskDto {
   id: string;
   name: string;
+}
+
+export interface CaseExpenseAttachmentDto {
+  id: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
 }
 
 /**
@@ -550,6 +613,7 @@ export interface CaseExpenseDto {
   alertEnabled: boolean;
   /** @nullable */
   alertAt: string | null;
+  attachments: CaseExpenseAttachmentDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -565,6 +629,11 @@ export interface CreateCaseExpenseDto {
 
 export interface UpdateCaseExpenseDto {
   [key: string]: unknown;
+}
+
+export interface CaseExpenseAttachmentsListResponseDto {
+  items: CaseExpenseAttachmentDto[];
+  pageInfo: CasesPageInfoDto;
 }
 
 export interface UpdateCaseDto {
@@ -873,6 +942,10 @@ export interface StaffUpdateResponseDto {
 export interface StaffDeleteResponseDto {
   status: string;
 }
+
+export type CasesControllerCreateExpenseAttachmentBody = {
+  file: Blob;
+};
 
 export type authControllerCreateAccountResponse201 = {
   data: CreateAccountResponseDto;
@@ -1293,6 +1366,29 @@ export const casesControllerCreate = async (
   });
 };
 
+export type casesControllerGetMetricsResponse200 = {
+  data: CasesMetricsDto;
+  status: 200;
+};
+
+export type casesControllerGetMetricsResponseSuccess = casesControllerGetMetricsResponse200 & {
+  headers: Headers;
+};
+export type casesControllerGetMetricsResponse = casesControllerGetMetricsResponseSuccess;
+
+export const getCasesControllerGetMetricsUrl = () => {
+  return `/api/cases/metrics`;
+};
+
+export const casesControllerGetMetrics = async (
+  options?: RequestInit
+): Promise<casesControllerGetMetricsResponse> => {
+  return bogaapFetch<casesControllerGetMetricsResponse>(getCasesControllerGetMetricsUrl(), {
+    ...options,
+    method: "GET"
+  });
+};
+
 export type casesControllerGetDetailResponse200 = {
   data: CaseDetailDto;
   status: 200;
@@ -1478,6 +1574,87 @@ export const casesControllerDeleteTask = async (
   );
 };
 
+export type casesControllerMarkTaskSeenResponse200 = {
+  data: CaseTaskDto;
+  status: 200;
+};
+
+export type casesControllerMarkTaskSeenResponseSuccess = casesControllerMarkTaskSeenResponse200 & {
+  headers: Headers;
+};
+export type casesControllerMarkTaskSeenResponse = casesControllerMarkTaskSeenResponseSuccess;
+
+export const getCasesControllerMarkTaskSeenUrl = (caseId: string, taskId: string) => {
+  return `/api/cases/${caseId}/tasks/${taskId}/seen`;
+};
+
+export const casesControllerMarkTaskSeen = async (
+  caseId: string,
+  taskId: string,
+  options?: RequestInit
+): Promise<casesControllerMarkTaskSeenResponse> => {
+  return bogaapFetch<casesControllerMarkTaskSeenResponse>(
+    getCasesControllerMarkTaskSeenUrl(caseId, taskId),
+    {
+      ...options,
+      method: "PATCH"
+    }
+  );
+};
+
+export type casesControllerGetCalendarResponse200 = {
+  data: CaseCalendarResponseDto;
+  status: 200;
+};
+
+export type casesControllerGetCalendarResponseSuccess = casesControllerGetCalendarResponse200 & {
+  headers: Headers;
+};
+export type casesControllerGetCalendarResponse = casesControllerGetCalendarResponseSuccess;
+
+export const getCasesControllerGetCalendarUrl = (caseId: string) => {
+  return `/api/cases/${caseId}/calendar`;
+};
+
+export const casesControllerGetCalendar = async (
+  caseId: string,
+  options?: RequestInit
+): Promise<casesControllerGetCalendarResponse> => {
+  return bogaapFetch<casesControllerGetCalendarResponse>(getCasesControllerGetCalendarUrl(caseId), {
+    ...options,
+    method: "GET"
+  });
+};
+
+export type casesControllerGetExpensesSummaryResponse200 = {
+  data: CaseExpensesSummaryDto;
+  status: 200;
+};
+
+export type casesControllerGetExpensesSummaryResponseSuccess =
+  casesControllerGetExpensesSummaryResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerGetExpensesSummaryResponse =
+  casesControllerGetExpensesSummaryResponseSuccess;
+
+export const getCasesControllerGetExpensesSummaryUrl = (caseId: string) => {
+  return `/api/cases/${caseId}/expenses/summary`;
+};
+
+export const casesControllerGetExpensesSummary = async (
+  caseId: string,
+  options?: RequestInit
+): Promise<casesControllerGetExpensesSummaryResponse> => {
+  return bogaapFetch<casesControllerGetExpensesSummaryResponse>(
+    getCasesControllerGetExpensesSummaryUrl(caseId),
+    {
+      ...options,
+      method: "GET"
+    }
+  );
+};
+
 export type casesControllerListExpensesResponse200 = {
   data: CaseExpensesListResponseDto;
   status: 200;
@@ -1590,6 +1767,141 @@ export const casesControllerDeleteExpense = async (
 ): Promise<casesControllerDeleteExpenseResponse> => {
   return bogaapFetch<casesControllerDeleteExpenseResponse>(
     getCasesControllerDeleteExpenseUrl(caseId, expenseId),
+    {
+      ...options,
+      method: "DELETE"
+    }
+  );
+};
+
+export type casesControllerListExpenseAttachmentsResponse200 = {
+  data: CaseExpenseAttachmentsListResponseDto;
+  status: 200;
+};
+
+export type casesControllerListExpenseAttachmentsResponseSuccess =
+  casesControllerListExpenseAttachmentsResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerListExpenseAttachmentsResponse =
+  casesControllerListExpenseAttachmentsResponseSuccess;
+
+export const getCasesControllerListExpenseAttachmentsUrl = (caseId: string, expenseId: string) => {
+  return `/api/cases/${caseId}/expenses/${expenseId}/attachments`;
+};
+
+export const casesControllerListExpenseAttachments = async (
+  caseId: string,
+  expenseId: string,
+  options?: RequestInit
+): Promise<casesControllerListExpenseAttachmentsResponse> => {
+  return bogaapFetch<casesControllerListExpenseAttachmentsResponse>(
+    getCasesControllerListExpenseAttachmentsUrl(caseId, expenseId),
+    {
+      ...options,
+      method: "GET"
+    }
+  );
+};
+
+export type casesControllerCreateExpenseAttachmentResponse201 = {
+  data: CaseExpenseAttachmentDto;
+  status: 201;
+};
+
+export type casesControllerCreateExpenseAttachmentResponseSuccess =
+  casesControllerCreateExpenseAttachmentResponse201 & {
+    headers: Headers;
+  };
+export type casesControllerCreateExpenseAttachmentResponse =
+  casesControllerCreateExpenseAttachmentResponseSuccess;
+
+export const getCasesControllerCreateExpenseAttachmentUrl = (caseId: string, expenseId: string) => {
+  return `/api/cases/${caseId}/expenses/${expenseId}/attachments`;
+};
+
+export const casesControllerCreateExpenseAttachment = async (
+  caseId: string,
+  expenseId: string,
+  casesControllerCreateExpenseAttachmentBody: CasesControllerCreateExpenseAttachmentBody,
+  options?: RequestInit
+): Promise<casesControllerCreateExpenseAttachmentResponse> => {
+  const formData = new FormData();
+  formData.append(`file`, casesControllerCreateExpenseAttachmentBody.file);
+
+  return bogaapFetch<casesControllerCreateExpenseAttachmentResponse>(
+    getCasesControllerCreateExpenseAttachmentUrl(caseId, expenseId),
+    {
+      ...options,
+      method: "POST",
+      body: formData
+    }
+  );
+};
+
+export type casesControllerDownloadExpenseAttachmentResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type casesControllerDownloadExpenseAttachmentResponseSuccess =
+  casesControllerDownloadExpenseAttachmentResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerDownloadExpenseAttachmentResponse =
+  casesControllerDownloadExpenseAttachmentResponseSuccess;
+
+export const getCasesControllerDownloadExpenseAttachmentUrl = (
+  caseId: string,
+  expenseId: string,
+  attachmentId: string
+) => {
+  return `/api/cases/${caseId}/expenses/${expenseId}/attachments/${attachmentId}/download`;
+};
+
+export const casesControllerDownloadExpenseAttachment = async (
+  caseId: string,
+  expenseId: string,
+  attachmentId: string,
+  options?: RequestInit
+): Promise<casesControllerDownloadExpenseAttachmentResponse> => {
+  return bogaapFetch<casesControllerDownloadExpenseAttachmentResponse>(
+    getCasesControllerDownloadExpenseAttachmentUrl(caseId, expenseId, attachmentId),
+    {
+      ...options,
+      method: "GET"
+    }
+  );
+};
+
+export type casesControllerDeleteExpenseAttachmentResponse200 = {
+  data: CaseDeleteResponseDto;
+  status: 200;
+};
+
+export type casesControllerDeleteExpenseAttachmentResponseSuccess =
+  casesControllerDeleteExpenseAttachmentResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerDeleteExpenseAttachmentResponse =
+  casesControllerDeleteExpenseAttachmentResponseSuccess;
+
+export const getCasesControllerDeleteExpenseAttachmentUrl = (
+  caseId: string,
+  expenseId: string,
+  attachmentId: string
+) => {
+  return `/api/cases/${caseId}/expenses/${expenseId}/attachments/${attachmentId}`;
+};
+
+export const casesControllerDeleteExpenseAttachment = async (
+  caseId: string,
+  expenseId: string,
+  attachmentId: string,
+  options?: RequestInit
+): Promise<casesControllerDeleteExpenseAttachmentResponse> => {
+  return bogaapFetch<casesControllerDeleteExpenseAttachmentResponse>(
+    getCasesControllerDeleteExpenseAttachmentUrl(caseId, expenseId, attachmentId),
     {
       ...options,
       method: "DELETE"

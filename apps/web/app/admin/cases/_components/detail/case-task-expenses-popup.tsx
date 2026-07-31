@@ -28,12 +28,13 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { caseExpenseStatusLabels } from "../../_constants/cases.constants";
+import { casesMutations } from "../../_api/cases.mutation-controller";
 import { useCaseExpensesQuery } from "../../_hooks/use-case-expenses-query";
-import { useDeleteCaseExpenseMutation } from "../../_hooks/use-delete-case-expense-mutation";
+import { useCasesMutation } from "../../_hooks/use-cases-mutation";
 import type { CaseExpenseDto, CaseTaskDto } from "../../_types/cases.types";
 import { formatCaseMoney, getExpenseStatusClassName } from "./case-detail-format";
 import { CaseExpenseAttachmentsPopup } from "./case-expense-attachments-popup";
-import { CaseExpenseSheet } from "./case-expense-sheet";
+import { CaseExpenseSheet } from "./expense-sheet";
 
 export function CaseTaskExpensesPopup({
   canDelete,
@@ -50,7 +51,7 @@ export function CaseTaskExpensesPopup({
 }) {
   const [isClosing, setIsClosing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const deleteMutation = useDeleteCaseExpenseMutation(caseId);
+  const deleteMutation = useCasesMutation(casesMutations.deleteExpense(caseId));
   const expensesQuery = useCaseExpensesQuery({ caseId, taskId: task.id });
   const router = useRouter();
   const pageExpenses = expensesQuery.data?.items ?? [];
@@ -107,7 +108,7 @@ export function CaseTaskExpensesPopup({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-lg border-border/50 p-0"
+            className="h-8 w-8 border-border/50 p-0"
             onClick={requestClose}
             aria-label="Cerrar gastos"
           >
@@ -139,8 +140,8 @@ export function CaseTaskExpensesPopup({
             </div>
           ) : pageExpenses.length ? (
             <div className="grid gap-3">
-              <div className="overflow-hidden rounded-2xl border border-border/40">
-                <Table>
+              <div className="max-h-[52svh] overflow-auto rounded-2xl border border-border/40">
+                <Table className="min-w-[560px]">
                   <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="h-10 px-4 text-sm font-medium text-foreground">
@@ -216,7 +217,7 @@ export function CaseTaskExpensesPopup({
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-8 w-8 rounded-lg border-border/50 p-0"
+                    className="h-8 w-8 border-border/50 p-0"
                     disabled={!hasPreviousPage}
                     onClick={expensesQuery.goBack}
                     aria-label="Pagina anterior"
@@ -226,7 +227,7 @@ export function CaseTaskExpensesPopup({
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-8 w-8 rounded-lg border-border/50 p-0"
+                    className="h-8 w-8 border-border/50 p-0"
                     disabled={!hasNextPage}
                     onClick={expensesQuery.goForward}
                     aria-label="Pagina siguiente"
@@ -285,7 +286,7 @@ function ExpensePopupRowActions({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-lg border-border/50 p-0"
+            className="h-8 w-8 border-border/50 p-0"
             disabled={deleteDisabled}
             aria-label={`Acciones para ${expense.concept}`}
           >

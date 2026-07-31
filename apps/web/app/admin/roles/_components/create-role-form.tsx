@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createRoleFormSchema, type CreateRoleFormValues } from "@/lib/validation/roles";
+import { adminPrimaryActionButtonClassName } from "../../_constants/dashboard";
 import { useCreateRoleMutation } from "../_hooks/use-create-role-mutation";
 import { useUpdateRoleMutation } from "../_hooks/use-update-role-mutation";
 import { PermissionSelector } from "./permission-selector";
@@ -223,7 +224,7 @@ export function CreateRoleForm({
         <Button
           type="submit"
           disabled={mutation.isPending}
-          className="h-12 rounded-2xl font-semibold"
+          className={`h-12 font-semibold ${adminPrimaryActionButtonClassName}`}
         >
           {mutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -232,7 +233,7 @@ export function CreateRoleForm({
           ) : (
             <Save className="h-4 w-4" aria-hidden="true" />
           )}
-          {mode === "create" ? "Crear rol" : "Actualizar rol"}
+          <span className="hidden sm:inline">{mode === "create" ? "Crear rol" : "Actualizar rol"}</span>
         </Button>
       </div>
     </form>

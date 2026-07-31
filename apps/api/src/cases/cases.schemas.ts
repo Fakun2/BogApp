@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 
@@ -6,12 +6,37 @@ const optionalTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().trim().optional()
 );
+const optionalDniSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z
+    .string()
+    .trim()
+    .regex(/^\d{7,8}$/)
+    .optional()
+);
+const optionalPhoneSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z
+    .string()
+    .trim()
+    .regex(/^\d{13,15}$/)
+    .optional()
+);
 
 const optionalUuid = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().uuid().optional()
 );
+const optionalNullableUuid = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().uuid().nullable().optional()
+);
 const requiredDateString = z.string().trim().min(1);
+const monthStringSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+  .optional();
 
 const caseInstanceSchema = z.enum(["first", "second", "third"]);
 const caseStatusSchema = z.enum(["open", "paused", "closed"]);
@@ -34,10 +59,10 @@ const caseParticipantInputSchema = z.object({
   participantKind: participantKindSchema.default("other"),
   role: participantRoleSchema.default("other"),
   displayName: z.string().trim().min(2).max(160),
-  document: optionalTrimmedString,
+  document: optionalDniSchema,
   address: optionalTrimmedString,
   email: optionalTrimmedString.pipe(z.string().email().optional()),
-  phone: optionalTrimmedString,
+  phone: optionalPhoneSchema,
   notes: optionalTrimmedString,
   clientId: optionalUuid
 });
@@ -66,6 +91,7 @@ export const updateCaseSchema = caseInputSchema;
 
 const caseTaskInputSchema = z.object({
   name: z.string().trim().min(2).max(160),
+  assignedMembershipId: optionalNullableUuid,
   startDate: optionalTrimmedString,
   endDate: optionalTrimmedString,
   status: caseTaskStatusSchema.default("pending"),
@@ -136,6 +162,7 @@ export const listCasesQuerySchema = z.object({
 export const listCaseExpensesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(8).default(8),
   cursor: optionalTrimmedString,
+  status: caseExpenseStatusSchema.optional(),
   taskId: optionalUuid
 });
 
@@ -144,9 +171,27 @@ export const listCaseTasksQuerySchema = z.object({
   cursor: optionalTrimmedString
 });
 
+export const listCaseExpenseAttachmentsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(8).default(8),
+  cursor: optionalTrimmedString
+});
+
+export const caseCalendarQuerySchema = z.object({
+  month: monthStringSchema,
+  mode: z.enum(["month", "list"]).default("month"),
+  limit: z.coerce.number().int().min(1).max(8).default(5),
+  cursor: optionalTrimmedString,
+  search: optionalTrimmedString,
+  types: optionalTrimmedString
+});
+
 export class ListCasesQueryDto extends createZodDto(listCasesQuerySchema) {}
 export class ListCaseExpensesQueryDto extends createZodDto(listCaseExpensesQuerySchema) {}
 export class ListCaseTasksQueryDto extends createZodDto(listCaseTasksQuerySchema) {}
+export class ListCaseExpenseAttachmentsQueryDto extends createZodDto(
+  listCaseExpenseAttachmentsQuerySchema
+) {}
+export class CaseCalendarQueryDto extends createZodDto(caseCalendarQuerySchema) {}
 export class CreateCaseDto extends createZodDto(createCaseSchema) {}
 export class UpdateCaseDto extends createZodDto(updateCaseSchema) {}
 export class CreateCaseTaskDto extends createZodDto(caseTaskInputSchema) {}
@@ -281,12 +326,35 @@ export class CaseDto {
   updatedAt!: string;
 }
 
+export class CaseTaskAssigneeDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ format: "uuid" })
+  userId!: string;
+
+  @ApiProperty({ example: "Mateo Alvarez" })
+  fullName!: string;
+
+  @ApiProperty({ example: "mateo@estudio.com" })
+  email!: string;
+
+  @ApiProperty({ nullable: true, type: String, example: "Abogado" })
+  roleName!: string | null;
+}
+
 export class CaseTaskDto {
   @ApiProperty({ format: "uuid" })
   id!: string;
 
   @ApiProperty({ format: "uuid" })
   caseId!: string;
+
+  @ApiProperty({ nullable: true, type: String, format: "uuid" })
+  assignedMembershipId!: string | null;
+
+  @ApiProperty({ nullable: true, type: CaseTaskAssigneeDto })
+  assignedTo!: CaseTaskAssigneeDto | null;
 
   @ApiProperty({ example: "Presentar escrito inicial" })
   name!: string;
@@ -302,6 +370,9 @@ export class CaseTaskDto {
 
   @ApiProperty({ nullable: true, type: String })
   notes!: string | null;
+
+  @ApiProperty({ nullable: true, type: String, format: "date-time" })
+  lastSeenAt!: string | null;
 
   @ApiProperty({ format: "date-time" })
   createdAt!: string;
@@ -401,6 +472,20 @@ export class CaseDetailDto extends CaseDto {
   metrics!: CaseMetricsDto;
 }
 
+export class CasesMetricsDto {
+  @ApiProperty({ example: 42 })
+  totalCases!: number;
+
+  @ApiProperty({ example: 31 })
+  openCases!: number;
+
+  @ApiProperty({ example: 8 })
+  closedCases!: number;
+
+  @ApiProperty({ example: 5 })
+  pendingTasks!: number;
+}
+
 export class CasesPageInfoDto {
   @ApiProperty({ example: 8 })
   limit!: number;
@@ -434,9 +519,68 @@ export class CaseExpensesListResponseDto {
   pageInfo!: CasesPageInfoDto;
 }
 
+export class CaseExpenseSummaryItemDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ example: "Tasa de justicia" })
+  concept!: string;
+
+  @ApiProperty({ example: 120000 })
+  amount!: number;
+
+  @ApiProperty({ example: 48.5 })
+  percentage!: number;
+}
+
+export class CaseExpensesSummaryDto {
+  @ApiProperty({ example: 250000 })
+  totalAmount!: number;
+
+  @ApiProperty({ example: 12 })
+  totalCount!: number;
+
+  @ApiProperty({ type: [CaseExpenseSummaryItemDto] })
+  items!: CaseExpenseSummaryItemDto[];
+}
+
+export class CaseCalendarEventDto {
+  @ApiProperty({ example: "payment_due" })
+  type!: "payment_due" | "hearing";
+
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ example: "Pago: Tasa de justicia" })
+  title!: string;
+
+  @ApiProperty({ example: "2026-08-12" })
+  date!: string;
+
+  @ApiPropertyOptional({ example: 120000 })
+  amount?: number;
+
+  @ApiPropertyOptional({ example: "pending" })
+  status?: string;
+}
+
+export class CaseCalendarResponseDto {
+  @ApiProperty({ example: "2026-08" })
+  month!: string;
+
+  @ApiProperty({ type: [CaseCalendarEventDto] })
+  events!: CaseCalendarEventDto[];
+
+  @ApiPropertyOptional({ type: CasesPageInfoDto })
+  pageInfo?: CasesPageInfoDto;
+}
+
 export class CaseExpenseAttachmentsListResponseDto {
   @ApiProperty({ type: [CaseExpenseAttachmentDto] })
   items!: CaseExpenseAttachmentDto[];
+
+  @ApiProperty({ type: CasesPageInfoDto })
+  pageInfo!: CasesPageInfoDto;
 }
 
 export class CasesListResponseDto {
@@ -455,6 +599,8 @@ export class CaseDeleteResponseDto {
 export type ListCasesQuery = z.infer<typeof listCasesQuerySchema>;
 export type ListCaseExpensesQuery = z.infer<typeof listCaseExpensesQuerySchema>;
 export type ListCaseTasksQuery = z.infer<typeof listCaseTasksQuerySchema>;
+export type ListCaseExpenseAttachmentsQuery = z.infer<typeof listCaseExpenseAttachmentsQuerySchema>;
+export type CaseCalendarQuery = z.infer<typeof caseCalendarQuerySchema>;
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;
 export type UpdateCaseInput = z.infer<typeof updateCaseSchema>;
 export type CreateCaseTaskInput = z.infer<typeof caseTaskInputSchema>;

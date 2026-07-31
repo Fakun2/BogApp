@@ -3,6 +3,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 import { ObjectStorageService } from "../../storage/object-storage.service";
+import type { ListCaseExpenseAttachmentsQuery } from "../cases.schemas";
 
 export type UploadedCaseExpenseAttachmentFile = {
   buffer: Buffer;
@@ -27,15 +28,43 @@ export class CaseExpenseAttachmentsUseCase {
     private readonly storage: ObjectStorageService
   ) {}
 
-  async list(tenantId: string, caseId: string, expenseId: string) {
+  async list(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    query: ListCaseExpenseAttachmentsQuery
+  ) {
     await this.findTenantExpenseOrThrow(tenantId, caseId, expenseId);
+    const cursor = decodeExpenseAttachmentsCursor(query.cursor);
     const attachments = await this.prisma.caseExpenseAttachment.findMany({
-      where: { deletedAt: null, expenseId, caseId, tenantId },
-      orderBy: { createdAt: "desc" },
+      where: {
+        deletedAt: null,
+        expenseId,
+        caseId,
+        tenantId,
+        ...(cursor ? { OR: getExpenseAttachmentsCursorWhere(cursor) } : {})
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: query.limit + 1,
       select: caseExpenseAttachmentSelect
     });
+    const pageItems = attachments.slice(0, query.limit);
+    const lastItem = pageItems.at(-1);
+    const hasNextPage = attachments.length > query.limit;
 
-    return { items: attachments.map(toCaseExpenseAttachmentDto) };
+    return {
+      items: pageItems.map(toCaseExpenseAttachmentDto),
+      pageInfo: {
+        limit: query.limit,
+        offset: 0,
+        nextCursor:
+          hasNextPage && lastItem
+            ? encodeExpenseAttachmentsCursor({ createdAt: lastItem.createdAt, id: lastItem.id })
+            : null,
+        hasNextPage,
+        total: pageItems.length + (hasNextPage ? 1 : 0)
+      }
+    };
   }
 
   async create(
@@ -176,6 +205,11 @@ type CaseExpenseAttachmentWithSelect = Prisma.CaseExpenseAttachmentGetPayload<{
   select: typeof caseExpenseAttachmentSelect;
 }>;
 
+type ExpenseAttachmentsCursor = {
+  createdAt: Date;
+  id: string;
+};
+
 export function toCaseExpenseAttachmentDto(item: CaseExpenseAttachmentWithSelect) {
   return {
     id: item.id,
@@ -194,6 +228,50 @@ function validateAttachmentFile(file: UploadedCaseExpenseAttachmentFile) {
   if (file.size > maxCaseExpenseAttachmentSizeBytes) {
     throw new BadRequestException("El comprobante no puede superar 10 MB.");
   }
+}
+
+function encodeExpenseAttachmentsCursor(cursor: ExpenseAttachmentsCursor) {
+  return Buffer.from(
+    JSON.stringify({
+      createdAt: cursor.createdAt.toISOString(),
+      id: cursor.id
+    })
+  ).toString("base64url");
+}
+
+function decodeExpenseAttachmentsCursor(cursor?: string): ExpenseAttachmentsCursor | null {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
+      createdAt?: string;
+      id?: string;
+    };
+
+    if (!parsed.createdAt || !parsed.id) {
+      return null;
+    }
+
+    const createdAt = new Date(parsed.createdAt);
+    if (Number.isNaN(createdAt.getTime())) {
+      return null;
+    }
+
+    return { createdAt, id: parsed.id };
+  } catch {
+    throw new BadRequestException("El cursor de comprobantes es invalido.");
+  }
+}
+
+function getExpenseAttachmentsCursorWhere(
+  cursor: ExpenseAttachmentsCursor
+): Prisma.CaseExpenseAttachmentWhereInput[] {
+  return [
+    { createdAt: { lt: cursor.createdAt } },
+    { createdAt: cursor.createdAt, id: { lt: cursor.id } }
+  ];
 }
 
 function buildAttachmentObjectKey({

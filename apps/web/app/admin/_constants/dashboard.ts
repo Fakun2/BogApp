@@ -46,3 +46,5 @@ export const adminWorkspaceStatus = [
 export const adminSurfaceClassName = "bg-card text-card-foreground";
 export const adminSurfaceMutedClassName = "text-muted-foreground";
 export const adminSurfacePrimaryClassName = "text-foreground";
+export const adminPrimaryActionButtonClassName =
+  "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-600/60 disabled:text-white";

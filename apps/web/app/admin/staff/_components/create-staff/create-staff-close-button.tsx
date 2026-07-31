@@ -8,10 +8,10 @@ export function CreateStaffCloseButton() {
       <Button
         type="button"
         variant="outline"
-        className="h-12 rounded-2xl border-border/50 px-5 text-base font-semibold"
+        className="h-12 border-border/50 px-3 text-base font-semibold sm:px-5"
       >
         <X className="h-4 w-4" aria-hidden="true" />
-        Cerrar
+        <span className="hidden sm:inline">Cerrar</span>
       </Button>
     </SheetClose>
   );

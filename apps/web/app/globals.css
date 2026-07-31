@@ -279,6 +279,12 @@ body {
   background: var(--admin-sidebar-bg) !important;
 }
 
+.dark [data-admin-table-header] button.bg-card:hover,
+.theme-navy-slate.dark [data-admin-table-header] button.bg-card:hover {
+  background: var(--btn-secondary-hover) !important;
+  color: var(--foreground) !important;
+}
+
 .dark [data-admin-surface] .text-secondary-foreground,
 .theme-navy-slate.dark [data-admin-surface] .text-secondary-foreground {
   color: var(--secondary-foreground) !important;
@@ -287,6 +293,14 @@ body {
 .dark [data-admin-surface] .border-border,
 .theme-navy-slate.dark [data-admin-surface] .border-border {
   border-color: var(--border) !important;
+}
+
+.dark [data-admin-metric-icon],
+.theme-navy-slate.dark [data-admin-metric-icon],
+.dark [data-admin-metric-icon] svg,
+.theme-navy-slate.dark [data-admin-metric-icon] svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 @keyframes create-account-loading-bar {
@@ -300,5 +314,19 @@ body {
 
   100% {
     transform: translateX(220%) scaleX(0.72);
+  }
+}
+
+@keyframes calendar-loading {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(320%);
   }
 }

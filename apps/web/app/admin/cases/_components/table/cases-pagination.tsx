@@ -54,7 +54,7 @@ export function CasesPagination({
         <Button
           type="button"
           variant="outline"
-          className="h-8 rounded-lg border-border/50 px-2.5"
+          className="h-8 border-border/50 px-2.5"
           disabled={pageIndex === 0}
           onClick={() => navigate(removeLastCursor(cursorStack))}
           aria-label="Pagina anterior"
@@ -67,7 +67,7 @@ export function CasesPagination({
         <Button
           type="button"
           variant="outline"
-          className="h-8 rounded-lg border-border/50 px-2.5"
+          className="h-8 border-border/50 px-2.5"
           disabled={!hasNextPage || !nextCursor}
           onClick={() => {
             if (nextCursor) {

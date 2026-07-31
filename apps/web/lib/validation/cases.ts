@@ -4,6 +4,22 @@ const optionalTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().trim().optional()
 );
+const optionalDniSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z
+    .string()
+    .trim()
+    .regex(/^\d{7,8}$/, "El DNI debe tener solo numeros, minimo 7 y maximo 8 digitos.")
+    .optional()
+);
+const optionalPhoneSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z
+    .string()
+    .trim()
+    .regex(/^\d{13,15}$/, "El telefono debe tener solo numeros, minimo 13 y maximo 15 digitos.")
+    .optional()
+);
 
 const optionalUuid = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -34,10 +50,10 @@ export const caseParticipantFormSchema = z.object({
     ])
     .default("other"),
   displayName: z.string().trim().min(2, "Minimo 2 caracteres.").max(160, "Maximo 160 caracteres."),
-  document: optionalTrimmedString,
+  document: optionalDniSchema,
   address: optionalTrimmedString,
   email: optionalTrimmedString.pipe(z.string().email("Email invalido.").optional()),
-  phone: optionalTrimmedString,
+  phone: optionalPhoneSchema,
   notes: optionalTrimmedString,
   clientId: optionalUuid
 });
@@ -63,6 +79,7 @@ export const caseFormSchema = z.object({
 
 export const caseTaskFormSchema = z.object({
   name: z.string().trim().min(2, "Minimo 2 caracteres.").max(160, "Maximo 160 caracteres."),
+  assignedMembershipId: optionalUuid,
   startDate: optionalTrimmedString,
   endDate: optionalTrimmedString,
   status: z.enum(["pending", "in_progress", "completed", "cancelled"]).default("pending"),

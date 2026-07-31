@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 import type {
+  CaseCalendarQuery,
   CreateCaseExpenseInput,
   ListCaseExpensesQuery,
   UpdateCaseExpenseInput
@@ -20,6 +21,7 @@ export class CaseExpensesUseCase {
       where: {
         caseId,
         tenantId,
+        ...(query.status ? { status: query.status } : {}),
         ...(query.taskId ? { taskId: query.taskId } : {}),
         ...(cursor ? { OR: getExpenseCursorWhere(cursor) } : {})
       },
@@ -39,6 +41,155 @@ export class CaseExpensesUseCase {
         nextCursor:
           hasNextPage && lastItem
             ? encodeExpensesCursor({ createdAt: lastItem.createdAt, id: lastItem.id })
+            : null,
+        hasNextPage,
+        total: pageItems.length + (hasNextPage ? 1 : 0)
+      }
+    };
+  }
+
+  async get(tenantId: string, caseId: string, expenseId: string) {
+    await this.findTenantCaseOrThrow(tenantId, caseId);
+    await this.markOverdueExpenses(tenantId, caseId);
+    const expense = await this.prisma.caseExpense.findFirst({
+      where: { caseId, id: expenseId, tenantId },
+      select: caseExpenseSelect
+    });
+
+    if (!expense) {
+      throw new NotFoundException("El gasto no existe en el expediente activo.");
+    }
+
+    return toCaseExpenseDto(expense);
+  }
+
+  async summary(tenantId: string, caseId: string) {
+    await this.findTenantCaseOrThrow(tenantId, caseId);
+    await this.markOverdueExpenses(tenantId, caseId);
+    const paidExpensesWhere = { caseId, status: "paid" as const, tenantId };
+
+    const [aggregate, topExpenses, totalCount] = await Promise.all([
+      this.prisma.caseExpense.aggregate({
+        _sum: { amount: true },
+        where: paidExpensesWhere
+      }),
+      this.prisma.caseExpense.findMany({
+        orderBy: [{ amount: "desc" }, { createdAt: "desc" }, { id: "asc" }],
+        select: {
+          amount: true,
+          concept: true,
+          id: true
+        },
+        take: 4,
+        where: paidExpensesWhere
+      }),
+      this.prisma.caseExpense.count({ where: paidExpensesWhere })
+    ]);
+
+    const totalAmount = Number(aggregate._sum.amount ?? 0);
+
+    return {
+      totalAmount,
+      totalCount,
+      items: topExpenses.map((expense) => {
+        const amount = Number(expense.amount);
+
+        return {
+          id: expense.id,
+          concept: expense.concept,
+          amount,
+          percentage: totalAmount > 0 ? Number(((amount / totalAmount) * 100).toFixed(1)) : 0
+        };
+      })
+    };
+  }
+
+  async calendar(tenantId: string, caseId: string, query: CaseCalendarQuery) {
+    await this.findTenantCaseOrThrow(tenantId, caseId);
+    await this.markOverdueExpenses(tenantId, caseId);
+    const month = query.month ?? getBuenosAiresMonth();
+    const { endDate, startDate } = getMonthDateRange(month);
+    const eventTypes = toCalendarEventTypes(query.types);
+
+    if (!eventTypes.includes("payment_due")) {
+      return toCalendarResponse({ events: [], limit: query.limit, mode: query.mode, month });
+    }
+
+    if (query.mode === "list") {
+      return this.listCalendarEvents(tenantId, caseId, month, startDate, endDate, query);
+    }
+
+    const paymentExpenses = await this.prisma.caseExpense.findMany({
+      orderBy: [{ paymentDate: "asc" }, { id: "asc" }],
+      select: {
+        amount: true,
+        concept: true,
+        id: true,
+        paymentDate: true,
+        status: true
+      },
+      where: {
+        caseId,
+        tenantId,
+        paymentDate: {
+          gte: startDate,
+          lt: endDate
+        },
+        status: { in: ["pending", "overdue"] },
+        ...(query.search ? { concept: { contains: query.search, mode: "insensitive" as const } } : {})
+      }
+    });
+
+    return {
+      month,
+      events: paymentExpenses.map(toPaymentDueCalendarEvent)
+    };
+  }
+
+  private async listCalendarEvents(
+    tenantId: string,
+    caseId: string,
+    month: string,
+    startDate: Date,
+    endDate: Date,
+    query: CaseCalendarQuery
+  ) {
+    const cursor = decodeCalendarCursor(query.cursor);
+    const paymentExpenses = await this.prisma.caseExpense.findMany({
+      orderBy: [{ paymentDate: "asc" }, { id: "asc" }],
+      select: {
+        amount: true,
+        concept: true,
+        id: true,
+        paymentDate: true,
+        status: true
+      },
+      take: query.limit + 1,
+      where: {
+        caseId,
+        tenantId,
+        paymentDate: {
+          gte: startDate,
+          lt: endDate
+        },
+        status: { in: ["pending", "overdue"] },
+        ...(query.search ? { concept: { contains: query.search, mode: "insensitive" as const } } : {}),
+        ...(cursor ? { OR: getCalendarCursorWhere(cursor) } : {})
+      }
+    });
+    const pageItems = paymentExpenses.slice(0, query.limit);
+    const lastItem = pageItems.at(-1);
+    const hasNextPage = paymentExpenses.length > query.limit;
+
+    return {
+      month,
+      events: pageItems.map(toPaymentDueCalendarEvent),
+      pageInfo: {
+        limit: query.limit,
+        offset: 0,
+        nextCursor:
+          hasNextPage && lastItem
+            ? encodeCalendarCursor({ date: lastItem.paymentDate, id: lastItem.id })
             : null,
         hasNextPage,
         total: pageItems.length + (hasNextPage ? 1 : 0)
@@ -139,6 +290,109 @@ export class CaseExpensesUseCase {
         )
     `;
   }
+}
+
+type CalendarEventType = "payment_due" | "hearing";
+
+type CalendarCursor = {
+  date: Date;
+  id: string;
+};
+
+function toCalendarEventTypes(types?: string) {
+  if (!types) {
+    return ["payment_due", "hearing"] satisfies CalendarEventType[];
+  }
+
+  return types
+    .split(",")
+    .map((type) => type.trim())
+    .filter((type): type is CalendarEventType => type === "payment_due" || type === "hearing");
+}
+
+function toCalendarResponse({
+  events,
+  limit,
+  mode,
+  month
+}: {
+  events: ReturnType<typeof toPaymentDueCalendarEvent>[];
+  limit: number;
+  mode: CaseCalendarQuery["mode"];
+  month: string;
+}) {
+  return {
+    month,
+    events,
+    ...(mode === "list"
+      ? {
+          pageInfo: {
+            limit,
+            offset: 0,
+            nextCursor: null,
+            hasNextPage: false,
+            total: events.length
+          }
+        }
+      : {})
+  };
+}
+
+function toPaymentDueCalendarEvent(expense: {
+  amount: Prisma.Decimal;
+  concept: string;
+  id: string;
+  paymentDate: Date;
+  status: "pending" | "overdue" | "paid" | "cancelled";
+}) {
+  return {
+    type: "payment_due" as const,
+    id: expense.id,
+    title: `Pago: ${expense.concept}`,
+    date: expense.paymentDate.toISOString().slice(0, 10),
+    amount: Number(expense.amount),
+    status: expense.status
+  };
+}
+
+function encodeCalendarCursor(cursor: CalendarCursor) {
+  return Buffer.from(
+    JSON.stringify({
+      date: cursor.date.toISOString(),
+      id: cursor.id
+    })
+  ).toString("base64url");
+}
+
+function decodeCalendarCursor(cursor?: string): CalendarCursor | null {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
+      date?: string;
+      id?: string;
+    };
+
+    if (!parsed.date || !parsed.id) {
+      return null;
+    }
+
+    return {
+      date: new Date(parsed.date),
+      id: parsed.id
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getCalendarCursorWhere(cursor: CalendarCursor): Prisma.CaseExpenseWhereInput[] {
+  return [
+    { paymentDate: { gt: cursor.date } },
+    { paymentDate: cursor.date, id: { gt: cursor.id } }
+  ];
 }
 
 const caseExpenseSelect = {
@@ -257,6 +511,27 @@ function getBuenosAiresTodayDate() {
   const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
 
   return new Date(`${dateParts.year}-${dateParts.month}-${dateParts.day}T00:00:00.000Z`);
+}
+
+function getBuenosAiresMonth() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    month: "2-digit",
+    timeZone: "America/Buenos_Aires",
+    year: "numeric"
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${dateParts.year}-${dateParts.month}`;
+}
+
+function getMonthDateRange(month: string) {
+  const [yearValue = "", monthValue = ""] = month.split("-");
+  const year = Number(yearValue);
+  const monthNumber = Number(monthValue);
+  const startDate = new Date(Date.UTC(year, monthNumber - 1, 1));
+  const endDate = new Date(Date.UTC(year, monthNumber, 1));
+
+  return { endDate, startDate };
 }
 
 function toBuenosAiresDateTime(date?: string, time?: string) {

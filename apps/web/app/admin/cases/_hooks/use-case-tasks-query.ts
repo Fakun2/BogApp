@@ -1,21 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useDashboardQuery } from "@/lib/query/use-dashboard-query";
-import { caseKeys, listCaseTasks } from "../_api/cases.api";
+import { casesQueries } from "../_api/cases.query-controller";
 import type { CaseTasksListResponse } from "../_types/cases.types";
+import { useCasesQuery } from "./use-cases-query";
 
 const caseTasksPageSize = 8;
 
 export function useCaseTasksQuery(caseId: string) {
   const [cursorStack, setCursorStack] = useState<string[]>([""]);
   const cursor = cursorStack.at(-1) || undefined;
-  const params = { cursor, limit: caseTasksPageSize };
-  const query = useDashboardQuery<CaseTasksListResponse>({
-    permission: "tasks:read",
-    queryKey: caseKeys.tasks(caseId, params),
-    queryFn: () => listCaseTasks({ caseId, ...params })
-  });
+  const query = useCasesQuery<CaseTasksListResponse>(
+    casesQueries.tasks({ caseId, cursor, limit: caseTasksPageSize })
+  );
 
   return {
     ...query,

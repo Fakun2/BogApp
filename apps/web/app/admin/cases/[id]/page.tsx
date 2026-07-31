@@ -1,7 +1,9 @@
 import { hasPermission } from "@/lib/auth/permissions";
 import { RestrictedCases } from "../_components/access/restricted-cases";
+import { CaseCalendarCard } from "../_components/detail/case-calendar";
 import { CaseDetailSummary } from "../_components/detail/case-detail-summary";
-import { CaseTasksTable } from "../_components/detail/case-tasks-table";
+import { CaseExpensesBreakdownCard } from "../_components/detail/paid-expenses-breakdown";
+import { CaseTasksTable } from "../_components/detail/tasks-table";
 import { getCaseDetailServer, getCasesServerSession } from "../_api/cases.server-api";
 
 export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,9 +28,20 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-3 overflow-x-hidden overflow-y-auto md:h-[calc(100svh-152px)] md:gap-4 md:overflow-hidden">
+    <div className="flex min-h-[calc(100svh-104px)] flex-col gap-6 overflow-visible md:min-h-[calc(100svh-152px)] md:gap-6">
       <CaseDetailSummary caseItem={caseResult.data} />
-      <div className="grid min-h-0 flex-1 gap-4 overflow-visible md:overflow-y-auto">
+      <section className="grid gap-6 overflow-visible xl:grid-cols-[minmax(0,1fr)_340px]">
+        <CaseCalendarCard
+          canCreateExpense={hasPermission(session, "expenses:create")}
+          canUpdateExpense={hasPermission(session, "expenses:update")}
+          caseId={caseResult.data.id}
+        />
+        <CaseExpensesBreakdownCard
+          canReadExpense={hasPermission(session, "expenses:read")}
+          caseId={caseResult.data.id}
+        />
+      </section>
+      <section className="min-h-0 flex-1 overflow-visible">
         <CaseTasksTable
           canCreate={hasPermission(session, "tasks:create")}
           canCreateExpense={hasPermission(session, "expenses:create")}
@@ -39,7 +52,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
           canUpdateExpense={hasPermission(session, "expenses:update")}
           caseId={caseResult.data.id}
         />
-      </div>
+      </section>
     </div>
   );
 }

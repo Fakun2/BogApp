@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { hasTenantAccess, saveSession, type BogaapSession } from "@/lib/auth/session";
 import { loginFormSchema, type LoginFormValues } from "@/lib/validation/auth";
@@ -21,6 +21,7 @@ function wait(ms: number) {
 
 export function useLoginForm(initialEmail: string | null) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState<LoginFormValues>(() => ({
     ...loginInitialForm,
     email: initialEmail ?? ""
@@ -81,7 +82,7 @@ export function useLoginForm(initialEmail: string | null) {
       transition.exit();
       await wait(loginLoadingExitMs);
       shouldHideTransition = false;
-      router.push(hasTenantAccess(session) ? "/admin" : "/onboarding");
+      router.replace(getLoginRedirectPath(session, searchParams.get("next")));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "No se pudo iniciar sesion.");
     } finally {
@@ -102,6 +103,22 @@ export function useLoginForm(initialEmail: string | null) {
     transitionSuccess: transition.success,
     updateField
   };
+}
+
+function getLoginRedirectPath(session: BogaapSession, nextPath: string | null) {
+  if (!hasTenantAccess(session)) {
+    return "/onboarding";
+  }
+
+  if (!nextPath) {
+    return "/admin";
+  }
+
+  return isSafeAdminPath(nextPath) ? nextPath : "/admin";
+}
+
+function isSafeAdminPath(path: string) {
+  return path.startsWith("/admin") && !path.startsWith("//") && !path.includes("://");
 }
 
 function toFieldErrors(error: z.ZodError) {

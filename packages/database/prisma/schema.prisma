@@ -94,42 +94,42 @@ enum CaseCatalogStrategy {
 }
 
 model Tenant {
-  id            String             @id @default(uuid()) @db.Uuid
-  name          String
-  legalName     String?            @map("legal_name")
-  taxId         String?            @map("tax_id")
-  status        TenantStatus       @default(active)
-  profile       TenantProfile?
-  settings      TenantSettings?
-  memberships   TenantMembership[]
-  practiceAreas PracticeArea[]
-  clients       Client[]
-  cases         Case[]
-  caseTasks     CaseTask[]
-  caseExpenses  CaseExpense[]
+  id                 String                  @id @default(uuid()) @db.Uuid
+  name               String
+  legalName          String?                 @map("legal_name")
+  taxId              String?                 @map("tax_id")
+  status             TenantStatus            @default(active)
+  profile            TenantProfile?
+  settings           TenantSettings?
+  memberships        TenantMembership[]
+  practiceAreas      PracticeArea[]
+  clients            Client[]
+  cases              Case[]
+  caseTasks          CaseTask[]
+  caseExpenses       CaseExpense[]
   expenseAttachments CaseExpenseAttachment[]
-  roles         Role[]
-  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  roles              Role[]
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("tenants")
 }
 
 model User {
-  id              String             @id @default(uuid()) @db.Uuid
-  email           String             @unique
-  fullName        String             @map("full_name")
-  passwordHash    String             @map("password_hash")
-  dni             String?
-  phone           String?
-  emailVerifiedAt DateTime?          @map("email_verified_at") @db.Timestamptz(6)
-  lastLoginAt     DateTime?          @map("last_login_at") @db.Timestamptz(6)
-  sessionVersion  Int                @default(0) @map("session_version")
-  status          UserStatus         @default(active)
-  memberships     TenantMembership[]
+  id                 String                  @id @default(uuid()) @db.Uuid
+  email              String                  @unique
+  fullName           String                  @map("full_name")
+  passwordHash       String                  @map("password_hash")
+  dni                String?
+  phone              String?
+  emailVerifiedAt    DateTime?               @map("email_verified_at") @db.Timestamptz(6)
+  lastLoginAt        DateTime?               @map("last_login_at") @db.Timestamptz(6)
+  sessionVersion     Int                     @default(0) @map("session_version")
+  status             UserStatus              @default(active)
+  memberships        TenantMembership[]
   expenseAttachments CaseExpenseAttachment[]
-  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([dni])
   @@map("users")
@@ -344,13 +344,13 @@ model Case {
   createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant                Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  province              Province             @relation(fields: [provinceId], references: [id], onDelete: Restrict)
-  forumTemplate         ForumTemplate        @relation(fields: [forumTemplateId], references: [id], onDelete: Restrict)
-  judicialCenterForum   JudicialCenterForum? @relation(fields: [judicialCenterForumId], references: [id], onDelete: SetNull)
-  primaryClient         Client?              @relation("CasePrimaryClient", fields: [primaryClientId], references: [id], onDelete: SetNull)
-  practiceArea          PracticeArea?        @relation(fields: [practiceAreaId], references: [id], onDelete: SetNull)
-  responsibleMembership TenantMembership?    @relation(fields: [responsibleMembershipId], references: [id], onDelete: SetNull)
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  province              Province                @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  forumTemplate         ForumTemplate           @relation(fields: [forumTemplateId], references: [id], onDelete: Restrict)
+  judicialCenterForum   JudicialCenterForum?    @relation(fields: [judicialCenterForumId], references: [id], onDelete: SetNull)
+  primaryClient         Client?                 @relation("CasePrimaryClient", fields: [primaryClientId], references: [id], onDelete: SetNull)
+  practiceArea          PracticeArea?           @relation(fields: [practiceAreaId], references: [id], onDelete: SetNull)
+  responsibleMembership TenantMembership?       @relation(fields: [responsibleMembershipId], references: [id], onDelete: SetNull)
   participants          CaseParticipant[]
   tasks                 CaseTask[]
   expenses              CaseExpense[]
@@ -371,24 +371,29 @@ model Case {
 }
 
 model CaseTask {
-  id        String         @id @default(uuid()) @db.Uuid
-  tenantId  String         @map("tenant_id") @db.Uuid
-  caseId    String         @map("case_id") @db.Uuid
-  name      String
-  startDate DateTime?      @map("start_date") @db.Date
-  endDate   DateTime?      @map("end_date") @db.Date
-  status    CaseTaskStatus @default(pending)
-  notes     String?
-  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String         @id @default(uuid()) @db.Uuid
+  tenantId             String         @map("tenant_id") @db.Uuid
+  caseId               String         @map("case_id") @db.Uuid
+  assignedMembershipId String?        @map("assigned_membership_id") @db.Uuid
+  name                 String
+  startDate            DateTime?      @map("start_date") @db.Date
+  endDate              DateTime?      @map("end_date") @db.Date
+  status               CaseTaskStatus @default(pending)
+  notes                String?
+  lastSeenAt           DateTime?      @map("last_seen_at") @db.Timestamptz(6)
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  case     Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  expenses CaseExpense[]
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case       Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  assignedTo TenantMembership? @relation("CaseTaskAssignee", fields: [assignedMembershipId], references: [id], onDelete: SetNull)
+  expenses   CaseExpense[]
 
   @@index([tenantId])
   @@index([caseId])
   @@index([tenantId, caseId])
+  @@index([tenantId, assignedMembershipId])
+  @@index([tenantId, lastSeenAt])
   @@index([tenantId, status])
   @@index([tenantId, startDate])
   @@index([tenantId, endDate])
@@ -396,24 +401,24 @@ model CaseTask {
 }
 
 model CaseExpense {
-  id          String            @id @default(uuid()) @db.Uuid
-  tenantId    String            @map("tenant_id") @db.Uuid
-  caseId      String            @map("case_id") @db.Uuid
-  taskId      String?           @map("task_id") @db.Uuid
-  concept     String
-  amount      Decimal           @db.Decimal(12, 2)
-  expenseDate DateTime          @map("expense_date") @db.Date
-  paymentDate DateTime          @map("payment_date") @db.Date
-  status      CaseExpenseStatus @default(pending)
-  notes       String?
-  alertEnabled Boolean          @default(false) @map("alert_enabled")
-  alertAt     DateTime?         @map("alert_at") @db.Timestamptz(6)
-  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id           String            @id @default(uuid()) @db.Uuid
+  tenantId     String            @map("tenant_id") @db.Uuid
+  caseId       String            @map("case_id") @db.Uuid
+  taskId       String?           @map("task_id") @db.Uuid
+  concept      String
+  amount       Decimal           @db.Decimal(12, 2)
+  expenseDate  DateTime          @map("expense_date") @db.Date
+  paymentDate  DateTime          @map("payment_date") @db.Date
+  status       CaseExpenseStatus @default(pending)
+  notes        String?
+  alertEnabled Boolean           @default(false) @map("alert_enabled")
+  alertAt      DateTime?         @map("alert_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  case   Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  task   CaseTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  tenant      Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case        Case                    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  task        CaseTask?               @relation(fields: [taskId], references: [id], onDelete: SetNull)
   attachments CaseExpenseAttachment[]
 
   @@index([tenantId])
@@ -558,6 +563,7 @@ model TenantMembership {
   role             Role?                          @relation(fields: [roleId], references: [id], onDelete: SetNull)
   practiceAreas    TenantMembershipPracticeArea[]
   responsibleCases Case[]
+  assignedTasks    CaseTask[]                     @relation("CaseTaskAssignee")
 
   @@unique([tenantId, userId])
   @@index([tenantId, status])

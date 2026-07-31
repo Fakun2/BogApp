@@ -1,20 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCatalogOptionsQuery } from "./use-catalog-options-query";
+import { casesQueries } from "../_api/cases.query-controller";
 import type { CaseFilterKey, CaseFiltersDraft } from "../_types/case-filter.types";
-import type { ForumDto, ProvinceDto } from "../_types/cases.types";
+import type { CatalogResponse, ForumDto, ProvinceDto } from "../_types/cases.types";
 import { hasCaseFilterChanges, hasCaseFilters } from "../_utils/case-filter-options";
+import { useCasesQuery } from "./use-cases-query";
 
 export function useCaseFiltersController(filters: CaseFiltersDraft) {
   const [draft, setDraft] = useState<CaseFiltersDraft>(filters);
-  const provincesQuery = useCatalogOptionsQuery<ProvinceDto>("/provinces", "provinces", {
-    limit: 50
-  });
-  const forumsQuery = useCatalogOptionsQuery<ForumDto>("/forums", "forums", {
-    limit: 50,
-    provinceId: draft.provinceId || undefined
-  });
+  const provincesQuery = useCasesQuery<CatalogResponse<ProvinceDto>>(
+    casesQueries.catalogOptions<ProvinceDto>({
+      key: "provinces",
+      path: "/provinces",
+      params: { limit: 50 }
+    })
+  );
+  const forumsQuery = useCasesQuery<CatalogResponse<ForumDto>>(
+    casesQueries.catalogOptions<ForumDto>({
+      key: "forums",
+      path: "/forums",
+      params: { limit: 50, provinceId: draft.provinceId || undefined }
+    })
+  );
 
   useEffect(() => {
     setDraft(filters);

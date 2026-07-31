@@ -9,7 +9,7 @@ import type {
 } from "../_types/cases.types";
 import type { ParticipantKind, ParticipantRole } from "../_types/case-form.types";
 
-export const casesPageSize = 8;
+export const casesPageSize = 4;
 
 export const caseInputClassName =
   "h-12 rounded-2xl border-border/40 bg-card px-4 shadow-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/10";
@@ -95,18 +95,20 @@ export const caseTaskStatusLabels: Record<CaseTaskStatus, string> = {
 
 export const caseTasksTableColumnLabels = {
   name: "Nombre",
+  assignedTo: "Asignado",
   startDate: "Inicio",
   endDate: "Finalizacion",
   status: "Estado",
+  lastSeenAt: "Ultima apertura",
   notes: "Observaciones"
 } as const;
 
 export const defaultCaseTasksTableColumns = [
   "name",
-  "startDate",
+  "assignedTo",
   "endDate",
   "status",
-  "notes"
+  "lastSeenAt"
 ] as const;
 
 export const caseExpenseStatusLabels: Record<CaseExpenseStatus, string> = {

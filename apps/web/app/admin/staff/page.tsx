@@ -1,7 +1,6 @@
 "use client";
 
 import { RestrictedStaff } from "./_components/access/restricted-staff";
-import { StaffFiltersPopover } from "./_components/filters/staff-filters-popover";
 import { StaffMetrics } from "./_components/metrics/staff-metrics";
 import { StaffTableCard } from "./_components/table/staff-table-card";
 import { useStaffPageState } from "./_hooks/use-staff-page-state";
@@ -26,23 +25,16 @@ export default function StaffPage() {
 
   return (
     <RequirePermission permissions={["staff:read"]} fallback={<RestrictedStaff />}>
-      <div className="flex min-h-[calc(100vh-136px)] flex-col gap-4 md:min-h-[calc(100vh-152px)]">
+      <div className="flex min-h-[calc(100vh-136px)] flex-col gap-5 md:min-h-[calc(100vh-152px)] md:gap-6">
         <StaffMetrics staffData={staffQuery.data} />
-
-        <StaffFiltersPopover
-          disabled={staffQuery.isLoading && !staffQuery.data}
-          filters={staffState.draftFilters}
-          hasActiveFilters={staffState.hasActiveFilters}
-          hasDraftFilters={staffState.hasDraftFilters}
-          staffData={staffQuery.data}
-          onApply={staffState.applyFilters}
-          onReset={staffState.resetFilters}
-          onUpdateFilter={staffState.updateFilter}
-        />
 
         <StaffTableCard
           canManageStaff={staffQuery.canCreateStaff}
           error={staffQuery.error}
+          filters={staffState.draftFilters}
+          filtersDisabled={staffQuery.isLoading && !staffQuery.data}
+          hasActiveFilters={staffState.hasActiveFilters}
+          hasDraftFilters={staffState.hasDraftFilters}
           loading={staffQuery.isLoading}
           pageIndex={staffState.pageIndex}
           pageInfo={staffQuery.data?.pageInfo}
@@ -50,10 +42,13 @@ export default function StaffPage() {
           sortKey={staffState.sortKey}
           staffData={staffQuery.data}
           workers={staffQuery.data?.workers ?? []}
+          onApplyFilters={staffState.applyFilters}
           onNextPage={staffState.nextPage}
           onPreviousPage={staffState.previousPage}
+          onResetFilters={staffState.resetFilters}
           onStaffCreated={staffState.resetPagination}
           onSort={staffState.sortBy}
+          onUpdateFilter={staffState.updateFilter}
         />
       </div>
     </RequirePermission>

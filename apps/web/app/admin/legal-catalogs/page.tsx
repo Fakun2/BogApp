@@ -2,18 +2,22 @@
 
 import { useState, type ReactNode } from "react";
 import {
+  ArrowDownAZ,
+  ArrowUpAZ,
   Building2,
   ChevronLeft,
   ChevronRight,
   Gavel,
   Loader2,
   MapPinned,
-  XCircle,
-  type LucideIcon
+  XCircle
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { AdminMetricsGrid } from "../_components/admin-metrics-grid";
+import { AdminTableHeader } from "../_components/admin-table-header";
+import { AdminTableHeaderActionButton } from "../_components/admin-table-header-action-button";
 import { RequirePermission } from "../_components/auth";
-import { adminSurfaceClassName, adminSurfacePrimaryClassName } from "../_constants/dashboard";
+import { adminSurfaceClassName } from "../_constants/dashboard";
 import { useForumsQuery, useProvincesQuery } from "./_hooks/use-legal-catalogs-query";
 import type {
   Forum,
@@ -71,57 +75,60 @@ export default function LegalCatalogsPage() {
       permissions={["forums:read", "provinces:read"]}
       fallback={<RestrictedLegalCatalogs />}
     >
-      <div className="flex h-[calc(100svh-136px)] min-h-0 flex-col gap-4 overflow-hidden md:h-[calc(100svh-152px)]">
-        <div className="grid shrink-0 gap-3 md:grid-cols-3">
-          <Metric
-            icon={Gavel}
-            label="Fueros encontrados"
-            value={forumsQuery.data?.pageInfo.total ?? 0}
-          />
-          <Metric
-            icon={MapPinned}
-            label="Provincias activas"
-            value={provincesQuery.data?.pageInfo.total ?? 0}
-          />
-          <Metric
-            icon={Building2}
-            label="Items por pagina"
-            value={currentPageInfo?.limit ?? catalogPageSize}
-          />
-        </div>
+      <div className="flex h-[calc(100svh-136px)] min-h-0 flex-col gap-2 overflow-hidden md:h-[calc(100svh-152px)] md:gap-6">
+        <AdminMetricsGrid
+          metrics={[
+            {
+              icon: Gavel,
+              label: "Fueros encontrados",
+              value: forumsQuery.data?.pageInfo.total ?? 0
+            },
+            {
+              icon: MapPinned,
+              label: "Provincias activas",
+              value: provincesQuery.data?.pageInfo.total ?? 0
+            },
+            {
+              icon: Building2,
+              label: "Items por pagina",
+              value: currentPageInfo?.limit ?? catalogPageSize
+            }
+          ]}
+        />
 
         <Card
           data-admin-surface
           className={`${adminSurfaceClassName} flex min-h-0 flex-1 flex-col overflow-hidden border-0 shadow-[var(--admin-card-shadow)]`}
         >
-          <CardHeader className="flex shrink-0 flex-col gap-4 border-b border-border/30 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <CardTitle className={`text-lg font-semibold ${adminSurfacePrimaryClassName}`}>
-                Catalogos legales
-              </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Consulta provincias globales y fueros disponibles para expedientes.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="grid grid-cols-2 gap-2 rounded-md border border-border/40 bg-secondary/30 p-1">
-                <TabButton active={tab === "forums"} onClick={() => setTab("forums")}>
-                  Fueros
-                </TabButton>
-                <TabButton active={tab === "provinces"} onClick={() => setTab("provinces")}>
-                  Provincias
-                </TabButton>
+          <AdminTableHeader
+            actions={
+              <div className="flex flex-wrap items-center gap-2">
+                <AdminTableHeaderActionButton
+                  icon={Gavel}
+                  label="Fueros"
+                  tone={tab === "forums" ? "primary" : "secondary"}
+                  onClick={() => setTab("forums")}
+                />
+                <AdminTableHeaderActionButton
+                  icon={MapPinned}
+                  label="Provincias"
+                  tone={tab === "provinces" ? "primary" : "secondary"}
+                  onClick={() => setTab("provinces")}
+                />
+                <CatalogFilters
+                  provinceId={provinceId}
+                  provinceOptions={provinceOptions}
+                  showProvinceFilter={tab === "forums"}
+                  sort={sort}
+                  onProvinceChange={updateProvinceFilter}
+                  onSortChange={updateSort}
+                />
               </div>
-              <CatalogFilters
-                provinceId={provinceId}
-                provinceOptions={provinceOptions}
-                showProvinceFilter={tab === "forums"}
-                sort={sort}
-                onProvinceChange={updateProvinceFilter}
-                onSortChange={updateSort}
-              />
-            </div>
-          </CardHeader>
+            }
+            description="Consulta provincias globales y fueros disponibles para expedientes."
+            icon={Gavel}
+            title="Catalogos legales"
+          />
           <CardContent className="grid min-h-0 flex-1 grid-rows-[1fr_auto] gap-3 overflow-hidden px-6 py-5">
             {tab === "forums" ? (
               <ForumsPanel
@@ -229,14 +236,18 @@ function CatalogFilters({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="grid grid-cols-2 gap-1 rounded-md border border-border/40 bg-card p-1">
-        <FilterButton active={sort === "name:asc"} onClick={() => onSortChange("name:asc")}>
-          A-Z
-        </FilterButton>
-        <FilterButton active={sort === "name:desc"} onClick={() => onSortChange("name:desc")}>
-          Z-A
-        </FilterButton>
-      </div>
+      <AdminTableHeaderActionButton
+        icon={ArrowUpAZ}
+        label="A-Z"
+        tone={sort === "name:asc" ? "primary" : "secondary"}
+        onClick={() => onSortChange("name:asc")}
+      />
+      <AdminTableHeaderActionButton
+        icon={ArrowDownAZ}
+        label="Z-A"
+        tone={sort === "name:desc" ? "primary" : "secondary"}
+        onClick={() => onSortChange("name:desc")}
+      />
       {showProvinceFilter ? (
         <select
           className="h-10 rounded-md border border-border/40 bg-card px-3 text-sm text-foreground shadow-none outline-none focus:border-ring/50 focus:ring-2 focus:ring-ring/10"
@@ -390,65 +401,6 @@ function StatusPill({ active }: { active: boolean }) {
     >
       {active ? "Activo" : "Inactivo"}
     </span>
-  );
-}
-
-function Metric({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {
-  return (
-    <Card
-      data-admin-surface
-      className={`${adminSurfaceClassName} border-0 shadow-[var(--admin-card-shadow)]`}
-    >
-      <CardContent className="flex items-center justify-between gap-4 px-5 py-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <span className="flex size-10 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </span>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TabButton({
-  active,
-  children,
-  onClick
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`h-9 rounded-md px-3 text-sm font-medium transition-colors ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
-
-function FilterButton({
-  active,
-  children,
-  onClick
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`h-8 rounded px-3 text-xs font-semibold transition-colors ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
   );
 }
 

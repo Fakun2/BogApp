@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { Loader2, Trash2, TriangleAlert } from "lucide-react";
+import { Loader2, Trash2, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function DeleteRoleDialog({
@@ -48,15 +48,16 @@ export function DeleteRoleDialog({
             <Button
               type="button"
               variant="outline"
-              className="h-11 rounded-2xl"
+              className="h-11 px-3 sm:px-4"
               disabled={loading}
               onClick={() => onOpenChange(false)}
             >
-              Cancelar
+              <X className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Cancelar</span>
             </Button>
             <Button
               type="button"
-              className="h-11 rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/85"
+              className="h-11 bg-destructive px-3 text-destructive-foreground hover:bg-destructive/85 sm:px-4"
               disabled={loading}
               onClick={onConfirm}
             >
@@ -65,7 +66,7 @@ export function DeleteRoleDialog({
               ) : (
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
               )}
-              Eliminar
+              <span className="hidden sm:inline">Eliminar</span>
             </Button>
           </div>
         </DialogPrimitive.Content>

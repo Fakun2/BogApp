@@ -130,8 +130,9 @@ export class AuthService {
   }
 
   async issueTokens(payload: JwtPayload) {
-    const accessToken = await this.jwtService.signAsync(payload);
-    const refreshToken = await this.jwtService.signAsync(payload, {
+    const tokenPayload = this.toTokenPayload(payload);
+    const accessToken = await this.jwtService.signAsync(tokenPayload);
+    const refreshToken = await this.jwtService.signAsync(tokenPayload, {
       secret: this.config.get<string>("JWT_REFRESH_SECRET") ?? "dev-refresh-secret-change-me",
       expiresIn: (this.config.get<string>("JWT_REFRESH_TTL") ?? "7d") as JwtSignOptions["expiresIn"]
     });
@@ -140,6 +141,15 @@ export class AuthService {
       accessToken,
       refreshToken,
       tokenType: "Bearer"
+    };
+  }
+
+  private toTokenPayload(payload: JwtPayload): JwtPayload {
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      sessionVersion: payload.sessionVersion,
+      tenantAccess: payload.tenantAccess
     };
   }
 

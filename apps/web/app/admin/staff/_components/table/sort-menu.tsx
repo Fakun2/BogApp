@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import type { StaffSortDirection, StaffSortKey } from "../../_types/staff.types";
-import { tableActionButtonClassName } from "../../_utils/staff-format";
 
 export function SortMenu({
   sortDirection,
@@ -29,10 +28,7 @@ export function SortMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" className={tableActionButtonClassName()}>
-          <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">Ordenar</span>
-        </Button>
+        <AdminTableHeaderActionButton icon={SlidersHorizontal} label="Ordenar" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuRadioGroup value={sortKey} onValueChange={(value) => onSort(value as StaffSortKey)}>

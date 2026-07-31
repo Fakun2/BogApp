@@ -65,16 +65,16 @@ export function RoleCard({ permissions, role }: { permissions: PermissionDto[]; 
             permissions={permissions}
             role={role}
             trigger={
-              <Button type="button" variant="outline" className="h-10 rounded-2xl">
+              <Button type="button" variant="outline" className="h-10 px-3 sm:px-4">
                 <Pencil className="h-4 w-4" aria-hidden="true" />
-                Editar
+                <span className="hidden sm:inline">Editar</span>
               </Button>
             }
           />
           <Button
             type="button"
             variant="outline"
-            className="h-10 rounded-2xl"
+            className="h-10 px-3 sm:px-4"
             disabled={roleActionDisabled}
             onClick={() => void toggleActive()}
           >
@@ -83,17 +83,17 @@ export function RoleCard({ permissions, role }: { permissions: PermissionDto[]; 
             ) : (
               <Power className="h-4 w-4" aria-hidden="true" />
             )}
-            {role.active ? "Desactivar" : "Activar"}
+            <span className="hidden sm:inline">{role.active ? "Desactivar" : "Activar"}</span>
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="h-10 rounded-2xl text-destructive hover:text-destructive"
+            className="h-10 px-3 text-destructive hover:text-destructive sm:px-4"
             disabled={deleteRoleMutation.isPending}
             onClick={() => setDeleteOpen(true)}
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
-            Eliminar
+            <span className="hidden sm:inline">Eliminar</span>
           </Button>
         </div>
       )}

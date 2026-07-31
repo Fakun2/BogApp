@@ -1,73 +1,72 @@
-import type { ReactNode } from "react";
-import { ArrowLeft, Banknote, CheckCircle2, Clock3, Eye, ListTodo } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, ListTodo } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { adminSurfaceClassName, adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
-import { caseInstanceLabels, caseStatusLabels } from "../../_constants/cases.constants";
+import { AdminMetricsGrid } from "../../../_components/admin-metrics-grid";
+import { adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
+import { caseStatusLabels } from "../../_constants/cases.constants";
 import type { CaseDetailDto } from "../../_types/cases.types";
-import { formatCaseDate, formatCaseMoney } from "./case-detail-format";
+import { formatCaseMoney } from "./case-detail-format";
+import { CaseDetailsPopup } from "./case-details-popup";
 
 export function CaseDetailSummary({ caseItem }: { caseItem: CaseDetailDto }) {
   return (
-    <div className="grid shrink-0 gap-3 md:gap-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0 flex-1">
-          <Button asChild variant="outline" className="mb-2 h-8 px-2 text-muted-foreground">
+    <div className="grid shrink-0 gap-3 md:gap-5">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="mt-0.5 h-7 w-7 shrink-0 border-border/40 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-secondary/40"
+            aria-label="Volver a expedientes"
+          >
             <Link href="/admin/cases">
-              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-              Expedientes
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </Button>
 
-          <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
               <h1
-                className={`line-clamp-2 text-xl font-semibold leading-tight md:truncate md:text-2xl ${adminSurfacePrimaryClassName}`}
+                className={`min-w-0 truncate text-2xl font-semibold leading-tight md:text-3xl ${adminSurfacePrimaryClassName}`}
               >
                 {caseItem.caption}
               </h1>
-              <div className="mt-2 grid gap-0.5 sm:max-w-[720px]">
-                <p className="truncate text-sm font-semibold text-foreground sm:text-base">
-                  {caseItem.caseNumber}
-                </p>
-                <p className="truncate text-xs font-medium text-muted-foreground sm:text-sm">
-                  {caseItem.province.name}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">{caseItem.forum.name}</p>
-              </div>
+              <CaseDetailsPopup caseItem={caseItem} />
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <CaseStatusPill status={caseItem.status} />
-              <CaseJudicialDetailsPopover caseItem={caseItem} />
+            <div className="mt-3 grid gap-1 sm:max-w-[760px]">
+              <p className="truncate text-base font-semibold text-foreground sm:text-lg">
+                {caseItem.caseNumber}
+              </p>
+              <p className="truncate text-sm font-medium text-muted-foreground sm:text-base">
+                {caseItem.province.name}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">{caseItem.forum.name}</p>
             </div>
           </div>
         </div>
+        <CaseStatusPill status={caseItem.status} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        <MetricCard
-          icon={<Banknote className="h-5 w-5" aria-hidden="true" />}
-          label="Gastos del expediente"
-          value={formatCaseMoney(caseItem.metrics.totalExpenses)}
-        />
-        <MetricCard
-          icon={<Clock3 className="h-5 w-5" aria-hidden="true" />}
-          label="Pagos pendientes"
-          value={formatCaseMoney(caseItem.metrics.pendingPayments)}
-        />
-        <MetricCard
-          icon={<ListTodo className="h-5 w-5" aria-hidden="true" />}
-          label="Tareas totales"
-          value={String(caseItem.metrics.totalTasks)}
-        />
-        <MetricCard
-          icon={<CheckCircle2 className="h-5 w-5" aria-hidden="true" />}
-          label="Tareas pendientes"
-          value={String(caseItem.metrics.pendingTasks)}
-        />
-      </div>
+      <AdminMetricsGrid
+        metrics={[
+          {
+            icon: CalendarDays,
+            label: "Audiencias",
+            value: "0"
+          },
+          {
+            icon: Clock3,
+            label: "Pagos pendientes",
+            value: formatCaseMoney(caseItem.metrics.pendingPayments)
+          },
+          { icon: ListTodo, label: "Tareas totales", value: String(caseItem.metrics.totalTasks) },
+          {
+            icon: CheckCircle2,
+            label: "Tareas pendientes",
+            value: String(caseItem.metrics.pendingTasks)
+          }
+        ]}
+      />
     </div>
   );
 }
@@ -85,77 +84,5 @@ function CaseStatusPill({ status }: { status: CaseDetailDto["status"] }) {
     >
       {caseStatusLabels[status]}
     </span>
-  );
-}
-
-function CaseJudicialDetailsPopover({ caseItem }: { caseItem: CaseDetailDto }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-9 w-9 shrink-0 rounded-lg border-border/50 p-0"
-          aria-label="Ver detalles judiciales del expediente"
-        >
-          <Eye className="h-4 w-4" aria-hidden="true" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="max-h-[70svh] w-[min(360px,calc(100vw-2rem))] overflow-y-auto p-4">
-        <div className="grid gap-4 text-sm">
-          <DetailItem
-            label="Centro judicial"
-            value={caseItem.judicialCenter?.name ?? caseItem.judicialCenterText}
-          />
-          <DetailItem label="Juzgado / Tribunal" value={caseItem.court} />
-          <DetailItem label="Instancia" value={caseInstanceLabels[caseItem.instance]} />
-          <DetailItem label="Estado" value={caseStatusLabels[caseItem.status]} />
-          <DetailItem label="Fecha de ingreso" value={formatCaseDate(caseItem.filingDate)} />
-          <DetailItem label="Asunto" value={caseItem.subject} />
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function MetricCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return (
-    <Card
-      data-admin-surface
-      className={`${adminSurfaceClassName} min-w-0 border-0 shadow-[var(--admin-card-shadow)]`}
-    >
-      <CardContent className="flex min-w-0 items-center gap-2 p-3 sm:gap-3 sm:p-4">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-btn-primary text-btn-primary-foreground sm:size-10">
-          {icon}
-        </span>
-        <span className="min-w-0">
-          <span className="block truncate text-[11px] text-muted-foreground sm:text-sm">
-            {label}
-          </span>
-          <span
-            className={`block truncate text-sm font-semibold leading-tight sm:text-lg lg:text-xl ${adminSurfacePrimaryClassName}`}
-          >
-            {value}
-          </span>
-        </span>
-      </CardContent>
-    </Card>
-  );
-}
-
-function DetailItem({
-  className = "",
-  label,
-  value
-}: {
-  className?: string;
-  label: string;
-  value: string | null | undefined;
-}) {
-  return (
-    <div className={`min-w-0 ${className}`}>
-      <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate font-medium text-foreground">{value || "Sin cargar"}</p>
-    </div>
   );
 }

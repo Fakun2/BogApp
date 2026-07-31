@@ -7,10 +7,6 @@ export function filterControlClassName(className?: string) {
   );
 }
 
-export function tableActionButtonClassName() {
-  return "h-10 w-10 rounded-xl border-border/40 bg-card p-0 text-base font-semibold text-foreground shadow-[0_10px_24px_-22px_rgba(15,23,42,0.35)] hover:bg-secondary/40 sm:h-11 sm:w-auto sm:px-4";
-}
-
 export function getInitials(fullName: string) {
   return fullName
     .split(" ")

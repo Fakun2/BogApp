@@ -1,5 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminSurfaceClassName, adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
+import { BriefcaseBusiness } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { AdminTableHeader } from "../../../_components/admin-table-header";
+import { adminSurfaceClassName } from "../../../_constants/dashboard";
 import type { CaseFiltersDraft } from "../../_types/case-filter.types";
 import type {
   CasesListResponse,
@@ -41,23 +43,19 @@ export function CasesTableCard({
       data-admin-surface
       className={`${adminSurfaceClassName} flex min-h-0 flex-1 flex-col overflow-hidden border-0 shadow-[var(--admin-card-shadow)]`}
     >
-      <CardHeader className="flex shrink-0 flex-col gap-3 border-b border-border/30 px-4 py-4 md:gap-4 md:px-6 md:py-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <CardTitle className={`text-lg font-semibold ${adminSurfacePrimaryClassName}`}>
-            Expedientes
-          </CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gestiona causas del estudio con provincia, fuero y datos judiciales basicos.
-          </p>
-        </div>
-        <CasesTableToolbar
-          canCreate={canCreate}
-          columns={columns}
-          filters={filters}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-        />
-      </CardHeader>
+      <AdminTableHeader
+        actions={
+          <CasesTableToolbar
+            canCreate={canCreate}
+            columns={columns}
+            filters={filters}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+          />
+        }
+        icon={BriefcaseBusiness}
+        title="Expedientes"
+      />
       <CardContent className="flex min-h-0 flex-1 flex-col px-4 md:px-6">
         <CasesTable
           canDelete={canDelete}
