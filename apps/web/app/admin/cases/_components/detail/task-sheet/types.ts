@@ -5,6 +5,7 @@ import type { CaseTaskDto, TaskAssigneeOption } from "../../../_types/cases.type
 export type CaseTaskSheetProps = {
   assignees?: TaskAssigneeOption[];
   caseId: string;
+  defaultDate?: string;
   onOpenChange?: (open: boolean) => void;
   open?: boolean;
   task?: CaseTaskDto;

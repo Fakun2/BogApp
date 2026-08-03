@@ -8,14 +8,17 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import type {
   CreateCaseExpenseInput,
+  CreateCaseHearingInput,
   CreateCaseInput,
   CreateCaseTaskInput,
   CaseCalendarQuery,
   ListCaseExpenseAttachmentsQuery,
   ListCaseExpensesQuery,
+  ListCaseHearingsQuery,
   ListCaseTasksQuery,
   ListCasesQuery,
   UpdateCaseExpenseInput,
+  UpdateCaseHearingInput,
   UpdateCaseInput,
   UpdateCaseTaskInput
 } from "./cases.schemas";
@@ -24,7 +27,9 @@ import {
   type UploadedCaseExpenseAttachmentFile
 } from "./use-cases/case-expense-attachments.use-case";
 import { CaseExpensesUseCase } from "./use-cases/case-expenses.use-case";
+import { CaseHearingsUseCase } from "./use-cases/case-hearings.use-case";
 import { CaseTasksUseCase } from "./use-cases/case-tasks.use-case";
+import { ExpenseOverdueUseCase } from "./use-cases/expense-overdue.use-case";
 
 @Injectable()
 export class CasesService {
@@ -32,6 +37,8 @@ export class CasesService {
     private readonly prisma: PrismaService,
     private readonly caseExpenseAttachmentsUseCase: CaseExpenseAttachmentsUseCase,
     private readonly caseExpensesUseCase: CaseExpensesUseCase,
+    private readonly expenseOverdueUseCase: ExpenseOverdueUseCase,
+    private readonly caseHearingsUseCase: CaseHearingsUseCase,
     private readonly caseTasksUseCase: CaseTasksUseCase
   ) {}
 
@@ -213,8 +220,38 @@ export class CasesService {
     return this.caseExpensesUseCase.summary(tenantId, caseId);
   }
 
-  async getCalendar(tenantId: string, caseId: string, query: CaseCalendarQuery) {
-    return this.caseExpensesUseCase.calendar(tenantId, caseId, query);
+  async recalculateOverdueExpenses(tenantId: string, caseId: string) {
+    return this.expenseOverdueUseCase.recalculate(tenantId, { caseId });
+  }
+
+  async getCalendar(
+    tenantId: string,
+    caseId: string,
+    query: CaseCalendarQuery,
+    permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
+  ) {
+    return this.caseExpensesUseCase.calendar(tenantId, caseId, query, permissions);
+  }
+
+  async listHearings(tenantId: string, caseId: string, query: ListCaseHearingsQuery) {
+    return this.caseHearingsUseCase.list(tenantId, caseId, query);
+  }
+
+  async createHearing(tenantId: string, caseId: string, input: CreateCaseHearingInput) {
+    return this.caseHearingsUseCase.create(tenantId, caseId, input);
+  }
+
+  async updateHearing(
+    tenantId: string,
+    caseId: string,
+    hearingId: string,
+    input: UpdateCaseHearingInput
+  ) {
+    return this.caseHearingsUseCase.update(tenantId, caseId, hearingId, input);
+  }
+
+  async deleteHearing(tenantId: string, caseId: string, hearingId: string) {
+    return this.caseHearingsUseCase.delete(tenantId, caseId, hearingId);
   }
 
   async createExpense(tenantId: string, caseId: string, input: CreateCaseExpenseInput) {

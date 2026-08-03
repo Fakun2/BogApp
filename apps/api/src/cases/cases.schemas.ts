@@ -43,6 +43,18 @@ const caseStatusSchema = z.enum(["open", "paused", "closed"]);
 const caseTaskStatusSchema = z.enum(["pending", "in_progress", "completed", "cancelled"]);
 const caseExpenseEditableStatusSchema = z.enum(["pending", "paid", "cancelled"]);
 const caseExpenseStatusSchema = z.enum(["pending", "paid", "cancelled", "overdue"]);
+const caseHearingTypeSchema = z.enum([
+  "preliminary",
+  "trial_view",
+  "conciliation",
+  "mediation",
+  "testimonial",
+  "confessional",
+  "debate",
+  "investigative_statement",
+  "other"
+]);
+type CaseHearingType = z.infer<typeof caseHearingTypeSchema>;
 const participantRoleSchema = z.enum([
   "claimant",
   "defendant",
@@ -141,6 +153,17 @@ const caseExpenseInputSchema = z
     }
   });
 
+const caseHearingInputSchema = z.object({
+  type: caseHearingTypeSchema,
+  date: requiredDateString,
+  time: z
+    .string()
+    .trim()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  description: z.string().trim().min(3).max(500),
+  notificationsEnabled: z.coerce.boolean().default(false)
+});
+
 export const listCasesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(8),
   cursor: optionalTrimmedString,
@@ -166,6 +189,11 @@ export const listCaseExpensesQuerySchema = z.object({
   taskId: optionalUuid
 });
 
+export const listCaseHearingsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(8).default(8),
+  cursor: optionalTrimmedString
+});
+
 export const listCaseTasksQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(8).default(8),
   cursor: optionalTrimmedString
@@ -187,6 +215,7 @@ export const caseCalendarQuerySchema = z.object({
 
 export class ListCasesQueryDto extends createZodDto(listCasesQuerySchema) {}
 export class ListCaseExpensesQueryDto extends createZodDto(listCaseExpensesQuerySchema) {}
+export class ListCaseHearingsQueryDto extends createZodDto(listCaseHearingsQuerySchema) {}
 export class ListCaseTasksQueryDto extends createZodDto(listCaseTasksQuerySchema) {}
 export class ListCaseExpenseAttachmentsQueryDto extends createZodDto(
   listCaseExpenseAttachmentsQuerySchema
@@ -198,6 +227,8 @@ export class CreateCaseTaskDto extends createZodDto(caseTaskInputSchema) {}
 export class UpdateCaseTaskDto extends createZodDto(caseTaskInputSchema) {}
 export class CreateCaseExpenseDto extends createZodDto(caseExpenseInputSchema) {}
 export class UpdateCaseExpenseDto extends createZodDto(caseExpenseInputSchema) {}
+export class CreateCaseHearingDto extends createZodDto(caseHearingInputSchema) {}
+export class UpdateCaseHearingDto extends createZodDto(caseHearingInputSchema) {}
 
 export class CaseProvinceDto {
   @ApiProperty({ format: "uuid" })
@@ -453,6 +484,35 @@ export class CaseExpenseDto {
   updatedAt!: string;
 }
 
+export class CaseHearingDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ format: "uuid" })
+  caseId!: string;
+
+  @ApiProperty({ enum: caseHearingTypeSchema.options })
+  type!: CaseHearingType;
+
+  @ApiProperty({ type: String, format: "date" })
+  date!: string;
+
+  @ApiProperty({ example: "09:30" })
+  time!: string;
+
+  @ApiProperty({ example: "Audiencia preliminar en juzgado civil." })
+  description!: string;
+
+  @ApiProperty({ example: true })
+  notificationsEnabled!: boolean;
+
+  @ApiProperty({ format: "date-time" })
+  createdAt!: string;
+
+  @ApiProperty({ format: "date-time" })
+  updatedAt!: string;
+}
+
 export class CaseMetricsDto {
   @ApiProperty({ example: 15000 })
   totalExpenses!: number;
@@ -519,6 +579,14 @@ export class CaseExpensesListResponseDto {
   pageInfo!: CasesPageInfoDto;
 }
 
+export class CaseHearingsListResponseDto {
+  @ApiProperty({ type: [CaseHearingDto] })
+  items!: CaseHearingDto[];
+
+  @ApiProperty({ type: CasesPageInfoDto })
+  pageInfo!: CasesPageInfoDto;
+}
+
 export class CaseExpenseSummaryItemDto {
   @ApiProperty({ format: "uuid" })
   id!: string;
@@ -544,9 +612,17 @@ export class CaseExpensesSummaryDto {
   items!: CaseExpenseSummaryItemDto[];
 }
 
+export class CaseExpensesOverdueRecalculationDto {
+  @ApiProperty({ example: "ok" })
+  status!: "ok";
+
+  @ApiProperty({ example: 3 })
+  updatedCount!: number;
+}
+
 export class CaseCalendarEventDto {
-  @ApiProperty({ example: "payment_due" })
-  type!: "payment_due" | "hearing";
+  @ApiProperty({ enum: ["payment_due", "hearing", "task_due"], example: "payment_due" })
+  type!: "payment_due" | "hearing" | "task_due";
 
   @ApiProperty({ format: "uuid" })
   id!: string;
@@ -562,6 +638,12 @@ export class CaseCalendarEventDto {
 
   @ApiPropertyOptional({ example: "pending" })
   status?: string;
+
+  @ApiPropertyOptional({ enum: caseHearingTypeSchema.options, example: "preliminary" })
+  hearingType?: CaseHearingType;
+
+  @ApiPropertyOptional({ type: String, example: "09:30" })
+  time?: string;
 }
 
 export class CaseCalendarResponseDto {
@@ -598,6 +680,7 @@ export class CaseDeleteResponseDto {
 
 export type ListCasesQuery = z.infer<typeof listCasesQuerySchema>;
 export type ListCaseExpensesQuery = z.infer<typeof listCaseExpensesQuerySchema>;
+export type ListCaseHearingsQuery = z.infer<typeof listCaseHearingsQuerySchema>;
 export type ListCaseTasksQuery = z.infer<typeof listCaseTasksQuerySchema>;
 export type ListCaseExpenseAttachmentsQuery = z.infer<typeof listCaseExpenseAttachmentsQuerySchema>;
 export type CaseCalendarQuery = z.infer<typeof caseCalendarQuerySchema>;
@@ -607,3 +690,5 @@ export type CreateCaseTaskInput = z.infer<typeof caseTaskInputSchema>;
 export type UpdateCaseTaskInput = z.infer<typeof caseTaskInputSchema>;
 export type CreateCaseExpenseInput = z.infer<typeof caseExpenseInputSchema>;
 export type UpdateCaseExpenseInput = z.infer<typeof caseExpenseInputSchema>;
+export type CreateCaseHearingInput = z.infer<typeof caseHearingInputSchema>;
+export type UpdateCaseHearingInput = z.infer<typeof caseHearingInputSchema>;

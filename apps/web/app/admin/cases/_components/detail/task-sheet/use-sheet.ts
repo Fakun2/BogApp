@@ -11,11 +11,13 @@ import type { CaseTaskFieldErrors } from "./types";
 
 export function useCaseTaskSheet({
   caseId,
+  defaultDate,
   onOpenChange,
   open: controlledOpen,
   task
 }: {
   caseId: string;
+  defaultDate?: string;
   onOpenChange?: (open: boolean) => void;
   open?: boolean;
   task?: CaseTaskDto;
@@ -38,8 +40,16 @@ export function useCaseTaskSheet({
     }
 
     setErrors({});
-    setDraft(task ? mapTaskToDraft(task) : emptyCaseTaskDraft);
-  }, [open, task]);
+    setDraft(
+      task
+        ? mapTaskToDraft(task)
+        : {
+            ...emptyCaseTaskDraft,
+            endDate: defaultDate ?? emptyCaseTaskDraft.endDate,
+            startDate: defaultDate ?? emptyCaseTaskDraft.startDate
+          }
+    );
+  }, [defaultDate, open, task]);
 
   function updateDraft<K extends keyof CaseTaskFormValues>(key: K, value: CaseTaskFormValues[K]) {
     setDraft((current) => ({ ...current, [key]: value }));

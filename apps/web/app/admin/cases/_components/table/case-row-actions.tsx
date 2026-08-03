@@ -33,7 +33,6 @@ export function CaseRowActions({
     try {
       await deleteMutation.mutateAsync(caseItem.id);
       setDeleteDialogOpen(false);
-      router.refresh();
     } catch {
       // The mutation exposes its error state if the request fails.
     }

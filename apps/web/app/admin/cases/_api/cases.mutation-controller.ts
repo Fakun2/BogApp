@@ -1,5 +1,6 @@
 import type {
   CaseExpenseFormValues,
+  CaseHearingFormValues,
   CaseFormValues,
   CaseTaskFormValues
 } from "@/lib/validation/cases";
@@ -7,16 +8,19 @@ import type {
   CaseDto,
   CaseExpenseAttachmentDto,
   CaseExpenseDto,
+  CaseHearingDto,
   CaseTaskDto
 } from "../_types/cases.types";
 import {
   deleteCase,
   deleteCaseExpense,
   deleteCaseExpenseAttachment,
+  deleteCaseHearing,
   deleteCaseTask,
   markCaseTaskSeen,
   saveCase,
   saveCaseExpense,
+  saveCaseHearing,
   saveCaseTask,
   uploadCaseExpenseAttachment
 } from "./cases.api";
@@ -85,6 +89,26 @@ export const casesMutations = {
     return {
       mutationFn: (expenseId) => deleteCaseExpense({ caseId, expenseId }),
       permission: "expenses:delete"
+    };
+  },
+
+  saveHearing({
+    caseId,
+    hearingId
+  }: {
+    caseId: string;
+    hearingId?: string;
+  }): CasesMutationSpec<CaseHearingDto, CaseHearingFormValues> {
+    return {
+      mutationFn: (input) => saveCaseHearing({ caseId, hearingId, input }),
+      permission: hearingId ? "hearings:update" : "hearings:create"
+    };
+  },
+
+  deleteHearing(caseId: string): CasesMutationSpec<{ status: "ok" }, string> {
+    return {
+      mutationFn: (hearingId) => deleteCaseHearing({ caseId, hearingId }),
+      permission: "hearings:delete"
     };
   },
 

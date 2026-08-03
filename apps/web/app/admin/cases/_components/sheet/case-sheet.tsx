@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { BriefcaseBusiness, Loader2, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +36,7 @@ import {
   getJudicialCenterPlaceholder,
   mapRecordToOptions
 } from "../../_utils/case-options";
+import { CaseDateInput } from "./case-date-input";
 import { CaseField } from "./case-field";
 import { CaseParticipantsSection } from "./case-participants-section";
 
@@ -45,7 +45,6 @@ const caseStatusOptions = mapRecordToOptions(caseStatusLabels);
 
 export function CaseSheet({ caseItem, trigger }: { caseItem?: CaseDto; trigger: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
   const {
     addParticipant,
     draft,
@@ -70,7 +69,6 @@ export function CaseSheet({ caseItem, trigger }: { caseItem?: CaseDto; trigger: 
     caseItem,
     onSuccess: () => {
       setOpen(false);
-      router.refresh();
     }
   });
   const needsJudicialCenter = strategyConfig.forumScope === "judicialCenter";
@@ -203,9 +201,8 @@ function CaseMainFields({
         />
       </CaseField>
       <CaseField error={errors.filingDate} label="Fecha de ingreso">
-        <Input
-          className={caseInputClassName}
-          type="date"
+        <CaseDateInput
+          autoComplete="off"
           value={draft.filingDate ?? ""}
           onChange={(event) => onDraftChange("filingDate", event.target.value)}
           aria-invalid={Boolean(errors.filingDate)}

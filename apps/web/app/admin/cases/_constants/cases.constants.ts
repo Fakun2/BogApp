@@ -2,6 +2,7 @@ import type { CaseFormValues } from "@/lib/validation/cases";
 import type {
   CaseCatalogStrategy,
   CaseExpenseStatus,
+  CaseHearingType,
   CaseInstance,
   CaseSortKey,
   CaseTaskStatus,
@@ -13,6 +14,8 @@ export const casesPageSize = 4;
 
 export const caseInputClassName =
   "h-12 rounded-2xl border-border/40 bg-card px-4 shadow-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/10";
+
+export const caseNativeDateTimeInputClassName = `${caseInputClassName} min-h-12 max-h-12 overflow-hidden py-0 leading-normal text-left [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:shrink-0 [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-date-and-time-value]:min-h-0 [&::-webkit-date-and-time-value]:text-left`;
 
 export const caseTextareaClassName =
   "rounded-2xl border-border/40 bg-card px-4 py-3 shadow-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/10";
@@ -116,6 +119,18 @@ export const caseExpenseStatusLabels: Record<CaseExpenseStatus, string> = {
   paid: "Pagado",
   cancelled: "Cancelado",
   overdue: "Vencido"
+};
+
+export const caseHearingTypeLabels: Record<CaseHearingType, string> = {
+  preliminary: "Preliminar",
+  trial_view: "Vista de causa",
+  conciliation: "Conciliacion",
+  mediation: "Mediacion",
+  testimonial: "Testimonial",
+  confessional: "Confesional",
+  debate: "Juicio / debate",
+  investigative_statement: "Indagatoria",
+  other: "Otra"
 };
 
 export const casesTableColumnLabels = {

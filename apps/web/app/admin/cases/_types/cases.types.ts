@@ -3,6 +3,16 @@ export type CaseInstance = "first" | "second" | "third";
 export type CaseCatalogStrategy = "manual" | "center_forum";
 export type CaseTaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
 export type CaseExpenseStatus = "pending" | "paid" | "cancelled" | "overdue";
+export type CaseHearingType =
+  | "preliminary"
+  | "trial_view"
+  | "conciliation"
+  | "mediation"
+  | "testimonial"
+  | "confessional"
+  | "debate"
+  | "investigative_statement"
+  | "other";
 
 export type ProvinceDto = {
   caseCatalogStrategy: CaseCatalogStrategy;
@@ -118,6 +128,18 @@ export type CaseExpenseAttachmentDto = {
   createdAt: string;
 };
 
+export type CaseHearingDto = {
+  id: string;
+  caseId: string;
+  type: CaseHearingType;
+  date: string;
+  time: string;
+  description: string;
+  notificationsEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type CaseMetricsDto = {
   totalExpenses: number;
   pendingPayments: number;
@@ -158,6 +180,17 @@ export type CaseExpensesListResponse = {
   };
 };
 
+export type CaseHearingsListResponse = {
+  items: CaseHearingDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
 export type CaseExpenseSummaryItemDto = {
   id: string;
   concept: string;
@@ -176,8 +209,10 @@ export type CaseCalendarEventDto = {
   date: string;
   id: string;
   status?: CaseExpenseStatus | string;
+  hearingType?: CaseHearingType;
+  time?: string;
   title: string;
-  type: "payment_due" | "hearing";
+  type: "payment_due" | "hearing" | "task_due";
 };
 
 export type CaseCalendarResponseDto = {

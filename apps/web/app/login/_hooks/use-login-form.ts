@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { hasTenantAccess, saveSession, type BogaapSession } from "@/lib/auth/session";
 import { loginFormSchema, type LoginFormValues } from "@/lib/validation/auth";
@@ -20,7 +20,6 @@ function wait(ms: number) {
 }
 
 export function useLoginForm(initialEmail: string | null) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [form, setForm] = useState<LoginFormValues>(() => ({
     ...loginInitialForm,
@@ -82,7 +81,7 @@ export function useLoginForm(initialEmail: string | null) {
       transition.exit();
       await wait(loginLoadingExitMs);
       shouldHideTransition = false;
-      router.replace(getLoginRedirectPath(session, searchParams.get("next")));
+      window.location.assign(getLoginRedirectPath(session, searchParams.get("next")));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "No se pudo iniciar sesion.");
     } finally {

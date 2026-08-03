@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
-import type { LoginResponseDto, TokenPairDto } from "@bogaap/api-client";
+import type { LoginResponseDto } from "@bogaap/api-client";
+import { toApiUrl } from "@/lib/api/origin";
+import { authCookieOptions, setAuthTokenCookies } from "@/lib/auth/cookie-options";
 import {
   accessTokenCookieName,
   accessTokenMaxAgeSeconds,
@@ -9,16 +11,9 @@ import {
 } from "@/lib/auth/cookies";
 import { decodeJwtPayload } from "@/lib/auth/jwt";
 import type { BogaapSession } from "@/lib/auth/session";
+import type { TokenPair } from "@/lib/auth/token-types";
 
-export function getApiProxyOrigin() {
-  return process.env.NEXT_PUBLIC_API_PROXY_ORIGIN ?? "http://localhost:3001";
-}
-
-export function toApiUrl(path: string) {
-  return `${getApiProxyOrigin()}${path.startsWith("/api") ? path : `/api${path}`}`;
-}
-
-export async function setAuthCookies(tokens: TokenPairDto) {
+export async function setAuthCookies(tokens: TokenPair) {
   const cookieStore = await cookies();
 
   cookieStore.set(accessTokenCookieName, tokens.accessToken, {
@@ -31,15 +26,8 @@ export async function setAuthCookies(tokens: TokenPairDto) {
   });
 }
 
-export function setAuthCookiesOnResponse(response: NextResponse, tokens: TokenPairDto) {
-  response.cookies.set(accessTokenCookieName, tokens.accessToken, {
-    maxAge: accessTokenMaxAgeSeconds,
-    ...authCookieOptions()
-  });
-  response.cookies.set(refreshTokenCookieName, tokens.refreshToken, {
-    maxAge: refreshTokenMaxAgeSeconds,
-    ...authCookieOptions()
-  });
+export function setAuthCookiesOnResponse(response: NextResponse, tokens: TokenPair) {
+  setAuthTokenCookies(response, tokens);
 }
 
 export async function clearAuthCookies() {
@@ -63,24 +51,4 @@ export async function getRefreshTokenCookie() {
   return (await cookies()).get(refreshTokenCookieName)?.value ?? null;
 }
 
-function authCookieOptions() {
-  return {
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax" as const,
-    secure: shouldUseSecureCookies()
-  };
-}
-
-function shouldUseSecureCookies() {
-  const configuredValue = process.env.AUTH_COOKIE_SECURE;
-  if (configuredValue !== undefined) {
-    return configuredValue.toLowerCase() === "true";
-  }
-
-  return [
-    process.env.FRONTEND_PUBLIC_URL,
-    process.env.NEXT_PUBLIC_APP_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ].some((url) => url?.startsWith("https://"));
-}
+export { toApiUrl };

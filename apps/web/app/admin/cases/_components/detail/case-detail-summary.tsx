@@ -24,10 +24,11 @@ export function CaseDetailSummary({ caseItem }: { caseItem: CaseDetailDto }) {
             </Link>
           </Button>
 
-          <div className="min-w-0">
+          <div className="min-w-0 max-w-[min(100%,760px)]">
             <div className="flex min-w-0 items-center gap-2">
               <h1
-                className={`min-w-0 truncate text-2xl font-semibold leading-tight md:text-3xl ${adminSurfacePrimaryClassName}`}
+                className={`min-w-0 max-w-[min(72vw,760px)] truncate text-2xl font-semibold leading-tight md:text-3xl ${adminSurfacePrimaryClassName}`}
+                title={caseItem.caption}
               >
                 {caseItem.caption}
               </h1>

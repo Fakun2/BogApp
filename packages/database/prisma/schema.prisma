@@ -93,6 +93,18 @@ enum CaseCatalogStrategy {
   center_forum
 }
 
+enum CaseHearingType {
+  preliminary
+  trial_view
+  conciliation
+  mediation
+  testimonial
+  confessional
+  debate
+  investigative_statement
+  other
+}
+
 model Tenant {
   id                 String                  @id @default(uuid()) @db.Uuid
   name               String
@@ -107,6 +119,7 @@ model Tenant {
   cases              Case[]
   caseTasks          CaseTask[]
   caseExpenses       CaseExpense[]
+  caseHearings       CaseHearing[]
   expenseAttachments CaseExpenseAttachment[]
   roles              Role[]
   createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -354,6 +367,7 @@ model Case {
   participants          CaseParticipant[]
   tasks                 CaseTask[]
   expenses              CaseExpense[]
+  hearings              CaseHearing[]
   expenseAttachments    CaseExpenseAttachment[]
 
   @@unique([tenantId, caseNumber])
@@ -430,6 +444,29 @@ model CaseExpense {
   @@index([tenantId, paymentDate])
   @@index([tenantId, alertAt])
   @@map("case_expenses")
+}
+
+model CaseHearing {
+  id                  String          @id @default(uuid()) @db.Uuid
+  tenantId            String          @map("tenant_id") @db.Uuid
+  caseId              String          @map("case_id") @db.Uuid
+  type                CaseHearingType
+  date                DateTime        @db.Date
+  time                String          @db.VarChar(5)
+  description         String
+  notificationsEnabled Boolean        @default(false) @map("notifications_enabled")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, date])
+  @@index([tenantId, type])
+  @@map("case_hearings")
 }
 
 model CaseExpenseAttachment {

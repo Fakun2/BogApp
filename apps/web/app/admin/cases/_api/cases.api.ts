@@ -1,6 +1,7 @@
 import { dashboardHttpClient } from "@/lib/http";
 import type {
   CaseExpenseFormValues,
+  CaseHearingFormValues,
   CaseFormValues,
   CaseTaskFormValues
 } from "@/lib/validation/cases";
@@ -13,6 +14,8 @@ import type {
   CaseExpenseDto,
   CaseExpensesListResponse,
   CaseExpensesSummaryDto,
+  CaseHearingDto,
+  CaseHearingsListResponse,
   CaseTaskDto,
   CaseTasksListResponse,
   CasesMetricsDto,
@@ -37,6 +40,8 @@ export const caseKeys = {
     [...caseKeys.detail(caseId), "expenses", params ?? {}] as const,
   expense: (caseId: string, expenseId: string) =>
     [...caseKeys.detail(caseId), "expenses", expenseId] as const,
+  hearings: (caseId: string, params?: { cursor?: string; limit?: number }) =>
+    [...caseKeys.detail(caseId), "hearings", params ?? {}] as const,
   expensesSummary: (caseId: string) => [...caseKeys.detail(caseId), "expenses", "summary"] as const,
   calendar: (
     caseId: string,
@@ -259,6 +264,50 @@ export async function getCaseCalendar({
   return dashboardHttpClient.request<CaseCalendarResponseDto>({
     params: { cursor, limit, mode, month, search, types },
     path: `/cases/${caseId}/calendar`
+  });
+}
+
+export async function listCaseHearings({
+  caseId,
+  cursor,
+  limit = 8
+}: {
+  caseId: string;
+  cursor?: string;
+  limit?: number;
+}): Promise<CaseHearingsListResponse> {
+  return dashboardHttpClient.request<CaseHearingsListResponse>({
+    params: { cursor, limit },
+    path: `/cases/${caseId}/hearings`
+  });
+}
+
+export async function saveCaseHearing({
+  caseId,
+  hearingId,
+  input
+}: {
+  caseId: string;
+  hearingId?: string;
+  input: CaseHearingFormValues;
+}): Promise<CaseHearingDto> {
+  return dashboardHttpClient.request<CaseHearingDto>({
+    body: input,
+    method: hearingId ? "PATCH" : "POST",
+    path: hearingId ? `/cases/${caseId}/hearings/${hearingId}` : `/cases/${caseId}/hearings`
+  });
+}
+
+export async function deleteCaseHearing({
+  caseId,
+  hearingId
+}: {
+  caseId: string;
+  hearingId: string;
+}): Promise<{ status: "ok" }> {
+  return dashboardHttpClient.request<{ status: "ok" }>({
+    method: "DELETE",
+    path: `/cases/${caseId}/hearings/${hearingId}`
   });
 }
 

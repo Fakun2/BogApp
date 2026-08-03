@@ -1,7 +1,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { caseExpenseStatusLabels } from "../../../_constants/cases.constants";
+import {
+  caseExpenseStatusLabels,
+  caseHearingTypeLabels
+} from "../../../_constants/cases.constants";
 import type { CaseCalendarEventDto } from "../../../_types/cases.types";
 import { formatCaseDate, formatCaseMoney, getExpenseStatusClassName } from "../case-detail-format";
 import {
@@ -132,7 +135,20 @@ function CalendarEventListPagination({
 
 function EventListMeta({ event }: { event: CaseCalendarEventDto }) {
   if (event.type === "hearing") {
-    return <Badge variant="outline">Audiencia</Badge>;
+    return (
+      <Badge variant="outline">
+        {event.time ? `${event.time} · ` : ""}
+        {event.hearingType ? caseHearingTypeLabels[event.hearingType] : "Audiencia"}
+      </Badge>
+    );
+  }
+
+  if (event.type === "task_due") {
+    return (
+      <Badge variant="outline">
+        {event.status === "in_progress" ? "En curso" : "Pendiente"}
+      </Badge>
+    );
   }
 
   return (

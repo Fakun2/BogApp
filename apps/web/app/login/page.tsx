@@ -9,7 +9,7 @@ import { loginArrivalRevealMs, useLoginArrivalReveal } from "./_hooks/use-login-
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-background" />}>
+    <Suspense fallback={<main className="h-[100svh] bg-background" />}>
       <LoginPageContent />
     </Suspense>
   );

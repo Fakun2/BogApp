@@ -2,10 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldAlert } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { UnauthorizedState } from "@/components/ui/not-found";
 import { hasPermission } from "@/lib/auth/permissions";
 import { useAdminShellState } from "../_hooks/use-admin-shell-state";
 import type { AdminShellProps } from "../_types/admin";
@@ -43,7 +42,7 @@ export function AdminShell({ children }: AdminShellProps) {
     <SidebarProvider
       open={sidebarOpen}
       onOpenChange={setSidebarOpen}
-      className="min-h-screen bg-[var(--admin-page-bg)] text-foreground"
+      className="min-h-[100svh] bg-[var(--admin-page-bg)] text-foreground"
     >
       <AdminSidebar session={session} />
 
@@ -65,7 +64,7 @@ export function AdminShell({ children }: AdminShellProps) {
         </SheetContent>
       </Sheet>
 
-      <div className="fixed inset-x-0 top-0 z-20 transition-[left] duration-300 ease-in-out xl:left-[var(--sidebar-width)]">
+      <div className="fixed inset-x-0 top-0 z-20 transition-[left] duration-300 ease-in-out lg:left-[var(--sidebar-width)]">
         <AdminHeader
           onOpenCommand={() => setCommandOpen(true)}
           onOpenMobileSidebar={() => setMobileOpen(true)}
@@ -75,10 +74,10 @@ export function AdminShell({ children }: AdminShellProps) {
       </div>
 
       <SidebarInset
-        className="h-screen overflow-auto"
+        className="h-[100svh] overflow-auto"
         onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 4)}
       >
-        <div className="w-full px-4 py-10 md:px-10 md:py-10 overflow-y-auto">
+        <div className="w-full min-w-0 overflow-y-auto px-4 py-8 md:px-10 md:py-10 2xl:px-12">
           {canAccessAdmin ? children : <RestrictedAdminAccess />}
         </div>
       </SidebarInset>
@@ -94,21 +93,9 @@ export function AdminShell({ children }: AdminShellProps) {
 
 function RestrictedAdminAccess() {
   return (
-    <Card
-      data-admin-surface
-      className="mx-auto max-w-xl rounded-xl border-0 bg-card text-card-foreground shadow-[var(--admin-card-shadow)]"
-    >
-      <CardContent className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
-          <ShieldAlert className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Panel restringido</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Necesitas permiso de acceso al panel de administracion.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <UnauthorizedState
+      title="Panel restringido"
+      description="Necesitas permisos adicionales para acceder al panel de administracion."
+    />
   );
 }

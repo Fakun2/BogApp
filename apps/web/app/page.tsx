@@ -32,7 +32,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 lg:px-8">
+        <div className="mx-auto flex w-full max-w-[1920px] flex-col gap-8 px-6 py-10 lg:px-8 2xl:px-12">
           <div className="flex justify-end">
             <ThemeModeSelect />
           </div>
@@ -63,7 +63,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-4 px-6 py-8 lg:grid-cols-4 lg:px-8">
+      <section className="mx-auto grid w-full max-w-[1920px] gap-4 px-6 py-8 lg:grid-cols-4 lg:px-8 2xl:px-12">
         {modules.map((module) => (
           <Card key={module.name}>
             <CardHeader>

@@ -11,7 +11,7 @@ export function RolesList({ permissions, roles }: { permissions: PermissionDto[]
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
       {roles.map((role) => (
         <RoleCard key={role.id} permissions={permissions} role={role} />
       ))}

@@ -41,6 +41,11 @@ const scopeModules = [
     description: "Gastos asociados a tareas y expedientes."
   },
   {
+    resource: "hearings",
+    label: "Audiencias",
+    description: "Agenda de audiencias, tipos y notificaciones."
+  },
+  {
     resource: "finance",
     label: "Caja",
     description: "Operacion financiera y movimientos de caja."
@@ -239,6 +244,10 @@ function isPermissionAllowedForHierarchy(permissionCode: string, hierarchyLevel:
     permissionCode === "expenses:read" ||
     permissionCode === "expenses:create" ||
     permissionCode === "expenses:update" ||
-    permissionCode === "expenses:delete"
+    permissionCode === "expenses:delete" ||
+    permissionCode === "hearings:read" ||
+    permissionCode === "hearings:create" ||
+    permissionCode === "hearings:update" ||
+    permissionCode === "hearings:delete"
   );
 }

@@ -1,4 +1,5 @@
 const { loadRootEnv } = require("./load-root-env.cjs");
+const { randomUUID } = require("node:crypto");
 
 loadRootEnv();
 
@@ -42,6 +43,10 @@ const permissions = [
   { code: "expenses:create", resource: "expenses", action: "create" },
   { code: "expenses:update", resource: "expenses", action: "update" },
   { code: "expenses:delete", resource: "expenses", action: "delete" },
+  { code: "hearings:read", resource: "hearings", action: "read" },
+  { code: "hearings:create", resource: "hearings", action: "create" },
+  { code: "hearings:update", resource: "hearings", action: "update" },
+  { code: "hearings:delete", resource: "hearings", action: "delete" },
   { code: "finance:read", resource: "finance", action: "read" },
   { code: "finance:create", resource: "finance", action: "create" },
   { code: "finance:update", resource: "finance", action: "update" },
@@ -72,7 +77,8 @@ const systemRoles = [
         permissionCode !== "billing:manage" &&
         !permissionCode.startsWith("roles:") &&
         !permissionCode.startsWith("cases:") &&
-        !permissionCode.startsWith("expenses:")
+        !permissionCode.startsWith("expenses:") &&
+        !permissionCode.startsWith("hearings:")
     )
   },
   {
@@ -100,7 +106,11 @@ const systemRoles = [
       "expenses:read",
       "expenses:create",
       "expenses:update",
-      "expenses:delete"
+      "expenses:delete",
+      "hearings:read",
+      "hearings:create",
+      "hearings:update",
+      "hearings:delete"
     ]
   },
   {
@@ -119,7 +129,10 @@ const systemRoles = [
       "tasks:update",
       "expenses:read",
       "expenses:create",
-      "expenses:update"
+      "expenses:update",
+      "hearings:read",
+      "hearings:create",
+      "hearings:update"
     ]
   },
   {
@@ -149,6 +162,7 @@ const systemRoles = [
       "provinces:read",
       "documents:read",
       "tasks:read",
+      "hearings:read",
       "finance:read"
     ]
   }
@@ -209,6 +223,7 @@ async function seedRbac() {
           }
 
           return {
+            id: randomUUID(),
             permissionId,
             roleId: savedRole.id
           };

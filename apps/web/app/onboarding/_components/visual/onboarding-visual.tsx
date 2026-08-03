@@ -20,8 +20,8 @@ export function OnboardingVisual({
   submitting
 }: OnboardingVisualProps) {
   return (
-    <aside className="hidden min-h-[calc(100vh-40px)] rounded-2xl bg-[var(--onboarding-panel-bg)] text-[var(--onboarding-panel-foreground)] lg:block">
-      <div className="flex h-full flex-col gap-16 p-8">
+    <aside className="hidden min-h-0 rounded-2xl bg-[var(--onboarding-panel-bg)] text-[var(--onboarding-panel-foreground)] lg:block">
+      <div className="flex h-full min-h-0 flex-col gap-10 overflow-y-auto overscroll-contain p-8 xl:gap-16">
         <div>
           <Badge
             variant="outline"

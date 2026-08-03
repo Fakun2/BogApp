@@ -14,7 +14,7 @@ export function CreateAccountMedia() {
   return (
     <section
       ref={ref}
-      className="relative hidden min-h-screen overflow-hidden rounded-3xl bg-card lg:block lg:h-full lg:min-h-0"
+      className="relative hidden min-h-0 overflow-hidden rounded-3xl bg-card lg:block"
       aria-label={createAccountMedia.label}
     >
       <video

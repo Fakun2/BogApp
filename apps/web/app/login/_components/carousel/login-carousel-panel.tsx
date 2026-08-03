@@ -18,7 +18,7 @@ export function LoginCarouselPanel() {
   const carousel = useLoginCarousel();
 
   return (
-    <section className="relative hidden min-h-screen overflow-hidden bg-card lg:block">
+    <section className="relative hidden h-full min-h-0 overflow-hidden bg-card lg:block">
       <div className="absolute left-8 top-8 z-20 flex items-center gap-3 text-white">
         <Button
           asChild
@@ -31,10 +31,10 @@ export function LoginCarouselPanel() {
         </Button>
       </div>
 
-      <Carousel className="h-full" opts={{ loop: true }} setApi={carousel.setApi}>
-        <CarouselContent className="h-screen">
+      <Carousel className="h-full [&>div]:h-full" opts={{ loop: true }} setApi={carousel.setApi}>
+        <CarouselContent className="h-full">
           {loginCarouselSlides.map((slide) => (
-            <CarouselItem key={slide.id} className="h-screen">
+            <CarouselItem key={slide.id} className="h-full">
               <LoginCarouselSlide slide={slide} />
             </CarouselItem>
           ))}

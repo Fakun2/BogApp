@@ -53,7 +53,7 @@ export function CreateRoleSheet({
             Define el alcance operativo del rol dentro del sistema.
           </SheetDescription>
         </SheetHeader>
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           <CreateRoleForm permissions={permissions} role={role} onSuccess={() => setOpen(false)} />
         </div>
       </SheetContent>

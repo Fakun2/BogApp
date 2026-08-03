@@ -6,6 +6,7 @@ import type {
   CaseExpenseStatus,
   CaseExpensesListResponse,
   CaseExpensesSummaryDto,
+  CaseHearingsListResponse,
   CaseTasksListResponse,
   CasesListResponse,
   CasesQueryParams,
@@ -17,6 +18,7 @@ import {
   getCaseCalendar,
   getCaseExpense,
   getCaseExpensesSummary,
+  listCaseHearings,
   listCaseExpenseAttachments,
   listCaseExpenses,
   listCases,
@@ -130,6 +132,24 @@ export const casesQueries = {
     };
   },
 
+  hearings({
+    caseId,
+    cursor,
+    limit
+  }: {
+    caseId: string;
+    cursor?: string;
+    limit: number;
+  }): CasesQuerySpec<CaseHearingsListResponse> {
+    const params = { cursor, limit };
+
+    return {
+      permission: "hearings:read",
+      queryKey: caseKeys.hearings(caseId, params),
+      queryFn: () => listCaseHearings({ caseId, ...params })
+    };
+  },
+
   calendar({
     caseId,
     cursor,
@@ -153,7 +173,7 @@ export const casesQueries = {
 
     return {
       enabled,
-      permission: "expenses:read",
+      permission: "cases:read",
       queryKey: caseKeys.calendar(caseId, params),
       queryFn: () => getCaseCalendar({ caseId, ...params })
     };

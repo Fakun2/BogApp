@@ -15,21 +15,29 @@ export function useAdminShellState() {
     let cancelled = false;
 
     async function loadSession() {
-      const response = await fetch("/api/auth/session");
-      if (!response.ok) {
+      try {
+        const response = await fetch("/api/auth/session", { cache: "no-store" });
+        if (!response.ok) {
+          if (!cancelled) {
+            clearSession();
+            setSession(null);
+            setSessionReady(true);
+          }
+          return;
+        }
+
+        const serverSession = (await response.json()) as BogaapSession;
+        saveSession(serverSession);
+        if (!cancelled) {
+          setSession(serverSession);
+          setSessionReady(true);
+        }
+      } catch {
         if (!cancelled) {
           clearSession();
           setSession(null);
           setSessionReady(true);
         }
-        return;
-      }
-
-      const serverSession = (await response.json()) as BogaapSession;
-      saveSession(serverSession);
-      if (!cancelled) {
-        setSession(serverSession);
-        setSessionReady(true);
       }
     }
 

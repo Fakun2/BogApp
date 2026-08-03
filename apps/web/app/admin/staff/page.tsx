@@ -25,7 +25,7 @@ export default function StaffPage() {
 
   return (
     <RequirePermission permissions={["staff:read"]} fallback={<RestrictedStaff />}>
-      <div className="flex min-h-[calc(100vh-136px)] flex-col gap-5 md:min-h-[calc(100vh-152px)] md:gap-6">
+      <div className="flex min-h-[calc(100svh-136px)] flex-col gap-5 md:min-h-[calc(100svh-152px)] md:gap-6">
         <StaffMetrics staffData={staffQuery.data} />
 
         <StaffTableCard

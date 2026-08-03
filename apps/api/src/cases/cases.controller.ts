@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -41,21 +42,27 @@ import {
   CaseExpenseAttachmentDto,
   CaseExpenseAttachmentsListResponseDto,
   CaseExpenseDto,
+  CaseExpensesOverdueRecalculationDto,
   CaseExpensesListResponseDto,
   CaseExpensesSummaryDto,
+  CaseHearingDto,
+  CaseHearingsListResponseDto,
   CasesMetricsDto,
   CaseTaskDto,
   CaseTasksListResponseDto,
   CasesListResponseDto,
   CreateCaseDto,
   CreateCaseExpenseDto,
+  CreateCaseHearingDto,
   CreateCaseTaskDto,
   ListCaseExpenseAttachmentsQueryDto,
   ListCaseExpensesQueryDto,
+  ListCaseHearingsQueryDto,
   ListCaseTasksQueryDto,
   ListCasesQueryDto,
   UpdateCaseDto,
   UpdateCaseExpenseDto,
+  UpdateCaseHearingDto,
   UpdateCaseTaskDto
 } from "./cases.schemas";
 import { CasesService } from "./cases.service";
@@ -154,14 +161,66 @@ export class CasesController {
   }
 
   @Get(":caseId/calendar")
-  @Permissions("cases:read", "expenses:read")
+  @Permissions("cases:read")
   @ApiOkResponse({ type: CaseCalendarResponseDto })
   getCalendar(
     @ActiveTenant() tenantId: string,
     @Param("caseId") caseId: string,
-    @Query() query: CaseCalendarQueryDto
+    @Query() query: CaseCalendarQueryDto,
+    @Req() request: AuthenticatedRequest
   ) {
-    return this.casesService.getCalendar(tenantId, caseId, query);
+    const tenantPermissions = getTenantPermissions(request, tenantId);
+
+    return this.casesService.getCalendar(tenantId, caseId, query, {
+      canReadExpenses: tenantPermissions.has("expenses:read"),
+      canReadHearings: tenantPermissions.has("hearings:read"),
+      canReadTasks: tenantPermissions.has("tasks:read")
+    });
+  }
+
+  @Get(":caseId/hearings")
+  @Permissions("cases:read", "hearings:read")
+  @ApiOkResponse({ type: CaseHearingsListResponseDto })
+  listHearings(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Query() query: ListCaseHearingsQueryDto
+  ) {
+    return this.casesService.listHearings(tenantId, caseId, query);
+  }
+
+  @Post(":caseId/hearings")
+  @Permissions("cases:read", "hearings:create")
+  @ApiCreatedResponse({ type: CaseHearingDto })
+  createHearing(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Body() input: CreateCaseHearingDto
+  ) {
+    return this.casesService.createHearing(tenantId, caseId, input);
+  }
+
+  @Patch(":caseId/hearings/:hearingId")
+  @Permissions("cases:read", "hearings:update")
+  @ApiOkResponse({ type: CaseHearingDto })
+  updateHearing(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("hearingId") hearingId: string,
+    @Body() input: UpdateCaseHearingDto
+  ) {
+    return this.casesService.updateHearing(tenantId, caseId, hearingId, input);
+  }
+
+  @Delete(":caseId/hearings/:hearingId")
+  @Permissions("cases:read", "hearings:delete")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  deleteHearing(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("hearingId") hearingId: string
+  ) {
+    return this.casesService.deleteHearing(tenantId, caseId, hearingId);
   }
 
   @Get(":caseId/expenses/summary")
@@ -169,6 +228,14 @@ export class CasesController {
   @ApiOkResponse({ type: CaseExpensesSummaryDto })
   getExpensesSummary(@ActiveTenant() tenantId: string, @Param("caseId") caseId: string) {
     return this.casesService.getExpensesSummary(tenantId, caseId);
+  }
+
+  @Post(":caseId/expenses/recalculate-overdue")
+  @HttpCode(200)
+  @Permissions("cases:read", "expenses:update")
+  @ApiOkResponse({ type: CaseExpensesOverdueRecalculationDto })
+  recalculateOverdueExpenses(@ActiveTenant() tenantId: string, @Param("caseId") caseId: string) {
+    return this.casesService.recalculateOverdueExpenses(tenantId, caseId);
   }
 
   @Get(":caseId/expenses")
@@ -345,4 +412,11 @@ function toDownloadFilename(filename: string) {
 
 function missingAuthenticatedUser(): never {
   throw new BadRequestException("No se pudo identificar al usuario autenticado.");
+}
+
+function getTenantPermissions(request: AuthenticatedRequest, tenantId: string) {
+  return new Set(
+    request.user?.tenantAccess.find((tenantAccess) => tenantAccess.tenantId === tenantId)
+      ?.permissions ?? []
+  );
 }

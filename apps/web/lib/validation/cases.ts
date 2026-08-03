@@ -121,6 +121,30 @@ export const caseExpenseFormSchema = z
     }
   });
 
+export const caseHearingTypeSchema = z.enum([
+  "preliminary",
+  "trial_view",
+  "conciliation",
+  "mediation",
+  "testimonial",
+  "confessional",
+  "debate",
+  "investigative_statement",
+  "other"
+]);
+
+export const caseHearingFormSchema = z.object({
+  type: caseHearingTypeSchema,
+  date: requiredDateString,
+  time: z
+    .string()
+    .trim()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Selecciona una hora valida."),
+  description: z.string().trim().min(3, "Minimo 3 caracteres.").max(500, "Maximo 500 caracteres."),
+  notificationsEnabled: z.coerce.boolean().default(false)
+});
+
 export type CaseFormValues = z.infer<typeof caseFormSchema>;
 export type CaseTaskFormValues = z.infer<typeof caseTaskFormSchema>;
 export type CaseExpenseFormValues = z.infer<typeof caseExpenseFormSchema>;
+export type CaseHearingFormValues = z.infer<typeof caseHearingFormSchema>;

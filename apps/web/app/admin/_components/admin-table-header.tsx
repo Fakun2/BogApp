@@ -1,18 +1,21 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { adminSurfacePrimaryClassName } from "../_constants/dashboard";
 
 export function AdminTableHeader({
   actions,
   className = "",
   description,
+  descriptionClassName,
   icon: Icon,
   title
 }: {
   actions?: ReactNode;
   className?: string;
   description?: string;
+  descriptionClassName?: string;
   icon?: LucideIcon;
   title: string;
 }) {
@@ -30,7 +33,12 @@ export function AdminTableHeader({
             {title}
           </CardTitle>
           {description ? (
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+            <p
+              className={cn(
+                "mt-1 line-clamp-2 text-xs text-muted-foreground sm:text-sm",
+                descriptionClassName
+              )}
+            >
               {description}
             </p>
           ) : null}

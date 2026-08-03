@@ -9,6 +9,11 @@ const passwordSchema = z
   .regex(/[A-Za-z]/, "La contrasena debe incluir al menos una letra.")
   .regex(/[0-9]/, "La contrasena debe incluir al menos un numero.");
 
+const loginPasswordSchema = z
+  .string()
+  .min(1, "Ingresa tu contrasena.")
+  .max(72, "La contrasena no puede superar 72 caracteres.");
+
 const optionalPhoneSchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().trim().min(6, "Ingresa un telefono valido.").optional()
@@ -23,7 +28,7 @@ export const createAccountFormSchema = z.object({
 
 export const loginFormSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: loginPasswordSchema,
   tenantId: z.string().uuid("Tenant invalido.").optional()
 });
 

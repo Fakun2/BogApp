@@ -5,20 +5,27 @@ export type CalendarView = "month" | "list";
 
 export const calendarEventTypeLabels: Record<CalendarEventType, string> = {
   hearing: "Audiencias",
-  payment_due: "Gastos"
+  payment_due: "Gastos",
+  task_due: "Tareas"
 };
 
 export const calendarEventTypeShortLabels: Record<CalendarEventType, string> = {
   hearing: "Audiencia",
-  payment_due: "Gasto"
+  payment_due: "Gasto",
+  task_due: "Tarea"
 };
 
 export const calendarEventTypeDotClassNames: Record<CalendarEventType, string> = {
   hearing: "bg-sky-500",
-  payment_due: "bg-red-500"
+  payment_due: "bg-red-500",
+  task_due: "bg-amber-500"
 };
 
-export const defaultCalendarEventTypes: CalendarEventType[] = ["payment_due", "hearing"];
+export const defaultCalendarEventTypes: CalendarEventType[] = [
+  "payment_due",
+  "hearing",
+  "task_due"
+];
 
 export const calendarEventListPageSize = 5;
 

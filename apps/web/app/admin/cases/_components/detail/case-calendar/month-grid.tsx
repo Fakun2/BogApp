@@ -1,4 +1,5 @@
 import type { CaseCalendarEventDto } from "../../../_types/cases.types";
+import type { TaskAssigneeOption } from "../../../_types/cases.types";
 import { CalendarDay } from "./calendar-day";
 import { calendarPanelClassName } from "./constants";
 import { getCalendarDays, groupEventsByDate } from "./date-utils";
@@ -6,10 +7,20 @@ import { getCalendarDays, groupEventsByDate } from "./date-utils";
 const weekDays = ["D", "L", "M", "M", "J", "V", "S"];
 
 export function CalendarMonthGrid({
+  assignees,
+  canCreateExpense,
+  canCreateHearing,
+  canCreateTask,
+  caseId,
   events,
   isFetching,
   month
 }: {
+  assignees: TaskAssigneeOption[];
+  canCreateExpense: boolean;
+  canCreateHearing: boolean;
+  canCreateTask: boolean;
+  caseId: string;
   events: CaseCalendarEventDto[];
   isFetching: boolean;
   month: string;
@@ -30,6 +41,11 @@ export function CalendarMonthGrid({
         <ol className="grid grid-cols-7 overflow-visible rounded-xl border-b border-l border-border/35">
           {days.map((day, index) => (
             <CalendarDay
+              assignees={assignees}
+              canCreateExpense={canCreateExpense}
+              canCreateHearing={canCreateHearing}
+              canCreateTask={canCreateTask}
+              caseId={caseId}
               date={day.date}
               day={day.day}
               events={eventsByDate[day.date] ?? []}

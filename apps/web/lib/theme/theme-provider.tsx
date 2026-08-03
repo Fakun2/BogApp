@@ -25,6 +25,7 @@ const colorModes: ColorMode[] = ["navy-slate"];
 const themeClassNames = ["theme-monotone", "theme-dorado", "theme-navy-slate"];
 const themeStorageKey = "bogaap-theme";
 const variantStorageKey = "bogaap-theme-variant";
+const cookieMaxAgeSeconds = 60 * 60 * 24 * 365;
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
@@ -37,17 +38,15 @@ function getStoredColorMode(): ColorMode {
   return colorModes.includes(stored as ColorMode) ? (stored as ColorMode) : "navy-slate";
 }
 
-function getStoredVariant(): ThemeVariant {
-  if (typeof window === "undefined") {
-    return "light";
-  }
-
-  return window.localStorage.getItem(variantStorageKey) === "dark" ? "dark" : "light";
-}
-
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({
+  children,
+  initialVariant
+}: {
+  children: ReactNode;
+  initialVariant: ThemeVariant;
+}) {
   const [colorMode, setColorMode] = useState<ColorMode>(getStoredColorMode);
-  const [variant, setVariant] = useState<ThemeVariant>(getStoredVariant);
+  const [variant, setVariant] = useState<ThemeVariant>(initialVariant);
   const isDark = variant === "dark";
 
   useEffect(() => {
@@ -57,6 +56,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("dark", isDark);
     window.localStorage.setItem(themeStorageKey, colorMode);
     window.localStorage.setItem(variantStorageKey, variant);
+    document.cookie = `${variantStorageKey}=${variant}; path=/; max-age=${cookieMaxAgeSeconds}; SameSite=Lax`;
   }, [colorMode, isDark, variant]);
 
   const value = useMemo<ThemeContextValue>(

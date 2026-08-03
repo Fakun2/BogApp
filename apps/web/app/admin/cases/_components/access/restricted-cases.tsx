@@ -1,7 +1,10 @@
+import { UnauthorizedState } from "@/components/ui/not-found";
+
 export function RestrictedCases() {
   return (
-    <div className="rounded-md border border-border/40 bg-card p-6 text-sm text-muted-foreground">
-      Necesitas el permiso cases:read para acceder a expedientes.
-    </div>
+    <UnauthorizedState
+      title="Expedientes restringidos"
+      description="Necesitas permisos adicionales para acceder al area de expedientes."
+    />
   );
 }

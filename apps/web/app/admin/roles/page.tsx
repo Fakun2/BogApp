@@ -1,7 +1,7 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UnauthorizedState } from "@/components/ui/not-found";
 import { RequirePermission } from "../_components/auth";
 import {
   adminSurfaceClassName,
@@ -59,21 +59,9 @@ export default function RolesPage() {
 
 function RestrictedRoles() {
   return (
-    <Card
-      data-admin-surface
-      className="mx-auto max-w-xl rounded-xl border-0 bg-card text-card-foreground shadow-[var(--admin-card-shadow)]"
-    >
-      <CardContent className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
-          <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Roles restringidos</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            No tienes acceso para gestionar roles dentro de este estudio.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <UnauthorizedState
+      title="Roles restringidos"
+      description="Necesitas permisos adicionales para acceder al area de roles."
+    />
   );
 }

@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { CaseDateInput } from "../sheet/case-date-input";
 import type { CaseFilterKey, CaseFiltersDraft } from "../../_types/case-filter.types";
 import type { ForumDto, ProvinceDto } from "../../_types/cases.types";
 import {
@@ -53,10 +54,11 @@ export function CaseFilterControls({
       key: "filingDate",
       render: (
         <CaseFilterField label="Fecha de ingreso">
-          <Input
-            className={caseFilterControlClassName()}
+          <CaseDateInput
+            className={caseFilterControlClassName(
+              "min-h-11 max-h-11 overflow-hidden py-0 leading-normal text-left [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:shrink-0 [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-date-and-time-value]:min-h-0 [&::-webkit-date-and-time-value]:text-left"
+            )}
             disabled={disabled}
-            type="date"
             value={draft.filingDate}
             onChange={(event) => onUpdateDraft("filingDate", event.target.value)}
             aria-label="Filtrar por fecha de ingreso"
@@ -178,5 +180,11 @@ export function CaseFilterControls({
     }
   ] satisfies Array<{ key: CaseFilterKey; render: React.ReactNode }>;
 
-  return <>{filterRenderMap.map((item) => <div key={item.key}>{item.render}</div>)}</>;
+  return (
+    <>
+      {filterRenderMap.map((item) => (
+        <div key={item.key}>{item.render}</div>
+      ))}
+    </>
+  );
 }

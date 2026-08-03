@@ -4,6 +4,7 @@ import type { CaseExpenseDto, CaseTaskDto } from "../../../_types/cases.types";
 
 export type CaseExpenseSheetProps = {
   caseId: string;
+  defaultDate?: string;
   defaultTaskId?: string;
   expense?: CaseExpenseDto;
   hideTaskSelect?: boolean;

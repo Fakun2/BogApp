@@ -5,6 +5,7 @@ import {
   NotFoundException,
   OnModuleInit
 } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import { PrismaService } from "../database/prisma.service";
 import { createRoleCode } from "./role-code";
 import { ADMIN_ACCESS_PERMISSION, RBAC_PERMISSIONS, RBAC_ROLES } from "./rbac.constants";
@@ -46,11 +47,7 @@ export class RbacService implements OnModuleInit {
       select: roleSelect,
       orderBy: [{ isSystem: "desc" }, { name: "asc" }]
     });
-    const hierarchyByRoleId = await this.getRoleHierarchyLevelsByIds(roles.map((role) => role.id));
-
-    return roles.map((role) =>
-      toRoleDto({ ...role, hierarchyLevel: hierarchyByRoleId.get(role.id) ?? 1 })
-    );
+    return roles.map(toRoleDto);
   }
 
   async createRole(tenantId: string, input: CreateRoleInput) {
@@ -66,12 +63,14 @@ export class RbacService implements OnModuleInit {
           active: input.active,
           code,
           description: input.description,
+          hierarchyLevel: input.hierarchyLevel,
           isSystem: false,
           name: input.name,
           tenantId,
           rolePermissions: {
             createMany: {
               data: permissions.map((permission) => ({
+                id: randomUUID(),
                 permissionId: permission.id
               })),
               skipDuplicates: true
@@ -81,10 +80,9 @@ export class RbacService implements OnModuleInit {
         select: roleSelect
       });
 
-      await this.setRoleHierarchyLevel(role.id, input.hierarchyLevel);
       await this.ensureAdminAccessForRole(role.id);
 
-      return toRoleDto({ ...role, hierarchyLevel: input.hierarchyLevel });
+      return toRoleDto(role);
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         throw new ConflictException("Ya existe un rol con ese nombre.");
@@ -113,6 +111,7 @@ export class RbacService implements OnModuleInit {
         await tx.rolePermission.deleteMany({ where: { roleId } });
         await tx.rolePermission.createMany({
           data: permissions.map((permission) => ({
+            id: randomUUID(),
             permissionId: permission.id,
             roleId
           })),
@@ -125,6 +124,7 @@ export class RbacService implements OnModuleInit {
         data: {
           ...(input.active === undefined ? {} : { active: input.active }),
           ...(input.description === undefined ? {} : { description: input.description }),
+          ...(input.hierarchyLevel === undefined ? {} : { hierarchyLevel: input.hierarchyLevel }),
           ...(input.name === undefined ? {} : { name: input.name })
         },
         select: roleSelect
@@ -135,13 +135,9 @@ export class RbacService implements OnModuleInit {
       this.roleEventsService.emitCleanup(roleEvents.deactivated, { roleId, tenantId });
     }
 
-    if (input.hierarchyLevel !== undefined) {
-      await this.setRoleHierarchyLevel(roleId, input.hierarchyLevel);
-    }
-
     await this.ensureAdminAccessForRole(roleId);
 
-    return toRoleDto({ ...role, hierarchyLevel: nextHierarchyLevel });
+    return toRoleDto(role);
   }
 
   async deleteRole(tenantId: string, roleId: string) {
@@ -203,7 +199,7 @@ export class RbacService implements OnModuleInit {
     }
 
     await this.prisma.rolePermission.createMany({
-      data: [{ permissionId: permission.id, roleId }],
+      data: [{ id: randomUUID(), permissionId: permission.id, roleId }],
       skipDuplicates: true
     });
   }
@@ -240,7 +236,7 @@ export class RbacService implements OnModuleInit {
   private async findTenantRoleOrThrow(tenantId: string, roleId: string) {
     const role = await this.prisma.role.findFirst({
       where: { id: roleId, tenantId },
-      select: { active: true, id: true, isSystem: true }
+      select: { active: true, hierarchyLevel: true, id: true, isSystem: true }
     });
 
     if (!role) {
@@ -251,7 +247,7 @@ export class RbacService implements OnModuleInit {
       throw new BadRequestException("Los roles del sistema no se pueden modificar.");
     }
 
-    return { ...role, hierarchyLevel: await this.getRoleHierarchyLevelById(role.id) };
+    return role;
   }
 
   private async createUniqueRoleCode(tenantId: string, name: string) {
@@ -269,46 +265,11 @@ export class RbacService implements OnModuleInit {
     return candidate;
   }
 
-  private async setRoleHierarchyLevel(roleId: string, hierarchyLevel: number) {
-    await this.prisma.$executeRaw`
-      UPDATE "roles"
-      SET "hierarchy_level" = ${hierarchyLevel}, "updated_at" = CURRENT_TIMESTAMP
-      WHERE "id" = ${roleId}::uuid
-    `;
-  }
-
-  private async getRoleHierarchyLevelById(roleId: string) {
-    const [role] = await this.prisma.$queryRaw<Array<{ hierarchyLevel: number }>>`
-      SELECT "hierarchy_level" AS "hierarchyLevel"
-      FROM "roles"
-      WHERE "id" = ${roleId}::uuid
-      LIMIT 1
-    `;
-
-    return role?.hierarchyLevel ?? 1;
-  }
-
-  private async getRoleHierarchyLevelsByIds(roleIds: string[]) {
-    if (roleIds.length === 0) {
-      return new Map<string, number>();
-    }
-
-    const rows = await this.prisma.$queryRaw<Array<{ id: string; hierarchyLevel: number }>>`
-      SELECT "id"::text AS "id", "hierarchy_level" AS "hierarchyLevel"
-      FROM "roles"
-      WHERE "id"::text = ANY(${roleIds})
-    `;
-
-    return new Map(rows.map((row) => [row.id, row.hierarchyLevel]));
-  }
-
   private async getRoleHierarchyLevelByCode(roleCode: string) {
-    const [role] = await this.prisma.$queryRaw<Array<{ hierarchyLevel: number }>>`
-      SELECT "hierarchy_level" AS "hierarchyLevel"
-      FROM "roles"
-      WHERE "code" = ${roleCode}
-      LIMIT 1
-    `;
+    const role = await this.prisma.role.findUnique({
+      where: { code: roleCode },
+      select: { hierarchyLevel: true }
+    });
 
     return role?.hierarchyLevel ?? 1;
   }
@@ -318,6 +279,7 @@ const roleSelect = {
   active: true,
   code: true,
   description: true,
+  hierarchyLevel: true,
   id: true,
   isSystem: true,
   name: true,
@@ -427,6 +389,10 @@ function isAllowedOperationalPermission(permissionCode: string) {
     permissionCode === "expenses:create" ||
     permissionCode === "expenses:update" ||
     permissionCode === "expenses:delete" ||
+    permissionCode === "hearings:read" ||
+    permissionCode === "hearings:create" ||
+    permissionCode === "hearings:update" ||
+    permissionCode === "hearings:delete" ||
     permissionCode === "documents:read" ||
     permissionCode === "documents:write"
   );

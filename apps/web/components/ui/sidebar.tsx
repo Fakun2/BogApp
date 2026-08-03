@@ -61,7 +61,7 @@ function SidebarProvider({
       <div
         data-slot="sidebar-wrapper"
         data-state={value.state}
-        className={cn("group/sidebar-wrapper min-h-screen", className)}
+        className={cn("group/sidebar-wrapper min-h-[100svh]", className)}
         style={
           {
             "--sidebar-width": currentOpen ? "256px" : "64px",
@@ -81,7 +81,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        "min-h-screen pt-[72px] transition-[padding-left] duration-300 ease-in-out xl:pl-[var(--sidebar-width)]",
+        "min-h-[100svh] w-full pt-[72px] transition-[margin-left,width] duration-300 ease-in-out lg:ml-[var(--sidebar-width)] lg:w-[calc(100%_-_var(--sidebar-width))]",
         className
       )}
       {...props}
@@ -95,7 +95,7 @@ function Sidebar({ className, ...props }: React.ComponentProps<"aside">) {
       data-slot="sidebar"
       data-state={useSidebar().state}
       className={cn(
-        "fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-width)] flex-col text-sidebar-foreground transition-[width] duration-300 ease-in-out xl:flex",
+        "fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-width)] flex-col text-sidebar-foreground transition-[width] duration-300 ease-in-out lg:flex",
         className
       )}
       {...props}
