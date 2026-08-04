@@ -11,9 +11,11 @@ loadEnvConfig(workspaceRoot, isDev);
 
 const lanAllowedDevOrigins = process.env.NEXT_ALLOWED_DEV_ORIGINS?.split(",")
   .map((origin) => origin.trim())
-  .filter(Boolean) ?? ["192.168.100.9"];
+  .filter(Boolean) ?? ["[IP_ADDRESS]", "[IP_ADDRESS]"];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingRoot: workspaceRoot,
   turbopack: {
     root: workspaceRoot
   },

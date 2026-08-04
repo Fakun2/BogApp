@@ -224,6 +224,194 @@
   background: transparent;
 }
 
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes lumina-pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+:root,
+.theme-navy-slate {
+  --landing-dashboard-shadow: 0 25px 80px -12px rgba(7, 48, 97, 0.12),
+    0 0 0 1px color-mix(in oklab, var(--border) 72%, transparent);
+  --landing-soft-shadow: 0 24px 70px -42px rgba(7, 48, 97, 0.28);
+  --landing-mask-fade-x: linear-gradient(to right,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent);
+}
+
+.dark,
+.theme-navy-slate.dark {
+  --landing-dashboard-shadow: 0 25px 80px -12px rgba(0, 0, 0, 0.55),
+    0 0 0 1px color-mix(in oklab, var(--border) 62%, transparent);
+  --landing-soft-shadow: 0 24px 70px -44px rgba(0, 0, 0, 0.72);
+}
+
+.lumina-marquee {
+  animation: landing-marquee 40s linear infinite;
+  width: max-content;
+}
+
+.lumina-logo-track {
+  display: flex;
+  flex-direction: row;
+  gap: 4rem;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.lumina-logo-item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-width: clamp(180px, 18vw, 320px);
+  margin-right: clamp(96px, 10vw, 180px);
+  white-space: nowrap;
+}
+
+.lumina-grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 34%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.68;
+}
+
+.lumina-pulse-dot {
+  animation: lumina-pulse-dot 1.8s ease-in-out infinite;
+}
+
+.lumina-bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "a"
+    "b"
+    "c"
+    "d"
+    "e";
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .lumina-bento-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+      "a a b"
+      "c c c"
+      "d e e";
+  }
+}
+
+.lumina-bento-a {
+  grid-area: a;
+}
+
+.lumina-bento-b {
+  grid-area: b;
+}
+
+.lumina-bento-c {
+  grid-area: c;
+}
+
+.lumina-bento-d {
+  grid-area: d;
+}
+
+.lumina-bento-e {
+  grid-area: e;
+}
+
+@keyframes lumina-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lumina-image-placeholder {
+  position: relative;
+}
+
+.lumina-image-placeholder::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg,
+      transparent 0%,
+      transparent 38%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 50%,
+      transparent 62%,
+      transparent 100%),
+    radial-gradient(circle at 50% 0%,
+      color-mix(in oklab, var(--primary) 10%, transparent),
+      transparent 54%);
+  transform: translateX(-80%);
+  animation: lumina-placeholder-sheen 5.5s ease-in-out infinite;
+}
+
+@keyframes lumina-placeholder-sheen {
+
+  0%,
+  42% {
+    transform: translateX(-80%);
+  }
+
+  72%,
+  100% {
+    transform: translateX(80%);
+  }
+}
+
+.lumina-hero-preview {
+  animation: lumina-hero-float 7s ease-in-out infinite;
+}
+
+@keyframes lumina-hero-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.lumina-row-reveal {
+  opacity: 0;
+  animation: lumina-row-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--row-delay, 0s);
+}
+
 html,
 body {
   margin: 0;
