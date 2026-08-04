@@ -5,11 +5,11 @@ import { ThemeProvider, type ThemeVariant } from "@/lib/theme/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BOGAP",
-  description: "SaaS B2B para estudios juridicos"
+  title: "Justinia",
+  description: "Sistema de gestión integral para estudios jurídicos motorizado por IA"
 };
 
-const variantCookieName = "bogaap-theme-variant";
+const variantCookieName = "justinia-theme-variant";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
