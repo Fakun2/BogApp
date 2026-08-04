@@ -2,18 +2,30 @@
 
 import { useState, type ReactNode } from "react";
 import {
+  ArrowDownAZ,
+  ArrowUpAZ,
   Building2,
   ChevronLeft,
   ChevronRight,
   Gavel,
   Loader2,
   MapPinned,
-  XCircle,
-  type LucideIcon
+  XCircle
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { UnauthorizedState } from "@/components/ui/not-found";
+import { AdminMetricsGrid } from "../_components/admin-metrics-grid";
+import { AdminTableHeader } from "../_components/admin-table-header";
+import { AdminTableHeaderActionButton } from "../_components/admin-table-header-action-button";
 import { RequirePermission } from "../_components/auth";
-import { adminSurfaceClassName, adminSurfacePrimaryClassName } from "../_constants/dashboard";
+import { adminSurfaceClassName } from "../_constants/dashboard";
 import { useForumsQuery, useProvincesQuery } from "./_hooks/use-legal-catalogs-query";
 import type {
   Forum,
@@ -71,58 +83,63 @@ export default function LegalCatalogsPage() {
       permissions={["forums:read", "provinces:read"]}
       fallback={<RestrictedLegalCatalogs />}
     >
-      <div className="flex h-[calc(100svh-136px)] min-h-0 flex-col gap-4 overflow-hidden md:h-[calc(100svh-152px)]">
-        <div className="grid shrink-0 gap-3 md:grid-cols-3">
-          <Metric
-            icon={Gavel}
-            label="Fueros encontrados"
-            value={forumsQuery.data?.pageInfo.total ?? 0}
-          />
-          <Metric
-            icon={MapPinned}
-            label="Provincias activas"
-            value={provincesQuery.data?.pageInfo.total ?? 0}
-          />
-          <Metric
-            icon={Building2}
-            label="Items por pagina"
-            value={currentPageInfo?.limit ?? catalogPageSize}
-          />
-        </div>
+      <div className="flex h-[calc(100svh-136px)] min-h-0 flex-col gap-2 overflow-hidden md:h-[calc(100svh-152px)] md:gap-3">
+        <AdminMetricsGrid
+          metrics={[
+            {
+              icon: Gavel,
+              label: "Fueros encontrados",
+              value: forumsQuery.data?.pageInfo.total ?? 0
+            },
+            {
+              icon: MapPinned,
+              label: "Provincias activas",
+              value: provincesQuery.data?.pageInfo.total ?? 0
+            },
+            {
+              icon: Building2,
+              label: "Items por pagina",
+              value: currentPageInfo?.limit ?? catalogPageSize
+            }
+          ]}
+        />
 
         <Card
           data-admin-surface
           className={`${adminSurfaceClassName} flex min-h-0 flex-1 flex-col overflow-hidden border-0 shadow-[var(--admin-card-shadow)]`}
         >
-          <CardHeader className="flex shrink-0 flex-col gap-4 border-b border-border/30 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <CardTitle className={`text-lg font-semibold ${adminSurfacePrimaryClassName}`}>
-                Catalogos legales
-              </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Consulta provincias globales y fueros disponibles para expedientes.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="grid grid-cols-2 gap-2 rounded-md border border-border/40 bg-secondary/30 p-1">
-                <TabButton active={tab === "forums"} onClick={() => setTab("forums")}>
-                  Fueros
-                </TabButton>
-                <TabButton active={tab === "provinces"} onClick={() => setTab("provinces")}>
-                  Provincias
-                </TabButton>
+          <AdminTableHeader
+            className="!px-3 !py-2 md:!px-4 md:!py-3"
+            descriptionClassName="hidden md:line-clamp-2"
+            actions={
+              <div className="flex flex-wrap items-center gap-2">
+                <AdminTableHeaderActionButton
+                  icon={Gavel}
+                  label="Fueros"
+                  tone={tab === "forums" ? "primary" : "secondary"}
+                  onClick={() => setTab("forums")}
+                />
+                <AdminTableHeaderActionButton
+                  icon={MapPinned}
+                  label="Provincias"
+                  tone={tab === "provinces" ? "primary" : "secondary"}
+                  onClick={() => setTab("provinces")}
+                />
+                <CatalogFilters
+                  provinceId={provinceId}
+                  provinceOptions={provinceOptions}
+                  showProvinceFilter={tab === "forums"}
+                  sort={sort}
+                  onProvinceChange={updateProvinceFilter}
+                  onSortChange={updateSort}
+                />
               </div>
-              <CatalogFilters
-                provinceId={provinceId}
-                provinceOptions={provinceOptions}
-                showProvinceFilter={tab === "forums"}
-                sort={sort}
-                onProvinceChange={updateProvinceFilter}
-                onSortChange={updateSort}
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="grid min-h-0 flex-1 grid-rows-[1fr_auto] gap-3 overflow-hidden px-6 py-5">
+            }
+            description="Consulta provincias globales y fueros disponibles para expedientes."
+            icon={Gavel}
+            title="Catalogos legales"
+          />
+          <CardContent className="grid min-h-0 flex-1 grid-rows-[1fr_auto] gap-2 overflow-hidden px-2 py-2 md:px-3 md:py-3">
             {tab === "forums" ? (
               <ForumsPanel
                 page={forumsQuery.data}
@@ -229,28 +246,62 @@ function CatalogFilters({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="grid grid-cols-2 gap-1 rounded-md border border-border/40 bg-card p-1">
-        <FilterButton active={sort === "name:asc"} onClick={() => onSortChange("name:asc")}>
-          A-Z
-        </FilterButton>
-        <FilterButton active={sort === "name:desc"} onClick={() => onSortChange("name:desc")}>
-          Z-A
-        </FilterButton>
-      </div>
+      <AdminTableHeaderActionButton
+        icon={ArrowUpAZ}
+        label="A-Z"
+        tone={sort === "name:asc" ? "primary" : "secondary"}
+        onClick={() => onSortChange("name:asc")}
+      />
+      <AdminTableHeaderActionButton
+        icon={ArrowDownAZ}
+        label="Z-A"
+        tone={sort === "name:desc" ? "primary" : "secondary"}
+        onClick={() => onSortChange("name:desc")}
+      />
       {showProvinceFilter ? (
-        <select
-          className="h-10 rounded-md border border-border/40 bg-card px-3 text-sm text-foreground shadow-none outline-none focus:border-ring/50 focus:ring-2 focus:ring-ring/10"
-          value={provinceId}
-          onChange={(event) => onProvinceChange(event.target.value)}
-          aria-label="Filtrar fueros por provincia"
-        >
-          <option value="">Todas las provincias</option>
-          {provinceOptions.map((province) => (
-            <option key={province.id} value={province.id}>
-              {province.name}
-            </option>
-          ))}
-        </select>
+        <>
+          <select
+            className="hidden h-10 rounded-md border border-border/40 bg-card px-3 text-sm text-foreground shadow-none outline-none focus:border-ring/50 focus:ring-2 focus:ring-ring/10 sm:block"
+            value={provinceId}
+            onChange={(event) => onProvinceChange(event.target.value)}
+            aria-label="Filtrar fueros por provincia"
+          >
+            <option value="">Todas las provincias</option>
+            {provinceOptions.map((province) => (
+              <option key={province.id} value={province.id}>
+                {province.name}
+              </option>
+            ))}
+          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AdminTableHeaderActionButton
+                aria-label="Filtrar por provincia"
+                className="sm:hidden"
+                icon={MapPinned}
+                label="Provincia"
+                tone={provinceId ? "primary" : "secondary"}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="max-h-72 w-64">
+              <DropdownMenuRadioGroup
+                value={provinceId || "__all__"}
+                onValueChange={(value) =>
+                  onProvinceChange(value === "__all__" ? "" : value)
+                }
+              >
+                <DropdownMenuRadioItem value="__all__">
+                  Todas las provincias
+                </DropdownMenuRadioItem>
+                {provinceOptions.map((province) => (
+                  <DropdownMenuRadioItem key={province.id} value={province.id}>
+                    {province.name}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
       ) : null}
     </div>
   );
@@ -269,13 +320,11 @@ function CatalogTable({
   loading: boolean;
   rows: Array<{ cells: ReactNode[]; id: string }>;
 }) {
-  const fillerRows = Math.max(0, catalogPageSize - rows.length);
-
   return (
     <div className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden rounded-md border border-border/30">
       <div className="grid shrink-0 grid-cols-4 border-b border-border/30 bg-secondary/30 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {columns.map((column) => (
-          <div key={column} className="px-4 py-3">
+          <div key={column} className="px-2 py-2 md:px-3">
             {column}
           </div>
         ))}
@@ -291,22 +340,27 @@ function CatalogTable({
         ) : rows.length === 0 ? (
           <StateBox text={emptyText} />
         ) : (
-          <div className="grid h-full grid-rows-8">
+          <div className="h-full overflow-y-auto">
             {rows.map((row) => (
               <div
                 key={row.id}
-                className="grid grid-cols-4 items-center border-b border-border/20 text-sm last:border-b-0"
+                className="grid min-h-12 grid-cols-4 items-center border-b border-border/20 text-sm last:border-b-0"
               >
                 {row.cells.map((cell, index) => (
-                  <div key={index} className="min-w-0 px-4 py-3">
+                  <div key={index} className="min-w-0 px-2 py-2 md:px-3">
                     <div className="truncate">{cell}</div>
                   </div>
                 ))}
               </div>
             ))}
-            {Array.from({ length: fillerRows }).map((_, index) => (
-              <div key={`filler-${index}`} className="border-b border-border/10 last:border-b-0" />
-            ))}
+            {Array.from({ length: Math.max(0, catalogPageSize - rows.length) }).map(
+              (_, index) => (
+                <div
+                  key={`filler-${index}`}
+                  className="min-h-12 border-b border-border/10 last:border-b-0"
+                />
+              )
+            )}
           </div>
         )}
       </div>
@@ -393,65 +447,6 @@ function StatusPill({ active }: { active: boolean }) {
   );
 }
 
-function Metric({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {
-  return (
-    <Card
-      data-admin-surface
-      className={`${adminSurfaceClassName} border-0 shadow-[var(--admin-card-shadow)]`}
-    >
-      <CardContent className="flex items-center justify-between gap-4 px-5 py-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <span className="flex size-10 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </span>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TabButton({
-  active,
-  children,
-  onClick
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`h-9 rounded-md px-3 text-sm font-medium transition-colors ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
-
-function FilterButton({
-  active,
-  children,
-  onClick
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`h-8 rounded px-3 text-xs font-semibold transition-colors ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
-
 function StateBox({
   icon,
   text,
@@ -473,21 +468,9 @@ function StateBox({
 
 function RestrictedLegalCatalogs() {
   return (
-    <Card
-      data-admin-surface
-      className="mx-auto max-w-xl rounded-xl border-0 bg-card text-card-foreground shadow-[var(--admin-card-shadow)]"
-    >
-      <CardContent className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
-          <Gavel className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Catalogos restringidos</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Necesitas permisos para consultar fueros o provincias del sistema.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <UnauthorizedState
+      title="Catalogos restringidos"
+      description="Necesitas permisos adicionales para acceder al area de catalogos legales."
+    />
   );
 }

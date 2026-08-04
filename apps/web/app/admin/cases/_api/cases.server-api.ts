@@ -5,6 +5,7 @@ import type {
   CaseDetailDto,
   CaseExpensesListResponse,
   CaseTasksListResponse,
+  CasesMetricsDto,
   CasesListResponse,
   CasesQueryParams
 } from "../_types/cases.types";
@@ -41,6 +42,10 @@ export async function listCasesServer(params: CasesQueryParams): Promise<CasesLi
   }
 
   return requestCasesServer<CasesListResponse>(`/api/cases?${searchParams.toString()}`);
+}
+
+export async function getCaseMetricsServer(): Promise<CasesMetricsDto> {
+  return requestCasesServer<CasesMetricsDto>("/api/cases/metrics");
 }
 
 export async function getCaseDetailServer(caseId: string): Promise<CaseDetailDto> {

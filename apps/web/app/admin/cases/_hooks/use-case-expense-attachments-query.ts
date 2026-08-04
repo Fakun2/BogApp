@@ -1,8 +1,11 @@
 "use client";
 
-import { useDashboardQuery } from "@/lib/query/use-dashboard-query";
-import { caseKeys, listCaseExpenseAttachments } from "../_api/cases.api";
+import { useState } from "react";
+import { casesQueries } from "../_api/cases.query-controller";
 import type { CaseExpenseAttachmentsListResponse } from "../_types/cases.types";
+import { useCasesQuery } from "./use-cases-query";
+
+const caseExpenseAttachmentsPageSize = 8;
 
 export function useCaseExpenseAttachmentsQuery({
   caseId,
@@ -13,10 +16,29 @@ export function useCaseExpenseAttachmentsQuery({
   enabled?: boolean;
   expenseId: string;
 }) {
-  return useDashboardQuery<CaseExpenseAttachmentsListResponse>({
-    enabled,
-    permission: "expenses:read",
-    queryKey: caseKeys.expenseAttachments(caseId, expenseId),
-    queryFn: () => listCaseExpenseAttachments({ caseId, expenseId })
-  });
+  const [cursorStack, setCursorStack] = useState<string[]>([""]);
+  const cursor = cursorStack.at(-1) || undefined;
+  const query = useCasesQuery<CaseExpenseAttachmentsListResponse>(
+    casesQueries.expenseAttachments({
+      caseId,
+      cursor,
+      enabled,
+      expenseId,
+      limit: caseExpenseAttachmentsPageSize
+    })
+  );
+
+  return {
+    ...query,
+    canGoBack: cursorStack.length > 1,
+    goBack: () => setCursorStack((current) => current.slice(0, -1)),
+    goForward: () => {
+      const nextCursor = query.data?.pageInfo.nextCursor;
+      if (nextCursor) {
+        setCursorStack((current) => [...current, nextCursor]);
+      }
+    },
+    pageIndex: cursorStack.length - 1,
+    pageSize: caseExpenseAttachmentsPageSize
+  };
 }

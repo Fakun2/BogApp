@@ -22,7 +22,7 @@ export function LoginForm({ firstLogin, initialEmail }: LoginFormProps) {
 
   return (
     <>
-      <div className="w-full max-w-[390px]">
+      <div className="my-auto w-full max-w-[390px]">
         <div className="mb-9">
           <h1 className="text-balance text-3xl font-semibold leading-tight tracking-normal text-foreground md:text-[34px]">
             {title}
@@ -34,7 +34,7 @@ export function LoginForm({ firstLogin, initialEmail }: LoginFormProps) {
           <LoginField label="Email" error={state.fieldErrors.email}>
             <Input
               autoComplete="email"
-              className="h-12 rounded-2xl border-field-border bg-field px-4 text-sm text-field-foreground"
+              className="h-12 rounded-2xl border-field-border bg-field px-4 text-base text-field-foreground md:text-sm"
               inputMode="email"
               placeholder="ejemplo@gmail.com"
               value={state.form.email}

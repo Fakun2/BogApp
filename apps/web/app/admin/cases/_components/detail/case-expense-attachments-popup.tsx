@@ -2,12 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Download, FileText, Loader2, Paperclip, Trash2, Upload, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileText,
+  Loader2,
+  Paperclip,
+  Trash2,
+  Upload,
+  X
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCaseExpenseAttachmentDownloadUrl } from "../../_api/cases.api";
+import { casesMutations } from "../../_api/cases.mutation-controller";
+import { adminPrimaryActionButtonClassName } from "../../../_constants/dashboard";
 import { useCaseExpenseAttachmentsQuery } from "../../_hooks/use-case-expense-attachments-query";
-import { useDeleteCaseExpenseAttachmentMutation } from "../../_hooks/use-delete-case-expense-attachment-mutation";
-import { useUploadCaseExpenseAttachmentMutation } from "../../_hooks/use-upload-case-expense-attachment-mutation";
+import { useCasesMutation } from "../../_hooks/use-cases-mutation";
 import type { CaseExpenseDto } from "../../_types/cases.types";
 
 const acceptedAttachmentTypes = "application/pdf,image/jpeg,image/png,image/webp";
@@ -31,15 +42,14 @@ export function CaseExpenseAttachmentsPopup({
     caseId,
     expenseId: expense.id
   });
-  const uploadMutation = useUploadCaseExpenseAttachmentMutation({
-    caseId,
-    expenseId: expense.id
-  });
-  const deleteMutation = useDeleteCaseExpenseAttachmentMutation({
-    caseId,
-    expenseId: expense.id
-  });
+  const uploadMutation = useCasesMutation(
+    casesMutations.uploadExpenseAttachment({ caseId, expenseId: expense.id })
+  );
+  const deleteMutation = useCasesMutation(
+    casesMutations.deleteExpenseAttachment({ caseId, expenseId: expense.id })
+  );
   const attachments = attachmentsQuery.data?.items ?? [];
+  const hasNextPage = Boolean(attachmentsQuery.data?.pageInfo.hasNextPage);
 
   useEffect(() => {
     setMounted(true);
@@ -114,7 +124,7 @@ export function CaseExpenseAttachmentsPopup({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-lg border-border/50 p-0"
+            className="h-8 w-8 border-border/50 p-0"
             onClick={requestClose}
             aria-label="Cerrar comprobantes"
           >
@@ -134,8 +144,7 @@ export function CaseExpenseAttachmentsPopup({
               />
               <Button
                 type="button"
-                variant="outline"
-                className="h-10 w-full justify-center gap-2 rounded-xl border-border/50"
+                className={`h-10 w-full justify-center px-3 sm:gap-2 sm:px-4 ${adminPrimaryActionButtonClassName}`}
                 disabled={uploadMutation.isPending}
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -144,7 +153,7 @@ export function CaseExpenseAttachmentsPopup({
                 ) : (
                   <Upload className="h-4 w-4" aria-hidden="true" />
                 )}
-                Subir comprobante
+                <span className="hidden sm:inline">Subir comprobante</span>
               </Button>
               <p className="mt-2 text-center text-xs text-muted-foreground">
                 PDF, JPG, PNG o WebP. Maximo 10 MB.
@@ -187,7 +196,7 @@ export function CaseExpenseAttachmentsPopup({
                       asChild
                       type="button"
                       variant="outline"
-                      className="h-8 w-8 rounded-lg border-border/50 p-0"
+                      className="h-8 w-8 border-border/50 p-0"
                       aria-label={`Descargar ${attachment.originalName}`}
                     >
                       <a
@@ -204,7 +213,7 @@ export function CaseExpenseAttachmentsPopup({
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-8 w-8 rounded-lg border-destructive/30 p-0 text-destructive hover:text-destructive"
+                        className="h-8 w-8 border-destructive/30 p-0 text-destructive hover:text-destructive"
                         disabled={deleteMutation.isPending}
                         onClick={() => void handleDelete(attachment.id)}
                         aria-label={`Eliminar ${attachment.originalName}`}
@@ -221,6 +230,34 @@ export function CaseExpenseAttachmentsPopup({
               Todavia no hay comprobantes cargados para este gasto.
             </div>
           )}
+
+          <div className="flex items-center justify-between gap-3 border-t border-border/30 pt-3 text-sm text-muted-foreground">
+            <span>
+              Pagina {attachmentsQuery.pageIndex + 1} - {attachments.length} comprobantes
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-8 w-8 border-border/50 p-0"
+                disabled={!attachmentsQuery.canGoBack || attachmentsQuery.isFetching}
+                onClick={attachmentsQuery.goBack}
+                aria-label="Pagina anterior"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-8 w-8 border-border/50 p-0"
+                disabled={!hasNextPage || attachmentsQuery.isFetching}
+                onClick={attachmentsQuery.goForward}
+                aria-label="Pagina siguiente"
+              >
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+          </div>
 
           {uploadMutation.error || deleteMutation.error ? (
             <p className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">

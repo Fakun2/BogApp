@@ -9,11 +9,16 @@ const isDev = process.env.NODE_ENV !== "production";
 
 loadEnvConfig(workspaceRoot, isDev);
 
+const lanAllowedDevOrigins = process.env.NEXT_ALLOWED_DEV_ORIGINS?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean) ?? ["192.168.100.9"];
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: workspaceRoot
   },
-  transpilePackages: ["@bogaap/api-client"]
+  transpilePackages: ["@bogaap/api-client"],
+  allowedDevOrigins: lanAllowedDevOrigins
 };
 
 export default nextConfig;

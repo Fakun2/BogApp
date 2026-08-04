@@ -3,6 +3,16 @@ export type CaseInstance = "first" | "second" | "third";
 export type CaseCatalogStrategy = "manual" | "center_forum";
 export type CaseTaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
 export type CaseExpenseStatus = "pending" | "paid" | "cancelled" | "overdue";
+export type CaseHearingType =
+  | "preliminary"
+  | "trial_view"
+  | "conciliation"
+  | "mediation"
+  | "testimonial"
+  | "confessional"
+  | "debate"
+  | "investigative_statement"
+  | "other";
 
 export type ProvinceDto = {
   caseCatalogStrategy: CaseCatalogStrategy;
@@ -72,13 +82,24 @@ export type CaseDto = {
 export type CaseTaskDto = {
   id: string;
   caseId: string;
+  assignedMembershipId: string | null;
+  assignedTo: TaskAssigneeOption | null;
   name: string;
   startDate: string | null;
   endDate: string | null;
   status: CaseTaskStatus;
   notes: string | null;
+  lastSeenAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type TaskAssigneeOption = {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  roleName: string | null;
 };
 
 export type CaseExpenseDto = {
@@ -107,6 +128,18 @@ export type CaseExpenseAttachmentDto = {
   createdAt: string;
 };
 
+export type CaseHearingDto = {
+  id: string;
+  caseId: string;
+  type: CaseHearingType;
+  date: string;
+  time: string;
+  description: string;
+  notificationsEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type CaseMetricsDto = {
   totalExpenses: number;
   pendingPayments: number;
@@ -116,6 +149,13 @@ export type CaseMetricsDto = {
 
 export type CaseDetailDto = CaseDto & {
   metrics: CaseMetricsDto;
+};
+
+export type CasesMetricsDto = {
+  totalCases: number;
+  openCases: number;
+  closedCases: number;
+  pendingTasks: number;
 };
 
 export type CaseTasksListResponse = {
@@ -140,8 +180,62 @@ export type CaseExpensesListResponse = {
   };
 };
 
+export type CaseHearingsListResponse = {
+  items: CaseHearingDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
+export type CaseExpenseSummaryItemDto = {
+  id: string;
+  concept: string;
+  amount: number;
+  percentage: number;
+};
+
+export type CaseExpensesSummaryDto = {
+  totalAmount: number;
+  totalCount: number;
+  items: CaseExpenseSummaryItemDto[];
+};
+
+export type CaseCalendarEventDto = {
+  amount?: number;
+  date: string;
+  id: string;
+  status?: CaseExpenseStatus | string;
+  hearingType?: CaseHearingType;
+  time?: string;
+  title: string;
+  type: "payment_due" | "hearing" | "task_due";
+};
+
+export type CaseCalendarResponseDto = {
+  events: CaseCalendarEventDto[];
+  month: string;
+  pageInfo?: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
 export type CaseExpenseAttachmentsListResponse = {
   items: CaseExpenseAttachmentDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
 };
 
 export type CasesListResponse = {

@@ -1,5 +1,6 @@
-import { Filter } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { adminPrimaryActionButtonClassName } from "../../../_constants/dashboard";
 
 export function StaffFilterActions({
   disabled,
@@ -19,15 +20,21 @@ export function StaffFilterActions({
       <Button
         type="button"
         variant="outline"
-        className="h-11 rounded-xl border-border/50 px-4 text-sm"
+        className="h-11 border-border/50 px-3 text-sm sm:px-4"
         disabled={!hasActiveFilters && !hasDraftFilters}
         onClick={onReset}
       >
-        Limpiar
+        <X className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="hidden sm:inline">Limpiar</span>
       </Button>
-      <Button type="button" className="h-11 rounded-xl px-4 text-sm" disabled={disabled} onClick={onApply}>
+      <Button
+        type="button"
+        className={`h-11 px-3 text-sm sm:px-4 ${adminPrimaryActionButtonClassName}`}
+        disabled={disabled}
+        onClick={onApply}
+      >
         <Filter className="h-3.5 w-3.5" aria-hidden="true" />
-        Buscar
+        <span className="hidden sm:inline">Buscar</span>
       </Button>
     </div>
   );

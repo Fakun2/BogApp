@@ -1,8 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { useCaseFiltersController } from "../../_hooks/use-case-filters-controller";
 import type { CaseFiltersDraft } from "../../_types/case-filter.types";
 import { CaseFilterActions } from "./case-filter-actions";
@@ -19,6 +27,7 @@ export function CaseFiltersPopover({
   onApply: (filters: CaseFiltersDraft) => void;
   onReset: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const {
     draft,
     forums,
@@ -30,24 +39,37 @@ export function CaseFiltersPopover({
     updateDraft
   } = useCaseFiltersController(filters);
 
+  function handleApply() {
+    onApply(draft);
+    setOpen(false);
+  }
+
+  function handleReset() {
+    onReset();
+    setOpen(false);
+  }
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-10 rounded-2xl border-border/50 px-4"
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <AdminTableHeaderActionButton
+          icon={SlidersHorizontal}
+          label="Filtros"
           aria-label="Abrir filtros de expedientes"
         >
-          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-          Filtros
           {hasActiveFilters ? (
             <span className="ml-1 size-2 rounded-full bg-primary" aria-hidden="true" />
           ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[calc(100vw-2rem)] max-w-2xl p-4" align="end">
-        <div className="grid gap-3 md:grid-cols-2">
+        </AdminTableHeaderActionButton>
+      </DialogTrigger>
+      <DialogContent className="max-h-[min(720px,calc(100svh-2rem))] w-[calc(100vw-2rem)] max-w-3xl overflow-hidden p-0">
+        <DialogHeader className="border-b border-border/40 px-5 pb-4 pt-5">
+          <DialogTitle>Filtros de expedientes</DialogTitle>
+          <DialogDescription>
+            Ajusta los criterios para revisar el volumen de expedientes sin salir de la tabla.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid min-h-0 gap-3 overflow-y-auto px-5 py-5 md:grid-cols-2">
           <CaseFilterControls
             disabled={disabled}
             draft={draft}
@@ -61,11 +83,11 @@ export function CaseFiltersPopover({
             disabled={disabled}
             hasActiveFilters={hasActiveFilters}
             hasDraftFilters={hasDraftFilters}
-            onApply={() => onApply(draft)}
-            onReset={onReset}
+            onApply={handleApply}
+            onReset={handleReset}
           />
         </div>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 }

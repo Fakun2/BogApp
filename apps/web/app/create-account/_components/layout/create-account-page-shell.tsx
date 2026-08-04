@@ -22,7 +22,7 @@ export function CreateAccountPageShell({
 
   return (
     <main
-      className="min-h-screen bg-background py-4 text-foreground transition-colors lg:h-screen lg:cursor-none lg:overflow-hidden lg:px-3 lg:[&_*]:cursor-none 2xl:py-12"
+      className="fixed inset-0 h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-background p-3 text-foreground transition-colors supports-[height:100dvh]:h-[100dvh] supports-[height:100dvh]:max-h-[100dvh] sm:p-4 lg:cursor-none lg:[&_*]:cursor-none"
       {...surfaceHandlers}
     >
       {children}

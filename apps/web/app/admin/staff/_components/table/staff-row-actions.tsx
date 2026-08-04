@@ -61,7 +61,7 @@ export function StaffRowActions({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-lg border-border/50 p-0"
+            className="h-8 w-8 border-border/50 p-0"
             aria-label={`Acciones para ${worker.fullName}`}
           >
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />

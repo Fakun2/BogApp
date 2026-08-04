@@ -18,7 +18,7 @@ export default function CreateAccountPage() {
         transitionExiting={formState.transitionExiting}
         transitionSuccess={formState.transitionSuccess}
       >
-        <div className="mx-auto grid min-h-screen w-full gap-3 lg:h-full lg:min-h-0 lg:max-w-[1800px] lg:grid-cols-[530px_1fr]">
+        <div className="mx-auto grid h-full min-h-0 w-full gap-3 lg:grid-cols-[530px_1fr]">
           <CreateAccountPanel
             darkMode={theme.isDark}
             formState={formState}

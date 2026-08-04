@@ -2,6 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Loader2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -22,8 +25,11 @@ import type {
   CaseSortKey,
   CasesTableColumn
 } from "../../_types/cases.types";
+import { casesMutations } from "../../_api/cases.mutation-controller";
+import { useCasesMutation } from "../../_hooks/use-cases-mutation";
 import { CaseRowActions } from "./case-row-actions";
 import { CaseSortableColumnHeader } from "./case-sortable-column-header";
+import { DeleteCasesDialog } from "./delete-cases-dialog";
 import { TableStateRow } from "./table-state-row";
 
 export function CasesTable({
@@ -32,6 +38,7 @@ export function CasesTable({
   cases,
   columns,
   error,
+  onSort,
   sortBy,
   sortDirection
 }: {
@@ -40,10 +47,13 @@ export function CasesTable({
   cases: CaseDto[];
   columns: CasesTableColumn[];
   error: Error | null;
+  onSort: (sortBy: CaseSortKey) => void;
   sortBy: CaseSortKey;
   sortDirection: CaseSortDirection;
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const deleteMutation = useCasesMutation(casesMutations.deleteCase());
   const hasActions = true;
   const columnCount = columns.length + 1 + (hasActions ? 1 : 0);
   const fillerRows = Math.max(0, casesPageSize - cases.length);
@@ -82,6 +92,19 @@ export function CasesTable({
     });
   }
 
+  async function handleBulkDelete() {
+    const idsToDelete = [...selectedIds];
+    try {
+      for (const id of idsToDelete) {
+        await deleteMutation.mutateAsync(id);
+      }
+      setBulkDeleteOpen(false);
+      setSelectedIds(new Set());
+    } catch {
+      // The mutation exposes its error state in the confirmation panel.
+    }
+  }
+
   if (error) {
     return <TableStateRow text={error.message} />;
   }
@@ -91,70 +114,109 @@ export function CasesTable({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-2xl">
-      <Table className="min-w-full text-xs">
-        <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="h-11 w-10 px-4 text-sm font-medium text-foreground">
-              <Checkbox
-                checked={allPageRowsSelected || (somePageRowsSelected ? "indeterminate" : false)}
-                onCheckedChange={(value) => toggleAllPageRows(Boolean(value))}
-                aria-label="Seleccionar todos los expedientes de la pagina"
-              />
-            </TableHead>
-            {columns.map((column) => (
-              <TableHead className="h-11 px-4 text-sm font-medium text-foreground" key={column}>
-                {renderCaseTableHeader({
-                  activeSortKey: sortBy,
-                  column,
-                  direction: sortDirection
-                })}
-              </TableHead>
-            ))}
-            {hasActions ? (
-              <TableHead className="h-11 px-4 text-right text-sm font-medium text-foreground">
-                Acciones
-              </TableHead>
-            ) : null}
-          </TableRow>
-        </TableHeader>
-        <TableBody className="[&_tr:last-child]:border-0">
-          {cases.map((item) => (
-            <TableRow className="h-[70px] border-border/40 hover:bg-secondary/30" key={item.id}>
-              <TableCell className="w-10 px-4 py-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {canDelete && selectedPageCount > 0 ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/50 bg-muted/35 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            {selectedPageCount === 1
+              ? "1 expediente seleccionado"
+              : `${selectedPageCount} expedientes seleccionados`}
+          </p>
+          <Button
+            type="button"
+            className="h-9 bg-destructive px-3 text-destructive-foreground hover:bg-destructive/85 sm:gap-2 sm:px-4"
+            disabled={deleteMutation.isPending}
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            {deleteMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span className="hidden sm:inline">Eliminar</span>
+          </Button>
+        </div>
+      ) : null}
+      <div className="min-h-0 flex-1 overflow-auto rounded-2xl">
+        <Table className="min-w-max text-xs">
+          <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-11 w-10 px-4 text-sm font-medium text-foreground">
                 <Checkbox
-                  checked={selectedIds.has(item.id)}
-                  onCheckedChange={(value) => toggleRow(item.id, Boolean(value))}
-                  aria-label={`Seleccionar ${item.caseNumber}`}
+                  checked={allPageRowsSelected || (somePageRowsSelected ? "indeterminate" : false)}
+                  onCheckedChange={(value) => toggleAllPageRows(Boolean(value))}
+                  aria-label="Seleccionar todos los expedientes de la pagina"
                 />
-              </TableCell>
+              </TableHead>
               {columns.map((column) => (
-                <TableCell className="px-4 py-4" key={column}>
-                  {renderCaseTableCell(column, item)}
-                </TableCell>
+                <TableHead
+                  className={`h-11 px-4 text-sm font-medium text-foreground ${getCaseTableColumnClassName(column)}`}
+                  key={column}
+                >
+                  {renderCaseTableHeader({
+                    activeSortKey: sortBy,
+                    column,
+                    direction: sortDirection,
+                    onSort
+                  })}
+                </TableHead>
               ))}
               {hasActions ? (
-                <TableCell className="px-4 py-4 text-right">
-                  <div className="flex justify-end">
-                    <CaseRowActions canDelete={canDelete} canUpdate={canUpdate} caseItem={item} />
-                  </div>
-                </TableCell>
+                <TableHead className="h-11 px-4 text-right text-sm font-medium text-foreground">
+                  Acciones
+                </TableHead>
               ) : null}
             </TableRow>
-          ))}
-          {Array.from({ length: fillerRows }).map((_, index) => (
-            <TableRow
-              aria-hidden="true"
-              className="h-[70px] border-border/40 hover:bg-transparent"
-              key={`case-filler-${index}`}
-            >
-              <TableCell className="px-4 py-4" colSpan={columnCount}>
-                <span className="sr-only">Fila vacia</span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody className="[&_tr:last-child]:border-0">
+            {cases.map((item) => (
+              <TableRow className="h-[70px] border-border/40 hover:bg-secondary/30" key={item.id}>
+                <TableCell className="w-10 px-4 py-4">
+                  <Checkbox
+                    checked={selectedIds.has(item.id)}
+                    onCheckedChange={(value) => toggleRow(item.id, Boolean(value))}
+                    aria-label={`Seleccionar ${item.caseNumber}`}
+                  />
+                </TableCell>
+                {columns.map((column) => (
+                  <TableCell
+                    className={`px-4 py-4 ${getCaseTableColumnClassName(column)}`}
+                    key={column}
+                  >
+                    {renderCaseTableCell(column, item)}
+                  </TableCell>
+                ))}
+                {hasActions ? (
+                  <TableCell className="px-4 py-4 text-right">
+                    <div className="flex justify-end">
+                      <CaseRowActions canDelete={canDelete} canUpdate={canUpdate} caseItem={item} />
+                    </div>
+                  </TableCell>
+                ) : null}
+              </TableRow>
+            ))}
+            {Array.from({ length: fillerRows }).map((_, index) => (
+              <TableRow
+                aria-hidden="true"
+                className="h-[70px] border-border/40 hover:bg-transparent"
+                key={`case-filler-${index}`}
+              >
+                <TableCell className="px-4 py-4" colSpan={columnCount}>
+                  <span className="sr-only">Fila vacia</span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <DeleteCasesDialog
+        count={selectedPageCount}
+        error={deleteMutation.error?.message}
+        loading={deleteMutation.isPending}
+        open={bulkDeleteOpen}
+        onConfirm={() => void handleBulkDelete()}
+        onOpenChange={setBulkDeleteOpen}
+      />
     </div>
   );
 }
@@ -162,11 +224,13 @@ export function CasesTable({
 function renderCaseTableHeader({
   activeSortKey,
   column,
-  direction
+  direction,
+  onSort
 }: {
   activeSortKey: CaseSortKey;
   column: CasesTableColumn;
   direction: CaseSortDirection;
+  onSort: (sortBy: CaseSortKey) => void;
 }) {
   const sortableColumnMap: Partial<Record<CasesTableColumn, CaseSortKey>> = {
     caption: "caption",
@@ -184,6 +248,7 @@ function renderCaseTableHeader({
       active={activeSortKey === sortKey}
       direction={direction}
       label={casesTableColumnLabels[column]}
+      onSort={onSort}
       sortKey={sortKey}
     />
   );
@@ -191,11 +256,27 @@ function renderCaseTableHeader({
 
 function renderCaseTableCell(column: CasesTableColumn, item: CaseDto) {
   const cellRenderMap: Record<CasesTableColumn, ReactNode> = {
-    caseNumber: <span className="font-medium text-foreground">{item.caseNumber}</span>,
+    caseNumber: (
+      <Link
+        className="font-medium text-foreground underline-offset-4 transition-colors hover:text-btn-primary hover:underline"
+        href={`/admin/cases/${item.id}`}
+      >
+        {item.caseNumber}
+      </Link>
+    ),
     caption: (
-      <span className="block min-w-0">
-        <span className="block truncate text-sm font-medium text-foreground">{item.caption}</span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+      <span className="block min-w-0 max-w-[280px] sm:max-w-[340px] xl:max-w-[420px]">
+        <Link
+          className="block truncate text-sm font-medium text-foreground underline-offset-4 transition-colors hover:text-btn-primary hover:underline"
+          href={`/admin/cases/${item.id}`}
+          title={item.caption}
+        >
+          {item.caption}
+        </Link>
+        <span
+          className="mt-0.5 block truncate text-xs text-muted-foreground"
+          title={item.subject || "Sin asunto"}
+        >
           {item.subject || "Sin asunto"}
         </span>
       </span>
@@ -208,6 +289,12 @@ function renderCaseTableCell(column: CasesTableColumn, item: CaseDto) {
   };
 
   return cellRenderMap[column];
+}
+
+function getCaseTableColumnClassName(column: CasesTableColumn) {
+  return column === "caption"
+    ? "w-[280px] max-w-[280px] sm:w-[340px] sm:max-w-[340px] xl:w-[420px] xl:max-w-[420px]"
+    : "";
 }
 
 function NullableText({ value }: { value: string | null | undefined }) {

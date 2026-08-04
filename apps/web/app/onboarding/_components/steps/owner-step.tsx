@@ -12,7 +12,7 @@ export function OwnerStep({ form, updateOwner }: OwnerStepProps) {
     <div className="grid gap-4">
       <OnboardingField label="Nombre">
         <Input
-          className="h-12 rounded-2xl border-field-border bg-field px-4 text-sm text-field-foreground"
+          className="h-12 rounded-2xl border-field-border bg-field px-4 text-base text-field-foreground md:text-sm"
           value={form.owner.fullName}
           onChange={(event) => updateOwner("fullName", event.currentTarget.value)}
         />
@@ -20,7 +20,7 @@ export function OwnerStep({ form, updateOwner }: OwnerStepProps) {
       <OnboardingField label="Email">
         <Input
           type="email"
-          className="h-12 rounded-2xl border-field-border bg-field px-4 text-sm text-field-foreground"
+          className="h-12 rounded-2xl border-field-border bg-field px-4 text-base text-field-foreground md:text-sm"
           value={form.owner.email}
           onChange={(event) => updateOwner("email", event.currentTarget.value)}
         />

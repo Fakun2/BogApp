@@ -20,7 +20,7 @@ export function OnboardingForm() {
 
   if (!onboarding.sessionReady) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+      <main className="flex h-[100svh] items-center justify-center bg-background text-foreground supports-[height:100dvh]:h-[100dvh]">
         <Loader2 className="h-5 w-5 animate-spin" />
       </main>
     );
@@ -28,10 +28,8 @@ export function OnboardingForm() {
 
   return (
     <>
-      <main
-        className="min-h-screen bg-background p-3 text-foreground transition-colors md:p-5"
-      >
-        <div className="grid min-h-[calc(100vh-24px)] overflow-hidden rounded-2xl md:min-h-[calc(100vh-40px)] lg:grid-cols-[minmax(280px,0.3fr)_minmax(0,0.7fr)]">
+      <main className="fixed inset-0 h-[100svh] max-h-[100svh] w-full overflow-hidden bg-background p-3 text-foreground transition-colors supports-[height:100dvh]:h-[100dvh] supports-[height:100dvh]:max-h-[100dvh] md:p-5">
+        <div className="grid h-full min-h-0 overflow-hidden rounded-2xl lg:grid-cols-[minmax(280px,0.3fr)_minmax(0,0.7fr)]">
           <OnboardingVisual
             currentStep={onboarding.step}
             progress={onboarding.progress}
@@ -39,7 +37,7 @@ export function OnboardingForm() {
             submitting={onboarding.submitting}
           />
 
-          <section className="relative flex min-h-[calc(100vh-24px)] items-center justify-center bg-transparent px-5 py-16 text-foreground shadow-none md:min-h-[calc(100vh-40px)] md:px-8 dark:text-[var(--onboarding-panel-foreground)] dark:[--border:var(--onboarding-panel-border)] dark:[--field-border:var(--onboarding-panel-border)] dark:[--field-foreground:var(--onboarding-panel-surface-foreground)] dark:[--field:var(--onboarding-panel-surface)]">
+          <section className="relative flex min-h-0 items-start justify-center overflow-y-auto overscroll-contain bg-transparent px-4 py-14 text-foreground shadow-none sm:px-5 sm:py-16 md:px-8 lg:py-10 dark:text-[var(--onboarding-panel-foreground)] dark:[--border:var(--onboarding-panel-border)] dark:[--field-border:var(--onboarding-panel-border)] dark:[--field-foreground:var(--onboarding-panel-surface-foreground)] dark:[--field:var(--onboarding-panel-surface)]">
             <div className="absolute right-5 top-5">
               <Button
                 type="button"
@@ -52,12 +50,12 @@ export function OnboardingForm() {
               </Button>
             </div>
 
-            <div className="w-full max-w-[560px]">
-              <div className="mb-8">
+            <div className="my-auto w-full max-w-[560px]">
+              <div className="mb-6 md:mb-8">
                 <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1">
                   {onboarding.currentStep.eyebrow}
                 </Badge>
-                <h1 className="text-balance text-3xl font-semibold leading-tight tracking-normal md:text-[34px]">
+                <h1 className="text-balance text-2xl font-semibold leading-tight tracking-normal sm:text-3xl md:text-[34px]">
                   {onboarding.currentStep.title}
                 </h1>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -99,7 +97,7 @@ export function OnboardingForm() {
                     </p>
                   ) : null}
 
-                  <div className="flex items-center justify-between gap-3 pt-2">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                     <Button
                       type="button"
                       variant="outline"

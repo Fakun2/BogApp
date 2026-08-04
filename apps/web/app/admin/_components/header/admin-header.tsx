@@ -28,7 +28,7 @@ export function AdminHeader({
         <HeaderActionButton
           label="Abrir navegacion"
           onClick={onOpenMobileSidebar}
-          className="shrink-0 xl:hidden"
+          className="shrink-0 lg:hidden"
         >
           <Menu className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
         </HeaderActionButton>

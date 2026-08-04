@@ -9,9 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { useDeleteCaseExpenseMutation } from "../../_hooks/use-delete-case-expense-mutation";
+import { casesMutations } from "../../_api/cases.mutation-controller";
+import { useCasesMutation } from "../../_hooks/use-cases-mutation";
 import type { CaseExpenseDto, CaseTaskDto } from "../../_types/cases.types";
-import { CaseExpenseSheet } from "./case-expense-sheet";
+import { CaseExpenseSheet } from "./expense-sheet";
 
 export function CaseExpenseRowActions({
   canDelete,
@@ -26,7 +27,7 @@ export function CaseExpenseRowActions({
   expense: CaseExpenseDto;
   tasks: CaseTaskDto[];
 }) {
-  const deleteMutation = useDeleteCaseExpenseMutation(caseId);
+  const deleteMutation = useCasesMutation(casesMutations.deleteExpense(caseId));
   const router = useRouter();
 
   if (!canDelete && !canUpdate) {
@@ -48,7 +49,7 @@ export function CaseExpenseRowActions({
         <Button
           type="button"
           variant="outline"
-          className="h-8 w-8 rounded-lg border-border/50 p-0"
+          className="h-8 w-8 border-border/50 p-0"
           disabled={deleteMutation.isPending}
           aria-label={`Acciones para ${expense.concept}`}
         >

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { BriefcaseBusiness, Loader2 } from "lucide-react";
+import { BriefcaseBusiness, Loader2, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +28,7 @@ import {
   caseStatusLabels,
   caseTextareaClassName
 } from "../../_constants/cases.constants";
+import { adminPrimaryActionButtonClassName } from "../../../_constants/dashboard";
 import { useCaseSheetController } from "../../_hooks/use-case-sheet-controller";
 import type { CaseDto } from "../../_types/cases.types";
 import {
@@ -36,6 +36,7 @@ import {
   getJudicialCenterPlaceholder,
   mapRecordToOptions
 } from "../../_utils/case-options";
+import { CaseDateInput } from "./case-date-input";
 import { CaseField } from "./case-field";
 import { CaseParticipantsSection } from "./case-participants-section";
 
@@ -44,7 +45,6 @@ const caseStatusOptions = mapRecordToOptions(caseStatusLabels);
 
 export function CaseSheet({ caseItem, trigger }: { caseItem?: CaseDto; trigger: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
   const {
     addParticipant,
     draft,
@@ -69,7 +69,6 @@ export function CaseSheet({ caseItem, trigger }: { caseItem?: CaseDto; trigger: 
     caseItem,
     onSuccess: () => {
       setOpen(false);
-      router.refresh();
     }
   });
   const needsJudicialCenter = strategyConfig.forumScope === "judicialCenter";
@@ -130,12 +129,26 @@ export function CaseSheet({ caseItem, trigger }: { caseItem?: CaseDto; trigger: 
             ) : null}
           </div>
           <div className="flex shrink-0 justify-end gap-2 border-t border-border/30 p-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancelar
+            <Button
+              type="button"
+              variant="outline"
+              className="px-3 sm:px-4"
+              onClick={() => setOpen(false)}
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Cancelar</span>
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Guardar
+            <Button
+              type="submit"
+              className={`px-3 sm:px-4 ${adminPrimaryActionButtonClassName}`}
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Save className="h-4 w-4" aria-hidden="true" />
+              )}
+              <span className="hidden sm:inline">Guardar</span>
             </Button>
           </div>
         </form>
@@ -188,9 +201,8 @@ function CaseMainFields({
         />
       </CaseField>
       <CaseField error={errors.filingDate} label="Fecha de ingreso">
-        <Input
-          className={caseInputClassName}
-          type="date"
+        <CaseDateInput
+          autoComplete="off"
           value={draft.filingDate ?? ""}
           onChange={(event) => onDraftChange("filingDate", event.target.value)}
           aria-invalid={Boolean(errors.filingDate)}
@@ -336,7 +348,7 @@ function CaseMainFields({
       </CaseField>
       <CaseField className="md:col-span-2" label="Descripcion">
         <Textarea
-          className={`min-h-28 ${caseTextareaClassName}`}
+          className={`min-h-28 resize-none ${caseTextareaClassName}`}
           placeholder="Notas internas o descripcion breve"
           value={draft.description ?? ""}
           onChange={(event) => onDraftChange("description", event.target.value)}

@@ -26,7 +26,7 @@ export function CreateAccountForm({ state }: CreateAccountFormProps) {
             <div className={isPassword ? "relative" : undefined}>
               <Input
                 autoComplete={field.autoComplete}
-                className="h-12 rounded-2xl border-field-border bg-field px-4 text-sm text-field-foreground"
+                className="h-12 w-full rounded-2xl border-field-border bg-field px-4 text-base text-field-foreground md:text-sm"
                 id={`create-account-${field.name}`}
                 inputMode={field.inputMode}
                 placeholder={field.placeholder}

@@ -10,13 +10,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { useDeleteCaseTaskMutation } from "../../_hooks/use-delete-case-task-mutation";
-import type { CaseTaskDto } from "../../_types/cases.types";
-import { CaseExpenseSheet } from "./case-expense-sheet";
+import { casesMutations } from "../../_api/cases.mutation-controller";
+import { useCasesMutation } from "../../_hooks/use-cases-mutation";
+import type { CaseTaskDto, TaskAssigneeOption } from "../../_types/cases.types";
+import { CaseExpenseSheet } from "./expense-sheet";
 import { CaseTaskExpensesPopup } from "./case-task-expenses-popup";
-import { CaseTaskSheet } from "./case-task-sheet";
+import { CaseTaskSheet } from "./task-sheet";
 
 export function CaseTaskRowActions({
+  assignees,
   canCreateExpense,
   canDelete,
   canDeleteExpense,
@@ -26,6 +28,7 @@ export function CaseTaskRowActions({
   caseId,
   task
 }: {
+  assignees: TaskAssigneeOption[];
   canCreateExpense: boolean;
   canDelete: boolean;
   canDeleteExpense: boolean;
@@ -39,7 +42,8 @@ export function CaseTaskRowActions({
   const [editTaskOpen, setEditTaskOpen] = useState(false);
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const deleteMutation = useDeleteCaseTaskMutation(caseId);
+  const deleteMutation = useCasesMutation(casesMutations.deleteTask(caseId));
+  const markSeenMutation = useCasesMutation(casesMutations.markTaskSeen(caseId));
   const router = useRouter();
   const hasExpenseActions = canCreateExpense || canReadExpense;
 
@@ -56,6 +60,18 @@ export function CaseTaskRowActions({
     }
   }
 
+  async function openAfterMarkSeen(onOpen: () => void) {
+    setMenuOpen(false);
+    try {
+      await markSeenMutation.mutateAsync(task.id);
+      router.refresh();
+    } catch {
+      // The timestamp should not block the user from opening the task action.
+    } finally {
+      onOpen();
+    }
+  }
+
   return (
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
@@ -63,7 +79,7 @@ export function CaseTaskRowActions({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-lg border-border/50 p-0"
+            className="h-8 w-8 border-border/50 p-0"
             disabled={deleteMutation.isPending}
             aria-label={`Acciones para ${task.name}`}
           >
@@ -75,8 +91,7 @@ export function CaseTaskRowActions({
             <DropdownMenuItem
               onSelect={(event) => {
                 event.preventDefault();
-                setMenuOpen(false);
-                setExpensesOpen(true);
+                void openAfterMarkSeen(() => setExpensesOpen(true));
               }}
             >
               <Eye className="h-4 w-4" aria-hidden="true" />
@@ -99,8 +114,7 @@ export function CaseTaskRowActions({
             <DropdownMenuItem
               onSelect={(event) => {
                 event.preventDefault();
-                setMenuOpen(false);
-                setEditTaskOpen(true);
+                void openAfterMarkSeen(() => setEditTaskOpen(true));
               }}
             >
               <PencilLine className="h-4 w-4" aria-hidden="true" />
@@ -137,6 +151,7 @@ export function CaseTaskRowActions({
 
       {canUpdate ? (
         <CaseTaskSheet
+          assignees={assignees}
           caseId={caseId}
           onOpenChange={setEditTaskOpen}
           open={editTaskOpen}

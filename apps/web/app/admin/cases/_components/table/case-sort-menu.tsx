@@ -1,7 +1,7 @@
 "use client";
 
 import { SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,10 +29,7 @@ export function CaseSortMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" className={casesTableActionButtonClassName()}>
-          <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">Ordenar</span>
-        </Button>
+        <AdminTableHeaderActionButton icon={SlidersHorizontal} label="Ordenar" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuRadioGroup
@@ -53,8 +50,4 @@ export function CaseSortMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-export function casesTableActionButtonClassName() {
-  return "h-10 w-10 rounded-xl border-border/40 bg-card p-0 text-base font-semibold text-foreground shadow-[0_10px_24px_-22px_rgba(15,23,42,0.35)] hover:bg-secondary/40 sm:h-11 sm:w-auto sm:px-4";
 }

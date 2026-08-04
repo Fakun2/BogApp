@@ -1,6 +1,5 @@
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Banknote, Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,12 +8,14 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { adminSurfaceClassName, adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
+import { AdminTableHeader } from "../../../_components/admin-table-header";
+import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
+import { adminSurfaceClassName } from "../../../_constants/dashboard";
 import { caseExpenseStatusLabels } from "../../_constants/cases.constants";
 import type { CaseExpenseDto, CaseTaskDto } from "../../_types/cases.types";
 import { formatCaseDate, formatCaseMoney, getExpenseStatusClassName } from "./case-detail-format";
 import { CaseExpenseRowActions } from "./case-expense-row-actions";
-import { CaseExpenseSheet } from "./case-expense-sheet";
+import { CaseExpenseSheet } from "./expense-sheet";
 
 export function CaseExpensesTable({
   canCreate,
@@ -39,30 +40,24 @@ export function CaseExpensesTable({
       data-admin-surface
       className={`${adminSurfaceClassName} flex min-h-[320px] flex-col overflow-hidden border-0 shadow-[var(--admin-card-shadow)]`}
     >
-      <CardHeader className="flex shrink-0 flex-row items-center justify-between gap-3 border-b border-border/30 px-4 py-4 md:gap-4 md:px-6 md:py-5">
-        <div className="min-w-0">
-          <CardTitle className={`text-lg font-semibold ${adminSurfacePrimaryClassName}`}>
-            Gastos del expediente
-          </CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gastos propios del expediente, asociados opcionalmente a una tarea.
-          </p>
-        </div>
-        {canCreate ? (
-          <CaseExpenseSheet
-            caseId={caseId}
-            tasks={tasks}
-            trigger={
-              <Button type="button" className="h-9 px-3">
-                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                Nuevo gasto
-              </Button>
-            }
-          />
-        ) : null}
-      </CardHeader>
+      <AdminTableHeader
+        actions={
+          canCreate ? (
+            <CaseExpenseSheet
+              caseId={caseId}
+              tasks={tasks}
+              trigger={
+                <AdminTableHeaderActionButton icon={Plus} label="Nuevo gasto" tone="primary" />
+              }
+            />
+          ) : null
+        }
+        description="Gastos propios del expediente, asociados opcionalmente a una tarea."
+        icon={Banknote}
+        title="Gastos del expediente"
+      />
       <CardContent className="flex min-h-0 flex-1 flex-col px-4 md:px-6">
-        <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-2xl">
+        <div className="max-h-[56svh] min-h-0 flex-1 overflow-auto rounded-2xl">
           <Table className="min-w-full text-xs">
             <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
               <TableRow className="hover:bg-transparent">

@@ -10,6 +10,10 @@ const passwordSchema = z
   .max(72, "La contraseña no puede superar 72 caracteres.")
   .regex(/[A-Za-z]/, "La contraseña debe incluir al menos una letra.")
   .regex(/[0-9]/, "La contraseña debe incluir al menos un número.");
+const loginPasswordSchema = z
+  .string()
+  .min(1, "Ingresa tu contrasena.")
+  .max(72, "La contrasena no puede superar 72 caracteres.");
 
 export const createAccountSchema = z.object({
   fullName: z.string().trim().min(2, "Ingresá tu nombre completo."),
@@ -20,7 +24,7 @@ export const createAccountSchema = z.object({
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: loginPasswordSchema,
   tenantId: z.string().uuid().optional()
 });
 

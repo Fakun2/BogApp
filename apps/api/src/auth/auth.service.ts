@@ -11,6 +11,7 @@ import { PrismaService } from "../database/prisma.service";
 import { RbacService } from "../rbac/rbac.service";
 import { CreateAccountDto, LoginDto } from "./auth.schemas";
 import { JwtPayload } from "./auth.types";
+import { getRequiredJwtConfig } from "./jwt-config";
 
 @Injectable()
 export class AuthService {
@@ -121,7 +122,7 @@ export class AuthService {
 
   async refresh(refreshToken: string) {
     const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
-      secret: this.config.get<string>("JWT_REFRESH_SECRET") ?? "dev-refresh-secret-change-me"
+      secret: getRequiredJwtConfig(this.config, "JWT_REFRESH_SECRET")
     });
 
     await this.assertSessionIsValid(payload);
@@ -130,16 +131,26 @@ export class AuthService {
   }
 
   async issueTokens(payload: JwtPayload) {
-    const accessToken = await this.jwtService.signAsync(payload);
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: this.config.get<string>("JWT_REFRESH_SECRET") ?? "dev-refresh-secret-change-me",
-      expiresIn: (this.config.get<string>("JWT_REFRESH_TTL") ?? "7d") as JwtSignOptions["expiresIn"]
+    const tokenPayload = this.toTokenPayload(payload);
+    const accessToken = await this.jwtService.signAsync(tokenPayload);
+    const refreshToken = await this.jwtService.signAsync(tokenPayload, {
+      secret: getRequiredJwtConfig(this.config, "JWT_REFRESH_SECRET"),
+      expiresIn: getRequiredJwtConfig(this.config, "JWT_REFRESH_TTL") as JwtSignOptions["expiresIn"]
     });
 
     return {
       accessToken,
       refreshToken,
       tokenType: "Bearer"
+    };
+  }
+
+  private toTokenPayload(payload: JwtPayload): JwtPayload {
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      sessionVersion: payload.sessionVersion,
+      tenantAccess: payload.tenantAccess
     };
   }
 

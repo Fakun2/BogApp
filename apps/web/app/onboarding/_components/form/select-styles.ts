@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const selectBaseTriggerClassName =
-  "h-12 w-full rounded-2xl px-4 text-sm data-[placeholder]:text-[#71717a]";
+  "h-12 w-full rounded-2xl px-4 text-base md:text-sm data-[placeholder]:text-[#71717a]";
 
 const selectBaseContentClassName =
   "z-[120] max-h-72 w-[var(--radix-select-trigger-width)] rounded-2xl border shadow-xl";

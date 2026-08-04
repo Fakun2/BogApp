@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger
 } from "@/components/ui/sheet";
+import { adminPrimaryActionButtonClassName } from "../../_constants/dashboard";
 import { CreateRoleForm } from "./create-role-form";
 
 export function CreateRoleSheet({
@@ -32,7 +33,7 @@ export function CreateRoleSheet({
       <SheetTrigger asChild>
         {trigger ?? (
           <Button
-            className="h-10 rounded-2xl bg-blue-600 px-3 font-semibold text-white hover:bg-blue-700 sm:px-4"
+            className={`h-10 px-3 font-semibold sm:px-4 ${adminPrimaryActionButtonClassName}`}
             aria-label="Crear rol"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
@@ -52,7 +53,7 @@ export function CreateRoleSheet({
             Define el alcance operativo del rol dentro del sistema.
           </SheetDescription>
         </SheetHeader>
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           <CreateRoleForm permissions={permissions} role={role} onSuccess={() => setOpen(false)} />
         </div>
       </SheetContent>

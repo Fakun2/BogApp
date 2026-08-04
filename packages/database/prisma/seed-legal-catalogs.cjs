@@ -151,9 +151,10 @@ const provinces = [
     country: "Argentina",
     caseCatalogStrategy: "center_forum",
     displayOrder: 240
-  },
-  { code: "ar-federal", name: "Federal", province: null, country: "Argentina", displayOrder: 250 }
+  }
 ];
+
+const retiredProvinceCodes = ["ar-federal"];
 
 const forumTemplates = [
   {
@@ -944,6 +945,11 @@ const judicialCenterForums = [
 
 async function seedLegalCatalogs() {
   await prisma.$transaction(async (tx) => {
+    await tx.province.updateMany({
+      where: { code: { in: retiredProvinceCodes } },
+      data: { active: false }
+    });
+
     for (const province of provinces) {
       await tx.province.upsert({
         where: { code: province.code },

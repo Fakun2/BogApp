@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Columns3, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -12,66 +11,40 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {
-  casesTableColumnLabels,
-  defaultCasesTableColumns
-} from "../../_constants/cases.constants";
+import { casesTableColumnLabels, defaultCasesTableColumns } from "../../_constants/cases.constants";
 import type { CaseFiltersDraft } from "../../_types/case-filter.types";
-import type {
-  CaseSortDirection,
-  CaseSortKey,
-  CasesTableColumn
-} from "../../_types/cases.types";
-import { emptyCaseFilters, toCaseFilterQueryUpdates } from "../../_utils/case-filter-options";
+import type { CaseSortDirection, CaseSortKey, CasesTableColumn } from "../../_types/cases.types";
+import { emptyCaseFilters } from "../../_utils/case-filter-options";
 import { allCasesTableColumns, serializeCasesTableColumns } from "../../_utils/case-table-columns";
 import { CaseSheet } from "../sheet/case-sheet";
 import { CaseFiltersPopover } from "./case-filters-popover";
-import { CaseSortMenu, casesTableActionButtonClassName } from "./case-sort-menu";
+import { CaseSortMenu } from "./case-sort-menu";
 
 export function CasesTableToolbar({
   canCreate,
   columns,
   filters,
+  onColumnsChange,
+  onFiltersChange,
+  onSort,
   sortBy,
   sortDirection
 }: {
   canCreate: boolean;
   columns: CasesTableColumn[];
   filters: CaseFiltersDraft;
+  onColumnsChange: (columns: CasesTableColumn[]) => void;
+  onFiltersChange: (filters: CaseFiltersDraft) => void;
+  onSort: (sortBy: CaseSortKey) => void;
   sortBy: CaseSortKey;
   sortDirection: CaseSortDirection;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
   const [visibleColumns, setVisibleColumns] = useState(columns);
   const columnsKey = useMemo(() => serializeCasesTableColumns(columns), [columns]);
 
   useEffect(() => {
     setVisibleColumns(columns);
   }, [columns, columnsKey]);
-
-  function updateQuery(updates: Record<string, string | null>, options = { resetPagination: true }) {
-    const nextParams = new URLSearchParams(searchParams.toString());
-
-    for (const [key, value] of Object.entries(updates)) {
-      if (value) {
-        nextParams.set(key, value);
-      } else {
-        nextParams.delete(key);
-      }
-    }
-
-    if (options.resetPagination) {
-      nextParams.delete("cursor");
-      nextParams.delete("cursorStack");
-    }
-    startTransition(() => {
-      const query = nextParams.toString();
-      router.push(query ? `${pathname}?${query}` : pathname);
-    });
-  }
 
   function toggleColumn(column: CasesTableColumn, checked: boolean) {
     const nextColumns = checked
@@ -80,35 +53,25 @@ export function CasesTableToolbar({
     const normalizedColumns = nextColumns.length ? nextColumns : [...defaultCasesTableColumns];
 
     setVisibleColumns(normalizedColumns);
-    updateQuery(
-      {
-        columns: serializeCasesTableColumns(normalizedColumns)
-      },
-      { resetPagination: false }
-    );
-  }
-
-  function updateSort(key: CaseSortKey) {
-    updateQuery({
-      sortBy: key,
-      sortDirection: sortBy === key && sortDirection === "asc" ? "desc" : "asc"
-    });
+    onColumnsChange(normalizedColumns);
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {canCreate ? (
+        <CaseSheet
+          trigger={<AdminTableHeaderActionButton icon={Plus} label="Nuevo" tone="primary" />}
+        />
+      ) : null}
       <CaseFiltersPopover
-        disabled={isPending}
+        disabled={false}
         filters={filters}
-        onApply={(nextFilters) => updateQuery(toCaseFilterQueryUpdates(nextFilters))}
-        onReset={() => updateQuery(toCaseFilterQueryUpdates(emptyCaseFilters))}
+        onApply={onFiltersChange}
+        onReset={() => onFiltersChange(emptyCaseFilters)}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="outline" className={casesTableActionButtonClassName()}>
-            <Columns3 className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Columnas</span>
-          </Button>
+          <AdminTableHeaderActionButton icon={Columns3} label="Columnas" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Mostrar columnas</DropdownMenuLabel>
@@ -116,7 +79,6 @@ export function CasesTableToolbar({
           {allCasesTableColumns.map((column) => (
             <DropdownMenuCheckboxItem
               checked={visibleColumns.includes(column)}
-              disabled={isPending}
               key={column}
               onCheckedChange={(value) => toggleColumn(column, Boolean(value))}
             >
@@ -125,17 +87,7 @@ export function CasesTableToolbar({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <CaseSortMenu sortBy={sortBy} sortDirection={sortDirection} onSort={updateSort} />
-      {canCreate ? (
-        <CaseSheet
-          trigger={
-            <Button className="h-10 gap-2">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Nuevo</span>
-            </Button>
-          }
-        />
-      ) : null}
+      <CaseSortMenu sortBy={sortBy} sortDirection={sortDirection} onSort={onSort} />
     </div>
   );
 }

@@ -1,0 +1,2281 @@
+{
+  "generatedAt": "2026-08-03T18:12:13.252Z",
+  "analyzeExecuted": false,
+  "databaseUrlPrinted": false,
+  "tables": [
+    {
+      "table_name": "cases",
+      "live_rows": "1",
+      "dead_rows": "0",
+      "seq_scan": "15",
+      "idx_scan": "229",
+      "total_size": "288 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "272 kB",
+      "last_analyze": "2026-08-03T18:12:03.990Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "forum_templates",
+      "live_rows": "149",
+      "dead_rows": "0",
+      "seq_scan": "199",
+      "idx_scan": "151",
+      "total_size": "232 kB",
+      "table_size": "48 kB",
+      "indexes_size": "144 kB",
+      "last_analyze": "2026-08-03T18:12:03.953Z",
+      "last_autoanalyze": "2026-08-03T15:07:42.153Z",
+      "last_vacuum": null,
+      "last_autovacuum": "2026-08-03T15:07:42.146Z"
+    },
+    {
+      "table_name": "case_expenses",
+      "live_rows": "3",
+      "dead_rows": "1",
+      "seq_scan": "4",
+      "idx_scan": "348",
+      "total_size": "176 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "160 kB",
+      "last_analyze": "2026-08-03T18:12:04.021Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "case_tasks",
+      "live_rows": "2",
+      "dead_rows": "2",
+      "seq_scan": "4",
+      "idx_scan": "198",
+      "total_size": "176 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "160 kB",
+      "last_analyze": "2026-08-03T18:12:04.013Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "case_hearings",
+      "live_rows": "1",
+      "dead_rows": "0",
+      "seq_scan": "12",
+      "idx_scan": "15",
+      "total_size": "128 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "112 kB",
+      "last_analyze": "2026-08-03T18:12:04.029Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "roles",
+      "live_rows": "6",
+      "dead_rows": "6",
+      "seq_scan": "337",
+      "idx_scan": "8",
+      "total_size": "112 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "96 kB",
+      "last_analyze": "2026-08-03T18:12:03.283Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "practice_area_templates",
+      "live_rows": "23",
+      "dead_rows": "0",
+      "seq_scan": "1",
+      "idx_scan": "11",
+      "total_size": "104 kB",
+      "table_size": "16 kB",
+      "indexes_size": "48 kB",
+      "last_analyze": "2026-08-03T18:12:03.261Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": "2026-08-03T16:32:51.856Z"
+    },
+    {
+      "table_name": "role_permissions",
+      "live_rows": "115",
+      "dead_rows": "0",
+      "seq_scan": "21",
+      "idx_scan": "253",
+      "total_size": "104 kB",
+      "table_size": "24 kB",
+      "indexes_size": "48 kB",
+      "last_analyze": "2026-08-03T18:12:03.209Z",
+      "last_autoanalyze": "2026-08-03T15:07:42.138Z",
+      "last_vacuum": null,
+      "last_autovacuum": "2026-08-03T15:07:42.124Z"
+    },
+    {
+      "table_name": "judicial_centers",
+      "live_rows": "4",
+      "dead_rows": "20",
+      "seq_scan": "21",
+      "idx_scan": "100",
+      "total_size": "96 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "80 kB",
+      "last_analyze": "2026-08-03T18:12:03.967Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "tenant_memberships",
+      "live_rows": "2",
+      "dead_rows": "1",
+      "seq_scan": "6",
+      "idx_scan": "280",
+      "total_size": "88 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "80 kB",
+      "last_analyze": "2026-08-03T18:12:03.227Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "clients",
+      "live_rows": "0",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "0",
+      "total_size": "80 kB",
+      "table_size": "0 bytes",
+      "indexes_size": "72 kB",
+      "last_analyze": "2026-08-03T18:12:03.864Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "permissions",
+      "live_rows": "42",
+      "dead_rows": "44",
+      "seq_scan": "157",
+      "idx_scan": "54",
+      "total_size": "80 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "64 kB",
+      "last_analyze": "2026-08-03T18:12:03.218Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "users",
+      "live_rows": "4",
+      "dead_rows": "22",
+      "seq_scan": "9",
+      "idx_scan": "977",
+      "total_size": "80 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "64 kB",
+      "last_analyze": "2026-08-03T18:12:03.270Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "live_rows": "0",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "3",
+      "total_size": "72 kB",
+      "table_size": "0 bytes",
+      "indexes_size": "64 kB",
+      "last_analyze": "2026-08-03T18:12:04.027Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "judicial_center_forums",
+      "live_rows": "17",
+      "dead_rows": "34",
+      "seq_scan": "77",
+      "idx_scan": "17",
+      "total_size": "72 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "64 kB",
+      "last_analyze": "2026-08-03T18:12:03.975Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "_prisma_migrations",
+      "live_rows": "47",
+      "dead_rows": "16",
+      "seq_scan": "8",
+      "idx_scan": "0",
+      "total_size": "64 kB",
+      "table_size": "16 kB",
+      "indexes_size": "16 kB",
+      "last_analyze": "2026-08-03T18:12:03.093Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "case_participants",
+      "live_rows": "1",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "77",
+      "total_size": "64 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "48 kB",
+      "last_analyze": "2026-08-03T18:12:04.003Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "provinces",
+      "live_rows": "25",
+      "dead_rows": "26",
+      "seq_scan": "452",
+      "idx_scan": "122",
+      "total_size": "64 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "48 kB",
+      "last_analyze": "2026-08-03T18:12:03.292Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "practice_areas",
+      "live_rows": "0",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "43",
+      "total_size": "56 kB",
+      "table_size": "0 bytes",
+      "indexes_size": "48 kB",
+      "last_analyze": "2026-08-03T18:12:03.240Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "currencies",
+      "live_rows": "1",
+      "dead_rows": "1",
+      "seq_scan": "0",
+      "idx_scan": "0",
+      "total_size": "48 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "32 kB",
+      "last_analyze": "2026-08-03T18:12:03.186Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "tenant_profiles",
+      "live_rows": "1",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "0",
+      "total_size": "48 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "32 kB",
+      "last_analyze": "2026-08-03T18:12:03.166Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "tenant_settings",
+      "live_rows": "1",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "0",
+      "total_size": "48 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "32 kB",
+      "last_analyze": "2026-08-03T18:12:03.178Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "tenant_membership_practice_areas",
+      "live_rows": "0",
+      "dead_rows": "0",
+      "seq_scan": "0",
+      "idx_scan": "88",
+      "total_size": "32 kB",
+      "table_size": "0 bytes",
+      "indexes_size": "32 kB",
+      "last_analyze": "2026-08-03T18:12:03.266Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    },
+    {
+      "table_name": "tenants",
+      "live_rows": "1",
+      "dead_rows": "0",
+      "seq_scan": "2",
+      "idx_scan": "19",
+      "total_size": "32 kB",
+      "table_size": "8192 bytes",
+      "indexes_size": "16 kB",
+      "last_analyze": "2026-08-03T18:12:03.148Z",
+      "last_autoanalyze": null,
+      "last_vacuum": null,
+      "last_autovacuum": null
+    }
+  ],
+  "indexes": [
+    {
+      "table_name": "_prisma_migrations",
+      "index_name": "_prisma_migrations_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX _prisma_migrations_pkey ON public._prisma_migrations USING btree (id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_case_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_case_id_idx ON public.case_expense_attachments USING btree (case_id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_expense_id_idx",
+      "idx_scan": "3",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_expense_id_idx ON public.case_expense_attachments USING btree (expense_id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_pkey",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX case_expense_attachments_pkey ON public.case_expense_attachments USING btree (id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_tenant_id_case_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_tenant_id_case_id_idx ON public.case_expense_attachments USING btree (tenant_id, case_id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_tenant_id_deleted_at_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_tenant_id_deleted_at_idx ON public.case_expense_attachments USING btree (tenant_id, deleted_at)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_tenant_id_expense_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_tenant_id_expense_id_idx ON public.case_expense_attachments USING btree (tenant_id, expense_id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_tenant_id_idx ON public.case_expense_attachments USING btree (tenant_id)"
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "index_name": "case_expense_attachments_uploaded_by_user_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX case_expense_attachments_uploaded_by_user_id_idx ON public.case_expense_attachments USING btree (uploaded_by_user_id)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_case_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_case_id_idx ON public.case_expenses USING btree (case_id)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_concept_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_concept_trgm_idx ON public.case_expenses USING gin (concept gin_trgm_ops)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX case_expenses_pkey ON public.case_expenses USING btree (id)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_task_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_task_id_idx ON public.case_expenses USING btree (task_id)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_tenant_id_alert_at_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_tenant_id_alert_at_idx ON public.case_expenses USING btree (tenant_id, alert_at)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_tenant_id_case_id_idx",
+      "idx_scan": "224",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_tenant_id_case_id_idx ON public.case_expenses USING btree (tenant_id, case_id)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_tenant_id_expense_date_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_tenant_id_expense_date_idx ON public.case_expenses USING btree (tenant_id, expense_date)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_tenant_id_idx ON public.case_expenses USING btree (tenant_id)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_tenant_id_payment_date_idx",
+      "idx_scan": "42",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_tenant_id_payment_date_idx ON public.case_expenses USING btree (tenant_id, payment_date)"
+    },
+    {
+      "table_name": "case_expenses",
+      "index_name": "case_expenses_tenant_id_status_idx",
+      "idx_scan": "82",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_expenses_tenant_id_status_idx ON public.case_expenses USING btree (tenant_id, status)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_case_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_hearings_case_id_idx ON public.case_hearings USING btree (case_id)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_description_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_hearings_description_trgm_idx ON public.case_hearings USING gin (description gin_trgm_ops)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX case_hearings_pkey ON public.case_hearings USING btree (id)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_tenant_id_case_id_idx",
+      "idx_scan": "8",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_hearings_tenant_id_case_id_idx ON public.case_hearings USING btree (tenant_id, case_id)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_tenant_id_date_idx",
+      "idx_scan": "7",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_hearings_tenant_id_date_idx ON public.case_hearings USING btree (tenant_id, date)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_hearings_tenant_id_idx ON public.case_hearings USING btree (tenant_id)"
+    },
+    {
+      "table_name": "case_hearings",
+      "index_name": "case_hearings_tenant_id_type_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_hearings_tenant_id_type_idx ON public.case_hearings USING btree (tenant_id, type)"
+    },
+    {
+      "table_name": "case_participants",
+      "index_name": "case_participants_case_id_idx",
+      "idx_scan": "77",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_participants_case_id_idx ON public.case_participants USING btree (case_id)"
+    },
+    {
+      "table_name": "case_participants",
+      "index_name": "case_participants_client_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_participants_client_id_idx ON public.case_participants USING btree (client_id)"
+    },
+    {
+      "table_name": "case_participants",
+      "index_name": "case_participants_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX case_participants_pkey ON public.case_participants USING btree (id)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_case_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_case_id_idx ON public.case_tasks USING btree (case_id)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_name_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_name_trgm_idx ON public.case_tasks USING gin (name gin_trgm_ops)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX case_tasks_pkey ON public.case_tasks USING btree (id)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_assigned_membership_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_assigned_membership_id_idx ON public.case_tasks USING btree (tenant_id, assigned_membership_id)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_case_id_idx",
+      "idx_scan": "176",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_case_id_idx ON public.case_tasks USING btree (tenant_id, case_id)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_end_date_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_end_date_idx ON public.case_tasks USING btree (tenant_id, end_date)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_idx ON public.case_tasks USING btree (tenant_id)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_last_seen_at_idx",
+      "idx_scan": "22",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_last_seen_at_idx ON public.case_tasks USING btree (tenant_id, last_seen_at)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_start_date_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_start_date_idx ON public.case_tasks USING btree (tenant_id, start_date)"
+    },
+    {
+      "table_name": "case_tasks",
+      "index_name": "case_tasks_tenant_id_status_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX case_tasks_tenant_id_status_idx ON public.case_tasks USING btree (tenant_id, status)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_caption_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_caption_trgm_idx ON public.cases USING gin (caption gin_trgm_ops)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_case_number_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_case_number_trgm_idx ON public.cases USING gin (case_number gin_trgm_ops)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_court_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_court_trgm_idx ON public.cases USING gin (court gin_trgm_ops) WHERE (court IS NOT NULL)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_forum_template_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_forum_template_id_idx ON public.cases USING btree (forum_template_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_judicial_center_forum_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_judicial_center_forum_id_idx ON public.cases USING btree (judicial_center_forum_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_judicial_center_text_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_judicial_center_text_trgm_idx ON public.cases USING gin (judicial_center_text gin_trgm_ops) WHERE (judicial_center_text IS NOT NULL)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_pkey",
+      "idx_scan": "1",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX cases_pkey ON public.cases USING btree (id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_practice_area_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_practice_area_id_idx ON public.cases USING btree (practice_area_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_primary_client_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_primary_client_id_idx ON public.cases USING btree (primary_client_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_province_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_province_id_idx ON public.cases USING btree (province_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_responsible_membership_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_responsible_membership_id_idx ON public.cases USING btree (responsible_membership_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_subject_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_subject_trgm_idx ON public.cases USING gin (subject gin_trgm_ops) WHERE (subject IS NOT NULL)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_tenant_id_caption_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_tenant_id_caption_idx ON public.cases USING btree (tenant_id, caption)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_tenant_id_case_number_key",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX cases_tenant_id_case_number_key ON public.cases USING btree (tenant_id, case_number)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_tenant_id_filing_date_idx",
+      "idx_scan": "206",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_tenant_id_filing_date_idx ON public.cases USING btree (tenant_id, filing_date)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_tenant_id_idx ON public.cases USING btree (tenant_id)"
+    },
+    {
+      "table_name": "cases",
+      "index_name": "cases_tenant_id_status_idx",
+      "idx_scan": "22",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX cases_tenant_id_status_idx ON public.cases USING btree (tenant_id, status)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_pkey",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX clients_pkey ON public.clients USING btree (id)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_business_name_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_business_name_idx ON public.clients USING btree (tenant_id, business_name)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_cuil_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_cuil_idx ON public.clients USING btree (tenant_id, cuil)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_cuit_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_cuit_idx ON public.clients USING btree (tenant_id, cuit)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_dni_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_dni_idx ON public.clients USING btree (tenant_id, dni)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_idx ON public.clients USING btree (tenant_id)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_last_name_first_name_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_last_name_first_name_idx ON public.clients USING btree (tenant_id, last_name, first_name)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_status_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_status_idx ON public.clients USING btree (tenant_id, status)"
+    },
+    {
+      "table_name": "clients",
+      "index_name": "clients_tenant_id_type_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX clients_tenant_id_type_idx ON public.clients USING btree (tenant_id, type)"
+    },
+    {
+      "table_name": "currencies",
+      "index_name": "currencies_code_key",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX currencies_code_key ON public.currencies USING btree (code)"
+    },
+    {
+      "table_name": "currencies",
+      "index_name": "currencies_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX currencies_pkey ON public.currencies USING btree (id)"
+    },
+    {
+      "table_name": "forum_templates",
+      "index_name": "forum_templates_code_key",
+      "idx_scan": "149",
+      "index_size": "32 kB",
+      "definition": "CREATE UNIQUE INDEX forum_templates_code_key ON public.forum_templates USING btree (code)"
+    },
+    {
+      "table_name": "forum_templates",
+      "index_name": "forum_templates_name_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "40 kB",
+      "definition": "CREATE INDEX forum_templates_name_trgm_idx ON public.forum_templates USING gin (name gin_trgm_ops)"
+    },
+    {
+      "table_name": "forum_templates",
+      "index_name": "forum_templates_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX forum_templates_pkey ON public.forum_templates USING btree (id)"
+    },
+    {
+      "table_name": "forum_templates",
+      "index_name": "forum_templates_province_id_active_display_order_idx",
+      "idx_scan": "2",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX forum_templates_province_id_active_display_order_idx ON public.forum_templates USING btree (province_id, active, display_order)"
+    },
+    {
+      "table_name": "forum_templates",
+      "index_name": "forum_templates_province_id_name_key",
+      "idx_scan": "0",
+      "index_size": "40 kB",
+      "definition": "CREATE UNIQUE INDEX forum_templates_province_id_name_key ON public.forum_templates USING btree (province_id, name)"
+    },
+    {
+      "table_name": "judicial_center_forums",
+      "index_name": "judicial_center_forums_forum_template_id_active_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX judicial_center_forums_forum_template_id_active_idx ON public.judicial_center_forums USING btree (forum_template_id, active)"
+    },
+    {
+      "table_name": "judicial_center_forums",
+      "index_name": "judicial_center_forums_judicial_center_id_active_display_or_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX judicial_center_forums_judicial_center_id_active_display_or_idx ON public.judicial_center_forums USING btree (judicial_center_id, active, display_order)"
+    },
+    {
+      "table_name": "judicial_center_forums",
+      "index_name": "judicial_center_forums_judicial_center_id_forum_template_id_key",
+      "idx_scan": "17",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX judicial_center_forums_judicial_center_id_forum_template_id_key ON public.judicial_center_forums USING btree (judicial_center_id, forum_template_id)"
+    },
+    {
+      "table_name": "judicial_center_forums",
+      "index_name": "judicial_center_forums_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX judicial_center_forums_pkey ON public.judicial_center_forums USING btree (id)"
+    },
+    {
+      "table_name": "judicial_centers",
+      "index_name": "judicial_centers_code_key",
+      "idx_scan": "21",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX judicial_centers_code_key ON public.judicial_centers USING btree (code)"
+    },
+    {
+      "table_name": "judicial_centers",
+      "index_name": "judicial_centers_name_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX judicial_centers_name_trgm_idx ON public.judicial_centers USING gin (name gin_trgm_ops)"
+    },
+    {
+      "table_name": "judicial_centers",
+      "index_name": "judicial_centers_pkey",
+      "idx_scan": "77",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX judicial_centers_pkey ON public.judicial_centers USING btree (id)"
+    },
+    {
+      "table_name": "judicial_centers",
+      "index_name": "judicial_centers_province_id_active_display_order_idx",
+      "idx_scan": "2",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX judicial_centers_province_id_active_display_order_idx ON public.judicial_centers USING btree (province_id, active, display_order)"
+    },
+    {
+      "table_name": "judicial_centers",
+      "index_name": "judicial_centers_province_id_name_key",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX judicial_centers_province_id_name_key ON public.judicial_centers USING btree (province_id, name)"
+    },
+    {
+      "table_name": "permissions",
+      "index_name": "permissions_code_key",
+      "idx_scan": "46",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX permissions_code_key ON public.permissions USING btree (code)"
+    },
+    {
+      "table_name": "permissions",
+      "index_name": "permissions_pkey",
+      "idx_scan": "8",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX permissions_pkey ON public.permissions USING btree (id)"
+    },
+    {
+      "table_name": "permissions",
+      "index_name": "permissions_resource_action_key",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX permissions_resource_action_key ON public.permissions USING btree (resource, action)"
+    },
+    {
+      "table_name": "permissions",
+      "index_name": "permissions_resource_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX permissions_resource_idx ON public.permissions USING btree (resource)"
+    },
+    {
+      "table_name": "practice_area_templates",
+      "index_name": "practice_area_templates_active_display_order_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX practice_area_templates_active_display_order_idx ON public.practice_area_templates USING btree (active, display_order)"
+    },
+    {
+      "table_name": "practice_area_templates",
+      "index_name": "practice_area_templates_code_key",
+      "idx_scan": "11",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX practice_area_templates_code_key ON public.practice_area_templates USING btree (code)"
+    },
+    {
+      "table_name": "practice_area_templates",
+      "index_name": "practice_area_templates_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX practice_area_templates_pkey ON public.practice_area_templates USING btree (id)"
+    },
+    {
+      "table_name": "practice_areas",
+      "index_name": "practice_areas_pkey",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX practice_areas_pkey ON public.practice_areas USING btree (id)"
+    },
+    {
+      "table_name": "practice_areas",
+      "index_name": "practice_areas_template_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX practice_areas_template_id_idx ON public.practice_areas USING btree (template_id)"
+    },
+    {
+      "table_name": "practice_areas",
+      "index_name": "practice_areas_tenant_id_active_name_idx",
+      "idx_scan": "43",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX practice_areas_tenant_id_active_name_idx ON public.practice_areas USING btree (tenant_id, active, name)"
+    },
+    {
+      "table_name": "practice_areas",
+      "index_name": "practice_areas_tenant_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX practice_areas_tenant_id_idx ON public.practice_areas USING btree (tenant_id)"
+    },
+    {
+      "table_name": "practice_areas",
+      "index_name": "practice_areas_tenant_id_name_key",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX practice_areas_tenant_id_name_key ON public.practice_areas USING btree (tenant_id, name)"
+    },
+    {
+      "table_name": "practice_areas",
+      "index_name": "practice_areas_tenant_id_template_id_key",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX practice_areas_tenant_id_template_id_key ON public.practice_areas USING btree (tenant_id, template_id)"
+    },
+    {
+      "table_name": "provinces",
+      "index_name": "provinces_active_display_order_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX provinces_active_display_order_idx ON public.provinces USING btree (active, display_order)"
+    },
+    {
+      "table_name": "provinces",
+      "index_name": "provinces_code_key",
+      "idx_scan": "24",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX provinces_code_key ON public.provinces USING btree (code)"
+    },
+    {
+      "table_name": "provinces",
+      "index_name": "provinces_pkey",
+      "idx_scan": "98",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX provinces_pkey ON public.provinces USING btree (id)"
+    },
+    {
+      "table_name": "role_permissions",
+      "index_name": "role_permissions_permission_id_idx",
+      "idx_scan": "8",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX role_permissions_permission_id_idx ON public.role_permissions USING btree (permission_id)"
+    },
+    {
+      "table_name": "role_permissions",
+      "index_name": "role_permissions_pkey",
+      "idx_scan": "115",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX role_permissions_pkey ON public.role_permissions USING btree (id)"
+    },
+    {
+      "table_name": "role_permissions",
+      "index_name": "role_permissions_role_id_permission_id_key",
+      "idx_scan": "130",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX role_permissions_role_id_permission_id_key ON public.role_permissions USING btree (role_id, permission_id)"
+    },
+    {
+      "table_name": "roles",
+      "index_name": "roles_active_name_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX roles_active_name_idx ON public.roles USING btree (active, name)"
+    },
+    {
+      "table_name": "roles",
+      "index_name": "roles_code_key",
+      "idx_scan": "6",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX roles_code_key ON public.roles USING btree (code)"
+    },
+    {
+      "table_name": "roles",
+      "index_name": "roles_hierarchy_level_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX roles_hierarchy_level_idx ON public.roles USING btree (hierarchy_level)"
+    },
+    {
+      "table_name": "roles",
+      "index_name": "roles_is_system_name_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX roles_is_system_name_idx ON public.roles USING btree (is_system, name)"
+    },
+    {
+      "table_name": "roles",
+      "index_name": "roles_pkey",
+      "idx_scan": "2",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX roles_pkey ON public.roles USING btree (id)"
+    },
+    {
+      "table_name": "roles",
+      "index_name": "roles_tenant_id_active_name_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX roles_tenant_id_active_name_idx ON public.roles USING btree (tenant_id, active, name)"
+    },
+    {
+      "table_name": "tenant_membership_practice_areas",
+      "index_name": "tenant_membership_practice_areas_pkey",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX tenant_membership_practice_areas_pkey ON public.tenant_membership_practice_areas USING btree (id)"
+    },
+    {
+      "table_name": "tenant_membership_practice_areas",
+      "index_name": "tenant_membership_practice_areas_practice_area_id_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX tenant_membership_practice_areas_practice_area_id_idx ON public.tenant_membership_practice_areas USING btree (practice_area_id)"
+    },
+    {
+      "table_name": "tenant_membership_practice_areas",
+      "index_name": "tenant_membership_practice_areas_practice_area_id_tenant_me_idx",
+      "idx_scan": "0",
+      "index_size": "8192 bytes",
+      "definition": "CREATE INDEX tenant_membership_practice_areas_practice_area_id_tenant_me_idx ON public.tenant_membership_practice_areas USING btree (practice_area_id, tenant_membership_id)"
+    },
+    {
+      "table_name": "tenant_membership_practice_areas",
+      "index_name": "tenant_membership_practice_areas_tenant_membership_id_pract_key",
+      "idx_scan": "88",
+      "index_size": "8192 bytes",
+      "definition": "CREATE UNIQUE INDEX tenant_membership_practice_areas_tenant_membership_id_pract_key ON public.tenant_membership_practice_areas USING btree (tenant_membership_id, practice_area_id)"
+    },
+    {
+      "table_name": "tenant_memberships",
+      "index_name": "tenant_memberships_pkey",
+      "idx_scan": "79",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenant_memberships_pkey ON public.tenant_memberships USING btree (id)"
+    },
+    {
+      "table_name": "tenant_memberships",
+      "index_name": "tenant_memberships_tenant_id_role_id_idx",
+      "idx_scan": "4",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX tenant_memberships_tenant_id_role_id_idx ON public.tenant_memberships USING btree (tenant_id, role_id)"
+    },
+    {
+      "table_name": "tenant_memberships",
+      "index_name": "tenant_memberships_tenant_id_status_idx",
+      "idx_scan": "132",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX tenant_memberships_tenant_id_status_idx ON public.tenant_memberships USING btree (tenant_id, status)"
+    },
+    {
+      "table_name": "tenant_memberships",
+      "index_name": "tenant_memberships_tenant_id_user_id_key",
+      "idx_scan": "44",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenant_memberships_tenant_id_user_id_key ON public.tenant_memberships USING btree (tenant_id, user_id)"
+    },
+    {
+      "table_name": "tenant_memberships",
+      "index_name": "tenant_memberships_user_id_idx",
+      "idx_scan": "21",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX tenant_memberships_user_id_idx ON public.tenant_memberships USING btree (user_id)"
+    },
+    {
+      "table_name": "tenant_profiles",
+      "index_name": "tenant_profiles_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenant_profiles_pkey ON public.tenant_profiles USING btree (id)"
+    },
+    {
+      "table_name": "tenant_profiles",
+      "index_name": "tenant_profiles_tenant_id_key",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenant_profiles_tenant_id_key ON public.tenant_profiles USING btree (tenant_id)"
+    },
+    {
+      "table_name": "tenant_settings",
+      "index_name": "tenant_settings_pkey",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenant_settings_pkey ON public.tenant_settings USING btree (id)"
+    },
+    {
+      "table_name": "tenant_settings",
+      "index_name": "tenant_settings_tenant_id_key",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenant_settings_tenant_id_key ON public.tenant_settings USING btree (tenant_id)"
+    },
+    {
+      "table_name": "tenants",
+      "index_name": "tenants_pkey",
+      "idx_scan": "19",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX tenants_pkey ON public.tenants USING btree (id)"
+    },
+    {
+      "table_name": "users",
+      "index_name": "users_dni_idx",
+      "idx_scan": "1",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX users_dni_idx ON public.users USING btree (dni)"
+    },
+    {
+      "table_name": "users",
+      "index_name": "users_email_key",
+      "idx_scan": "19",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)"
+    },
+    {
+      "table_name": "users",
+      "index_name": "users_full_name_trgm_idx",
+      "idx_scan": "0",
+      "index_size": "16 kB",
+      "definition": "CREATE INDEX users_full_name_trgm_idx ON public.users USING gin (full_name gin_trgm_ops)"
+    },
+    {
+      "table_name": "users",
+      "index_name": "users_pkey",
+      "idx_scan": "957",
+      "index_size": "16 kB",
+      "definition": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)"
+    }
+  ],
+  "rls": [
+    {
+      "table_name": "_prisma_migrations",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "case_expense_attachments",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "case_expenses",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "case_hearings",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "case_participants",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "case_tasks",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "cases",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "clients",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "currencies",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "forum_templates",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "judicial_center_forums",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "judicial_centers",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "permissions",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "practice_area_templates",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "practice_areas",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "provinces",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "role_permissions",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "roles",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "tenant_membership_practice_areas",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "tenant_memberships",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "tenant_profiles",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "tenant_settings",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "tenants",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    },
+    {
+      "table_name": "users",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policy_count": 0
+    }
+  ],
+  "policies": [],
+  "duplicateIndexes": [],
+  "explains": [
+    {
+      "name": "cases:list-default",
+      "parameters": ["$1"],
+      "nodeType": "Limit",
+      "totalCost": 1.03,
+      "actualTotalTimeMs": 0.034,
+      "actualRows": 1,
+      "planningTimeMs": 0.307,
+      "executionTimeMs": 0.056,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 1.02,
+          "Total Cost": 1.03,
+          "Plan Rows": 1,
+          "Plan Width": 141,
+          "Actual Startup Time": 0.033,
+          "Actual Total Time": 0.034,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 4,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 1.02,
+              "Total Cost": 1.03,
+              "Plan Rows": 1,
+              "Plan Width": 141,
+              "Actual Startup Time": 0.032,
+              "Actual Total Time": 0.032,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Sort Key": ["created_at DESC", "id DESC"],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 25,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 4,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Seq Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Relation Name": "cases",
+                  "Alias": "cases",
+                  "Startup Cost": 0,
+                  "Total Cost": 1.01,
+                  "Plan Rows": 1,
+                  "Plan Width": 141,
+                  "Actual Startup Time": 0.006,
+                  "Actual Total Time": 0.007,
+                  "Actual Rows": 1,
+                  "Actual Loops": 1,
+                  "Filter": "(tenant_id = '<uuid>'::uuid)",
+                  "Rows Removed by Filter": 0,
+                  "Shared Hit Blocks": 1,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 25,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.307,
+        "Triggers": [],
+        "Execution Time": 0.056
+      }
+    },
+    {
+      "name": "cases:search",
+      "parameters": ["$1", "$2"],
+      "nodeType": "Limit",
+      "totalCost": 1.03,
+      "actualTotalTimeMs": 0.095,
+      "actualRows": 0,
+      "planningTimeMs": 2.345,
+      "executionTimeMs": 0.138,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 1.03,
+          "Total Cost": 1.03,
+          "Plan Rows": 1,
+          "Plan Width": 155,
+          "Actual Startup Time": 0.094,
+          "Actual Total Time": 0.095,
+          "Actual Rows": 0,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 1.03,
+              "Total Cost": 1.03,
+              "Plan Rows": 1,
+              "Plan Width": 155,
+              "Actual Startup Time": 0.092,
+              "Actual Total Time": 0.093,
+              "Actual Rows": 0,
+              "Actual Loops": 1,
+              "Sort Key": ["created_at DESC", "id DESC"],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 25,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Seq Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Relation Name": "cases",
+                  "Alias": "cases",
+                  "Startup Cost": 0,
+                  "Total Cost": 1.02,
+                  "Plan Rows": 1,
+                  "Plan Width": 155,
+                  "Actual Startup Time": 0.081,
+                  "Actual Total Time": 0.081,
+                  "Actual Rows": 0,
+                  "Actual Loops": 1,
+                  "Filter": "((tenant_id = '<uuid>'::uuid) AND ((case_number ~~* '%test%'::text) OR (caption ~~* '%test%'::text) OR (subject ~~* '%test%'::text)))",
+                  "Rows Removed by Filter": 1,
+                  "Shared Hit Blocks": 1,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 21,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 2.345,
+        "Triggers": [],
+        "Execution Time": 0.138
+      }
+    },
+    {
+      "name": "cases:detail",
+      "parameters": ["$1", "$2"],
+      "nodeType": "Limit",
+      "totalCost": 1.01,
+      "actualTotalTimeMs": 0.01,
+      "actualRows": 1,
+      "planningTimeMs": 0.116,
+      "executionTimeMs": 0.022,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0,
+          "Total Cost": 1.01,
+          "Plan Rows": 1,
+          "Plan Width": 133,
+          "Actual Startup Time": 0.01,
+          "Actual Total Time": 0.01,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "cases",
+              "Alias": "c",
+              "Startup Cost": 0,
+              "Total Cost": 1.01,
+              "Plan Rows": 1,
+              "Plan Width": 133,
+              "Actual Startup Time": 0.008,
+              "Actual Total Time": 0.009,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Filter": "((tenant_id = '<uuid>'::uuid) AND (id = '<uuid>'::uuid))",
+              "Rows Removed by Filter": 0,
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.116,
+        "Triggers": [],
+        "Execution Time": 0.022
+      }
+    },
+    {
+      "name": "calendar:expenses",
+      "parameters": ["$1", "$2"],
+      "nodeType": "Sort",
+      "totalCost": 1.15,
+      "actualTotalTimeMs": 0.043,
+      "actualRows": 1,
+      "planningTimeMs": 1.101,
+      "executionTimeMs": 0.065,
+      "plan": {
+        "Plan": {
+          "Node Type": "Sort",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 1.15,
+          "Total Cost": 1.15,
+          "Plan Rows": 2,
+          "Plan Width": 44,
+          "Actual Startup Time": 0.042,
+          "Actual Total Time": 0.043,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Sort Key": ["payment_date", "id"],
+          "Sort Method": "quicksort",
+          "Sort Space Used": 25,
+          "Sort Space Type": "Memory",
+          "Shared Hit Blocks": 4,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "case_expenses",
+              "Alias": "case_expenses",
+              "Startup Cost": 0,
+              "Total Cost": 1.14,
+              "Plan Rows": 2,
+              "Plan Width": 44,
+              "Actual Startup Time": 0.016,
+              "Actual Total Time": 0.017,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Filter": "((status = ANY ('{pending,overdue}'::\"CaseExpenseStatus\"[])) AND (tenant_id = '<uuid>'::uuid) AND (case_id = '<uuid>'::uuid) AND (payment_date >= (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone))::date) AND (payment_date < ((date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval))::date))",
+              "Rows Removed by Filter": 2,
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 62,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 1.101,
+        "Triggers": [],
+        "Execution Time": 0.065
+      }
+    },
+    {
+      "name": "calendar:tasks",
+      "parameters": ["$1", "$2"],
+      "nodeType": "Sort",
+      "totalCost": 1.16,
+      "actualTotalTimeMs": 0.023,
+      "actualRows": 2,
+      "planningTimeMs": 0.912,
+      "executionTimeMs": 0.054,
+      "plan": {
+        "Plan": {
+          "Node Type": "Sort",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 1.16,
+          "Total Cost": 1.16,
+          "Plan Rows": 2,
+          "Plan Width": 49,
+          "Actual Startup Time": 0.023,
+          "Actual Total Time": 0.023,
+          "Actual Rows": 2,
+          "Actual Loops": 1,
+          "Sort Key": ["end_date", "start_date", "id"],
+          "Sort Method": "quicksort",
+          "Sort Space Used": 25,
+          "Sort Space Type": "Memory",
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "case_tasks",
+              "Alias": "case_tasks",
+              "Startup Cost": 0,
+              "Total Cost": 1.15,
+              "Plan Rows": 2,
+              "Plan Width": 49,
+              "Actual Startup Time": 0.012,
+              "Actual Total Time": 0.013,
+              "Actual Rows": 2,
+              "Actual Loops": 1,
+              "Filter": "((status = ANY ('{pending,in_progress}'::\"CaseTaskStatus\"[])) AND (tenant_id = '<uuid>'::uuid) AND (case_id = '<uuid>'::uuid) AND (((end_date >= (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone))::date) AND (end_date < ((date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval))::date)) OR ((end_date IS NULL) AND (start_date >= (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone))::date) AND (start_date < ((date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval))::date))))",
+              "Rows Removed by Filter": 0,
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 48,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.912,
+        "Triggers": [],
+        "Execution Time": 0.054
+      }
+    },
+    {
+      "name": "calendar:hearings",
+      "parameters": ["$1", "$2"],
+      "nodeType": "Sort",
+      "totalCost": 1.06,
+      "actualTotalTimeMs": 0.045,
+      "actualRows": 1,
+      "planningTimeMs": 0.652,
+      "executionTimeMs": 0.062,
+      "plan": {
+        "Plan": {
+          "Node Type": "Sort",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 1.05,
+          "Total Cost": 1.06,
+          "Plan Rows": 1,
+          "Plan Width": 35,
+          "Actual Startup Time": 0.044,
+          "Actual Total Time": 0.045,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Sort Key": ["date", "\"time\"", "id"],
+          "Sort Method": "quicksort",
+          "Sort Space Used": 25,
+          "Sort Space Type": "Memory",
+          "Shared Hit Blocks": 4,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "case_hearings",
+              "Alias": "case_hearings",
+              "Startup Cost": 0,
+              "Total Cost": 1.04,
+              "Plan Rows": 1,
+              "Plan Width": 35,
+              "Actual Startup Time": 0.014,
+              "Actual Total Time": 0.015,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Filter": "((tenant_id = '<uuid>'::uuid) AND (case_id = '<uuid>'::uuid) AND (date >= (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone))::date) AND (date < ((date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval))::date))",
+              "Rows Removed by Filter": 0,
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 36,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.652,
+        "Triggers": [],
+        "Execution Time": 0.062
+      }
+    },
+    {
+      "name": "roles:list",
+      "parameters": ["$1"],
+      "nodeType": "Sort",
+      "totalCost": 1.17,
+      "actualTotalTimeMs": 0.077,
+      "actualRows": 6,
+      "planningTimeMs": 1.306,
+      "executionTimeMs": 0.099,
+      "plan": {
+        "Plan": {
+          "Node Type": "Sort",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 1.15,
+          "Total Cost": 1.17,
+          "Plan Rows": 6,
+          "Plan Width": 49,
+          "Actual Startup Time": 0.076,
+          "Actual Total Time": 0.077,
+          "Actual Rows": 6,
+          "Actual Loops": 1,
+          "Sort Key": ["is_system DESC", "name"],
+          "Sort Method": "quicksort",
+          "Sort Space Used": 25,
+          "Sort Space Type": "Memory",
+          "Shared Hit Blocks": 6,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "roles",
+              "Alias": "roles",
+              "Startup Cost": 0,
+              "Total Cost": 1.07,
+              "Plan Rows": 6,
+              "Plan Width": 49,
+              "Actual Startup Time": 0.02,
+              "Actual Total Time": 0.022,
+              "Actual Rows": 6,
+              "Actual Loops": 1,
+              "Filter": "((is_system AND (tenant_id IS NULL)) OR (tenant_id = '<uuid>'::uuid))",
+              "Rows Removed by Filter": 0,
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 44,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 1.306,
+        "Triggers": [],
+        "Execution Time": 0.099
+      }
+    },
+    {
+      "name": "staff:list",
+      "parameters": ["$1"],
+      "nodeType": "Limit",
+      "totalCost": 3.25,
+      "actualTotalTimeMs": 0.201,
+      "actualRows": 2,
+      "planningTimeMs": 2.284,
+      "executionTimeMs": 0.333,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 3.25,
+          "Total Cost": 3.25,
+          "Plan Rows": 2,
+          "Plan Width": 47,
+          "Actual Startup Time": 0.198,
+          "Actual Total Time": 0.201,
+          "Actual Rows": 2,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 3,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 3.25,
+              "Total Cost": 3.25,
+              "Plan Rows": 2,
+              "Plan Width": 47,
+              "Actual Startup Time": 0.196,
+              "Actual Total Time": 0.198,
+              "Actual Rows": 2,
+              "Actual Loops": 1,
+              "Sort Key": ["tm.created_at DESC", "tm.id DESC"],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 25,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 3,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Hash Join",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Join Type": "Right",
+                  "Startup Cost": 2.14,
+                  "Total Cost": 3.24,
+                  "Plan Rows": 2,
+                  "Plan Width": 47,
+                  "Actual Startup Time": 0.168,
+                  "Actual Total Time": 0.175,
+                  "Actual Rows": 2,
+                  "Actual Loops": 1,
+                  "Inner Unique": false,
+                  "Hash Cond": "(r.id = tm.role_id)",
+                  "Shared Hit Blocks": 3,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0,
+                  "Plans": [
+                    {
+                      "Node Type": "Seq Scan",
+                      "Parent Relationship": "Outer",
+                      "Parallel Aware": false,
+                      "Async Capable": false,
+                      "Relation Name": "roles",
+                      "Alias": "r",
+                      "Startup Cost": 0,
+                      "Total Cost": 1.06,
+                      "Plan Rows": 6,
+                      "Plan Width": 23,
+                      "Actual Startup Time": 0.006,
+                      "Actual Total Time": 0.008,
+                      "Actual Rows": 6,
+                      "Actual Loops": 1,
+                      "Shared Hit Blocks": 1,
+                      "Shared Read Blocks": 0,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Local Hit Blocks": 0,
+                      "Local Read Blocks": 0,
+                      "Local Dirtied Blocks": 0,
+                      "Local Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0
+                    },
+                    {
+                      "Node Type": "Hash",
+                      "Parent Relationship": "Inner",
+                      "Parallel Aware": false,
+                      "Async Capable": false,
+                      "Startup Cost": 2.11,
+                      "Total Cost": 2.11,
+                      "Plan Rows": 2,
+                      "Plan Width": 56,
+                      "Actual Startup Time": 0.132,
+                      "Actual Total Time": 0.134,
+                      "Actual Rows": 2,
+                      "Actual Loops": 1,
+                      "Hash Buckets": 1024,
+                      "Original Hash Buckets": 1024,
+                      "Hash Batches": 1,
+                      "Original Hash Batches": 1,
+                      "Peak Memory Usage": 9,
+                      "Shared Hit Blocks": 2,
+                      "Shared Read Blocks": 0,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Local Hit Blocks": 0,
+                      "Local Read Blocks": 0,
+                      "Local Dirtied Blocks": 0,
+                      "Local Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0,
+                      "Plans": [
+                        {
+                          "Node Type": "Hash Join",
+                          "Parent Relationship": "Outer",
+                          "Parallel Aware": false,
+                          "Async Capable": false,
+                          "Join Type": "Inner",
+                          "Startup Cost": 1.05,
+                          "Total Cost": 2.11,
+                          "Plan Rows": 2,
+                          "Plan Width": 56,
+                          "Actual Startup Time": 0.114,
+                          "Actual Total Time": 0.118,
+                          "Actual Rows": 2,
+                          "Actual Loops": 1,
+                          "Inner Unique": true,
+                          "Hash Cond": "(u.id = tm.user_id)",
+                          "Shared Hit Blocks": 2,
+                          "Shared Read Blocks": 0,
+                          "Shared Dirtied Blocks": 0,
+                          "Shared Written Blocks": 0,
+                          "Local Hit Blocks": 0,
+                          "Local Read Blocks": 0,
+                          "Local Dirtied Blocks": 0,
+                          "Local Written Blocks": 0,
+                          "Temp Read Blocks": 0,
+                          "Temp Written Blocks": 0,
+                          "Plans": [
+                            {
+                              "Node Type": "Seq Scan",
+                              "Parent Relationship": "Outer",
+                              "Parallel Aware": false,
+                              "Async Capable": false,
+                              "Relation Name": "users",
+                              "Alias": "u",
+                              "Startup Cost": 0,
+                              "Total Cost": 1.04,
+                              "Plan Rows": 4,
+                              "Plan Width": 28,
+                              "Actual Startup Time": 0.014,
+                              "Actual Total Time": 0.016,
+                              "Actual Rows": 4,
+                              "Actual Loops": 1,
+                              "Shared Hit Blocks": 1,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Local Hit Blocks": 0,
+                              "Local Read Blocks": 0,
+                              "Local Dirtied Blocks": 0,
+                              "Local Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0
+                            },
+                            {
+                              "Node Type": "Hash",
+                              "Parent Relationship": "Inner",
+                              "Parallel Aware": false,
+                              "Async Capable": false,
+                              "Startup Cost": 1.02,
+                              "Total Cost": 1.02,
+                              "Plan Rows": 2,
+                              "Plan Width": 60,
+                              "Actual Startup Time": 0.081,
+                              "Actual Total Time": 0.081,
+                              "Actual Rows": 2,
+                              "Actual Loops": 1,
+                              "Hash Buckets": 1024,
+                              "Original Hash Buckets": 1024,
+                              "Hash Batches": 1,
+                              "Original Hash Batches": 1,
+                              "Peak Memory Usage": 9,
+                              "Shared Hit Blocks": 1,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Local Hit Blocks": 0,
+                              "Local Read Blocks": 0,
+                              "Local Dirtied Blocks": 0,
+                              "Local Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0,
+                              "Plans": [
+                                {
+                                  "Node Type": "Seq Scan",
+                                  "Parent Relationship": "Outer",
+                                  "Parallel Aware": false,
+                                  "Async Capable": false,
+                                  "Relation Name": "tenant_memberships",
+                                  "Alias": "tm",
+                                  "Startup Cost": 0,
+                                  "Total Cost": 1.02,
+                                  "Plan Rows": 2,
+                                  "Plan Width": 60,
+                                  "Actual Startup Time": 0.009,
+                                  "Actual Total Time": 0.012,
+                                  "Actual Rows": 2,
+                                  "Actual Loops": 1,
+                                  "Filter": "(tenant_id = '<uuid>'::uuid)",
+                                  "Rows Removed by Filter": 0,
+                                  "Shared Hit Blocks": 1,
+                                  "Shared Read Blocks": 0,
+                                  "Shared Dirtied Blocks": 0,
+                                  "Shared Written Blocks": 0,
+                                  "Local Hit Blocks": 0,
+                                  "Local Read Blocks": 0,
+                                  "Local Dirtied Blocks": 0,
+                                  "Local Written Blocks": 0,
+                                  "Temp Read Blocks": 0,
+                                  "Temp Written Blocks": 0
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 52,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 2.284,
+        "Triggers": [],
+        "Execution Time": 0.333
+      }
+    }
+  ]
+}

@@ -1,18 +1,24 @@
-import { casesPageSize } from "../../_constants/cases.constants";
-import type { CasesListResponse } from "../../_types/cases.types";
-import { CaseMetricCard } from "./case-metric-card";
+import { BriefcaseBusiness } from "lucide-react";
+import { AdminMetricsGrid } from "../../../_components/admin-metrics-grid";
+import type { CasesMetricsDto } from "../../_types/cases.types";
 
-export function CaseMetrics({ casesData }: { casesData?: CasesListResponse }) {
-  const pageInfo = casesData?.pageInfo;
-
+export function CaseMetrics({ metrics }: { metrics?: CasesMetricsDto }) {
   return (
-    <div className="grid shrink-0 grid-cols-2 gap-3 md:grid-cols-3">
-      <CaseMetricCard label="Resultados" value={casesData?.items.length ?? 0} />
-      <CaseMetricCard label="Items por pagina" value={pageInfo?.limit ?? casesPageSize} />
-      <CaseMetricCard
-        label="Pagina"
-        value={Math.floor((pageInfo?.offset ?? 0) / casesPageSize) + 1}
-      />
-    </div>
+    <AdminMetricsGrid
+      metrics={[
+        { icon: BriefcaseBusiness, label: "Total expedientes", value: metrics?.totalCases ?? 0 },
+        {
+          icon: BriefcaseBusiness,
+          label: "Expedientes abiertos",
+          value: metrics?.openCases ?? 0
+        },
+        {
+          icon: BriefcaseBusiness,
+          label: "Expedientes cerrados",
+          value: metrics?.closedCases ?? 0
+        },
+        { icon: BriefcaseBusiness, label: "Tareas pendientes", value: metrics?.pendingTasks ?? 0 }
+      ]}
+    />
   );
 }

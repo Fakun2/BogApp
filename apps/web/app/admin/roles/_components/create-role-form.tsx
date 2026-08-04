@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createRoleFormSchema, type CreateRoleFormValues } from "@/lib/validation/roles";
+import { adminPrimaryActionButtonClassName } from "../../_constants/dashboard";
 import { useCreateRoleMutation } from "../_hooks/use-create-role-mutation";
 import { useUpdateRoleMutation } from "../_hooks/use-update-role-mutation";
 import { PermissionSelector } from "./permission-selector";
@@ -45,6 +46,10 @@ const allPermissionCodes = [
   "expenses:create",
   "expenses:update",
   "expenses:delete",
+  "hearings:read",
+  "hearings:create",
+  "hearings:update",
+  "hearings:delete",
   "finance:read",
   "finance:create",
   "finance:update",
@@ -145,73 +150,75 @@ export function CreateRoleForm({
 
   return (
     <form
-      className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       onSubmit={handleSubmit}
     >
-      <div className="grid shrink-0 gap-4 px-6 py-5">
-        <Field error={errors.name} label="Nombre *">
-          <Input
-            value={form.name}
-            onChange={(event) => updateField("name", event.target.value)}
-            placeholder="Coordinador"
-            className="h-12 rounded-2xl border-border/40 bg-card px-4"
-          />
-        </Field>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="grid gap-4 px-6 py-5">
+          <Field error={errors.name} label="Nombre *">
+            <Input
+              value={form.name}
+              onChange={(event) => updateField("name", event.target.value)}
+              placeholder="Coordinador"
+              className="h-12 rounded-2xl border-border/40 bg-card px-4"
+            />
+          </Field>
 
-        <Field error={errors.description} label="Alcance del sistema *">
-          <Textarea
-            value={form.description}
-            onChange={(event) => updateField("description", event.target.value)}
-            placeholder="Describe el alcance que tendra este rol dentro del sistema."
-            className="min-h-24 rounded-2xl border-border/40 bg-card px-4 py-3"
-          />
-        </Field>
+          <Field error={errors.description} label="Alcance del sistema *">
+            <Textarea
+              value={form.description}
+              onChange={(event) => updateField("description", event.target.value)}
+              placeholder="Describe el alcance que tendra este rol dentro del sistema."
+              className="min-h-24 rounded-2xl border-border/40 bg-card px-4 py-3"
+            />
+          </Field>
 
-        <Field error={errors.hierarchyLevel} label="Jerarquia *">
-          <div className="grid gap-2 sm:grid-cols-3">
-            {hierarchyOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
-                  form.hierarchyLevel === option.value
-                    ? "border-primary/50 bg-primary/10 text-foreground"
-                    : "border-border/40 bg-card text-muted-foreground hover:bg-secondary/60"
-                }`}
-                onClick={() => updateField("hierarchyLevel", option.value)}
-              >
-                <span className="block text-sm font-semibold">{option.label}</span>
-                <span className="mt-1 block text-xs leading-5">{option.description}</span>
-              </button>
-            ))}
-          </div>
-        </Field>
+          <Field error={errors.hierarchyLevel} label="Jerarquia *">
+            <div className="grid gap-2 sm:grid-cols-3">
+              {hierarchyOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                    form.hierarchyLevel === option.value
+                      ? "border-primary/50 bg-primary/10 text-foreground"
+                      : "border-border/40 bg-card text-muted-foreground hover:bg-secondary/60"
+                  }`}
+                  onClick={() => updateField("hierarchyLevel", option.value)}
+                >
+                  <span className="block text-sm font-semibold">{option.label}</span>
+                  <span className="mt-1 block text-xs leading-5">{option.description}</span>
+                </button>
+              ))}
+            </div>
+          </Field>
 
-        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/30 px-4 py-4 transition-colors hover:bg-secondary/60">
-          <Checkbox
-            checked={form.active}
-            onCheckedChange={(checked) => updateField("active", checked === true)}
-            className="mt-0.5"
-          />
-          <span className="grid gap-1">
-            <span className="text-sm font-medium text-foreground">Rol activo</span>
-            <span className="text-xs leading-5 text-muted-foreground">
-              Los roles activos pueden asignarse al personal del estudio.
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/30 px-4 py-4 transition-colors hover:bg-secondary/60">
+            <Checkbox
+              checked={form.active}
+              onCheckedChange={(checked) => updateField("active", checked === true)}
+              className="mt-0.5"
+            />
+            <span className="grid gap-1">
+              <span className="text-sm font-medium text-foreground">Rol activo</span>
+              <span className="text-xs leading-5 text-muted-foreground">
+                Los roles activos pueden asignarse al personal del estudio.
+              </span>
             </span>
-          </span>
-        </label>
+          </label>
+        </div>
+
+        <div className="px-6 pb-6">
+          <PermissionSelector
+            hierarchyLevel={form.hierarchyLevel}
+            onChange={updatePermissions}
+            permissions={permissions}
+            selectedPermissions={form.permissions}
+          />
+        </div>
       </div>
 
-      <div className="min-h-0 overflow-hidden px-6 pb-6">
-        <PermissionSelector
-          hierarchyLevel={form.hierarchyLevel}
-          onChange={updatePermissions}
-          permissions={permissions}
-          selectedPermissions={form.permissions}
-        />
-      </div>
-
-      <div className="grid gap-3 border-t border-border/30 px-6 pb-5 pt-5">
+      <div className="grid shrink-0 gap-3 border-t border-border/30 bg-background px-6 pb-5 pt-5">
         {errors.permissions ? (
           <p className="text-xs font-medium text-destructive">{errors.permissions}</p>
         ) : null}
@@ -223,7 +230,7 @@ export function CreateRoleForm({
         <Button
           type="submit"
           disabled={mutation.isPending}
-          className="h-12 rounded-2xl font-semibold"
+          className={`h-12 font-semibold ${adminPrimaryActionButtonClassName}`}
         >
           {mutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -232,7 +239,7 @@ export function CreateRoleForm({
           ) : (
             <Save className="h-4 w-4" aria-hidden="true" />
           )}
-          {mode === "create" ? "Crear rol" : "Actualizar rol"}
+          <span className="hidden sm:inline">{mode === "create" ? "Crear rol" : "Actualizar rol"}</span>
         </Button>
       </div>
     </form>
@@ -309,6 +316,10 @@ function isAllowedOperationalPermission(permissionCode: string) {
     permissionCode === "expenses:create" ||
     permissionCode === "expenses:update" ||
     permissionCode === "expenses:delete" ||
+    permissionCode === "hearings:read" ||
+    permissionCode === "hearings:create" ||
+    permissionCode === "hearings:update" ||
+    permissionCode === "hearings:delete" ||
     permissionCode === "documents:read" ||
     permissionCode === "documents:write"
   );

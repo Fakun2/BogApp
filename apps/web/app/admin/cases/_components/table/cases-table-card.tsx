@@ -1,12 +1,23 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminSurfaceClassName, adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
+"use client";
+
+import { useMemo, useState } from "react";
+import { BriefcaseBusiness } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { useDashboardQuery } from "@/lib/query/use-dashboard-query";
+import { AdminTableHeader } from "../../../_components/admin-table-header";
+import { adminSurfaceClassName } from "../../../_constants/dashboard";
+import { casesPageSize } from "../../_constants/cases.constants";
+import { casesQueries } from "../../_api/cases.query-controller";
 import type { CaseFiltersDraft } from "../../_types/case-filter.types";
 import type {
   CasesListResponse,
+  CasesQueryParams,
   CaseSortDirection,
   CaseSortKey,
   CasesTableColumn
 } from "../../_types/cases.types";
+import { appendCursor, getCurrentCursor, removeLastCursor } from "../../_utils/case-pagination";
+import { getNextCaseSortDirection } from "../../_utils/case-sorting";
 import { CasesPagination } from "./cases-pagination";
 import { CasesTable } from "./cases-table";
 import { CasesTableToolbar } from "./cases-table-toolbar";
@@ -21,7 +32,7 @@ export function CasesTableCard({
   error,
   filters,
   sortBy,
-  sortDirection,
+  sortDirection
 }: {
   canCreate: boolean;
   canDelete: boolean;
@@ -34,46 +45,106 @@ export function CasesTableCard({
   sortBy: CaseSortKey;
   sortDirection: CaseSortDirection;
 }) {
-  const pageInfo = casesData?.pageInfo;
+  const [localColumns, setLocalColumns] = useState(columns);
+  const [localCursorStack, setLocalCursorStack] = useState(cursorStack);
+  const [localFilters, setLocalFilters] = useState(filters);
+  const [localSortBy, setLocalSortBy] = useState(sortBy);
+  const [localSortDirection, setLocalSortDirection] = useState(sortDirection);
+  const queryParams = useMemo<CasesQueryParams>(
+    () => ({
+      cursor: getCurrentCursor(localCursorStack) ?? undefined,
+      court: localFilters.court || undefined,
+      filingDate: localFilters.filingDate || undefined,
+      forumTemplateId: localFilters.forumTemplateId || undefined,
+      instance:
+        localFilters.instance === "first" ||
+        localFilters.instance === "second" ||
+        localFilters.instance === "third"
+          ? localFilters.instance
+          : undefined,
+      judicialCenter: localFilters.judicialCenter || undefined,
+      limit: casesPageSize,
+      offset: localCursorStack.length * casesPageSize,
+      provinceId: localFilters.provinceId || undefined,
+      search: localFilters.search || undefined,
+      status: localFilters.status || undefined,
+      sortBy: localSortBy,
+      sortDirection: localSortDirection
+    }),
+    [localCursorStack, localFilters, localSortBy, localSortDirection]
+  );
+  const querySpec = casesQueries.list(queryParams);
+  const casesQuery = useDashboardQuery({
+    ...querySpec,
+    placeholderData: (previousData) => previousData ?? casesData
+  });
+  const tableData = casesQuery.data ?? casesData;
+  const tableError = casesQuery.error ?? error;
+  const pageInfo = tableData?.pageInfo;
+
+  function handleFiltersChange(nextFilters: CaseFiltersDraft) {
+    setLocalFilters(nextFilters);
+    setLocalCursorStack([]);
+  }
+
+  function handleSort(nextSortBy: CaseSortKey) {
+    setLocalSortDirection((currentDirection) =>
+      getNextCaseSortDirection({
+        active: localSortBy === nextSortBy,
+        currentDirection
+      })
+    );
+    setLocalSortBy(nextSortBy);
+    setLocalCursorStack([]);
+  }
 
   return (
     <Card
       data-admin-surface
       className={`${adminSurfaceClassName} flex min-h-0 flex-1 flex-col overflow-hidden border-0 shadow-[var(--admin-card-shadow)]`}
     >
-      <CardHeader className="flex shrink-0 flex-col gap-3 border-b border-border/30 px-4 py-4 md:gap-4 md:px-6 md:py-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <CardTitle className={`text-lg font-semibold ${adminSurfacePrimaryClassName}`}>
-            Expedientes
-          </CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gestiona causas del estudio con provincia, fuero y datos judiciales basicos.
-          </p>
-        </div>
-        <CasesTableToolbar
-          canCreate={canCreate}
-          columns={columns}
-          filters={filters}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-        />
-      </CardHeader>
+      <AdminTableHeader
+        actions={
+          <CasesTableToolbar
+            canCreate={canCreate}
+            columns={localColumns}
+            filters={localFilters}
+            onColumnsChange={setLocalColumns}
+            onFiltersChange={handleFiltersChange}
+            onSort={handleSort}
+            sortBy={localSortBy}
+            sortDirection={localSortDirection}
+          />
+        }
+        icon={BriefcaseBusiness}
+        title="Expedientes"
+      />
       <CardContent className="flex min-h-0 flex-1 flex-col px-4 md:px-6">
         <CasesTable
           canDelete={canDelete}
           canUpdate={canUpdate}
-          columns={columns}
-          error={error}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          cases={casesData?.items ?? []}
+          columns={localColumns}
+          error={tableError}
+          onSort={handleSort}
+          sortBy={localSortBy}
+          sortDirection={localSortDirection}
+          cases={tableData?.items ?? []}
         />
         <CasesPagination
-          cursorStack={cursorStack}
           hasNextPage={pageInfo?.hasNextPage ?? false}
           nextCursor={pageInfo?.nextCursor ?? null}
-          pageIndex={cursorStack.length}
-          pageRowsLength={casesData?.items.length ?? 0}
+          onNextPage={() => {
+            if (pageInfo?.nextCursor) {
+              setLocalCursorStack((currentStack) =>
+                appendCursor(currentStack, pageInfo.nextCursor ?? "")
+              );
+            }
+          }}
+          onPreviousPage={() =>
+            setLocalCursorStack((currentStack) => removeLastCursor(currentStack))
+          }
+          pageIndex={localCursorStack.length}
+          pageRowsLength={tableData?.items.length ?? 0}
         />
       </CardContent>
     </Card>

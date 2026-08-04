@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -35,22 +36,33 @@ import { CaseExpenseAttachmentUploadRateLimitGuard } from "./guards/case-expense
 import {
   CaseDetailDto,
   CaseDeleteResponseDto,
+  CaseCalendarQueryDto,
+  CaseCalendarResponseDto,
   CaseDto,
   CaseExpenseAttachmentDto,
   CaseExpenseAttachmentsListResponseDto,
   CaseExpenseDto,
+  CaseExpensesOverdueRecalculationDto,
   CaseExpensesListResponseDto,
+  CaseExpensesSummaryDto,
+  CaseHearingDto,
+  CaseHearingsListResponseDto,
+  CasesMetricsDto,
   CaseTaskDto,
   CaseTasksListResponseDto,
   CasesListResponseDto,
   CreateCaseDto,
   CreateCaseExpenseDto,
+  CreateCaseHearingDto,
   CreateCaseTaskDto,
+  ListCaseExpenseAttachmentsQueryDto,
   ListCaseExpensesQueryDto,
+  ListCaseHearingsQueryDto,
   ListCaseTasksQueryDto,
   ListCasesQueryDto,
   UpdateCaseDto,
   UpdateCaseExpenseDto,
+  UpdateCaseHearingDto,
   UpdateCaseTaskDto
 } from "./cases.schemas";
 import { CasesService } from "./cases.service";
@@ -69,6 +81,13 @@ export class CasesController {
   @ApiOkResponse({ type: CasesListResponseDto })
   list(@ActiveTenant() tenantId: string, @Query() query: ListCasesQueryDto) {
     return this.casesService.list(tenantId, query);
+  }
+
+  @Get("metrics")
+  @Permissions("cases:read")
+  @ApiOkResponse({ type: CasesMetricsDto })
+  getMetrics(@ActiveTenant() tenantId: string) {
+    return this.casesService.getMetrics(tenantId);
   }
 
   @Post()
@@ -119,6 +138,17 @@ export class CasesController {
     return this.casesService.updateTask(tenantId, caseId, taskId, input);
   }
 
+  @Patch(":caseId/tasks/:taskId/seen")
+  @Permissions("cases:read", "tasks:read")
+  @ApiOkResponse({ type: CaseTaskDto })
+  markTaskSeen(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("taskId") taskId: string
+  ) {
+    return this.casesService.markTaskSeen(tenantId, caseId, taskId);
+  }
+
   @Delete(":caseId/tasks/:taskId")
   @Permissions("cases:read", "tasks:delete")
   @ApiOkResponse({ type: CaseDeleteResponseDto })
@@ -130,6 +160,84 @@ export class CasesController {
     return this.casesService.deleteTask(tenantId, caseId, taskId);
   }
 
+  @Get(":caseId/calendar")
+  @Permissions("cases:read")
+  @ApiOkResponse({ type: CaseCalendarResponseDto })
+  getCalendar(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Query() query: CaseCalendarQueryDto,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const tenantPermissions = getTenantPermissions(request, tenantId);
+
+    return this.casesService.getCalendar(tenantId, caseId, query, {
+      canReadExpenses: tenantPermissions.has("expenses:read"),
+      canReadHearings: tenantPermissions.has("hearings:read"),
+      canReadTasks: tenantPermissions.has("tasks:read")
+    });
+  }
+
+  @Get(":caseId/hearings")
+  @Permissions("cases:read", "hearings:read")
+  @ApiOkResponse({ type: CaseHearingsListResponseDto })
+  listHearings(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Query() query: ListCaseHearingsQueryDto
+  ) {
+    return this.casesService.listHearings(tenantId, caseId, query);
+  }
+
+  @Post(":caseId/hearings")
+  @Permissions("cases:read", "hearings:create")
+  @ApiCreatedResponse({ type: CaseHearingDto })
+  createHearing(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Body() input: CreateCaseHearingDto
+  ) {
+    return this.casesService.createHearing(tenantId, caseId, input);
+  }
+
+  @Patch(":caseId/hearings/:hearingId")
+  @Permissions("cases:read", "hearings:update")
+  @ApiOkResponse({ type: CaseHearingDto })
+  updateHearing(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("hearingId") hearingId: string,
+    @Body() input: UpdateCaseHearingDto
+  ) {
+    return this.casesService.updateHearing(tenantId, caseId, hearingId, input);
+  }
+
+  @Delete(":caseId/hearings/:hearingId")
+  @Permissions("cases:read", "hearings:delete")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  deleteHearing(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("hearingId") hearingId: string
+  ) {
+    return this.casesService.deleteHearing(tenantId, caseId, hearingId);
+  }
+
+  @Get(":caseId/expenses/summary")
+  @Permissions("cases:read", "expenses:read")
+  @ApiOkResponse({ type: CaseExpensesSummaryDto })
+  getExpensesSummary(@ActiveTenant() tenantId: string, @Param("caseId") caseId: string) {
+    return this.casesService.getExpensesSummary(tenantId, caseId);
+  }
+
+  @Post(":caseId/expenses/recalculate-overdue")
+  @HttpCode(200)
+  @Permissions("cases:read", "expenses:update")
+  @ApiOkResponse({ type: CaseExpensesOverdueRecalculationDto })
+  recalculateOverdueExpenses(@ActiveTenant() tenantId: string, @Param("caseId") caseId: string) {
+    return this.casesService.recalculateOverdueExpenses(tenantId, caseId);
+  }
+
   @Get(":caseId/expenses")
   @Permissions("cases:read", "expenses:read")
   @ApiOkResponse({ type: CaseExpensesListResponseDto })
@@ -139,6 +247,17 @@ export class CasesController {
     @Query() query: ListCaseExpensesQueryDto
   ) {
     return this.casesService.listExpenses(tenantId, caseId, query);
+  }
+
+  @Get(":caseId/expenses/:expenseId")
+  @Permissions("cases:read", "expenses:read")
+  @ApiOkResponse({ type: CaseExpenseDto })
+  getExpense(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("expenseId") expenseId: string
+  ) {
+    return this.casesService.getExpense(tenantId, caseId, expenseId);
   }
 
   @Post(":caseId/expenses")
@@ -181,9 +300,10 @@ export class CasesController {
   listExpenseAttachments(
     @ActiveTenant() tenantId: string,
     @Param("caseId") caseId: string,
-    @Param("expenseId") expenseId: string
+    @Param("expenseId") expenseId: string,
+    @Query() query: ListCaseExpenseAttachmentsQueryDto
   ) {
-    return this.casesService.listExpenseAttachments(tenantId, caseId, expenseId);
+    return this.casesService.listExpenseAttachments(tenantId, caseId, expenseId, query);
   }
 
   @Post(":caseId/expenses/:expenseId/attachments")
@@ -231,7 +351,8 @@ export class CasesController {
     @Param("caseId") caseId: string,
     @Param("expenseId") expenseId: string,
     @Param("attachmentId") attachmentId: string,
-    @Res({ passthrough: true }) response: {
+    @Res({ passthrough: true })
+    response: {
       setHeader: (name: string, value: string | number) => void;
     }
   ) {
@@ -291,4 +412,11 @@ function toDownloadFilename(filename: string) {
 
 function missingAuthenticatedUser(): never {
   throw new BadRequestException("No se pudo identificar al usuario autenticado.");
+}
+
+function getTenantPermissions(request: AuthenticatedRequest, tenantId: string) {
+  return new Set(
+    request.user?.tenantAccess.find((tenantAccess) => tenantAccess.tenantId === tenantId)
+      ?.permissions ?? []
+  );
 }

@@ -8,12 +8,17 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import type {
   CreateCaseExpenseInput,
+  CreateCaseHearingInput,
   CreateCaseInput,
   CreateCaseTaskInput,
+  CaseCalendarQuery,
+  ListCaseExpenseAttachmentsQuery,
   ListCaseExpensesQuery,
+  ListCaseHearingsQuery,
   ListCaseTasksQuery,
   ListCasesQuery,
   UpdateCaseExpenseInput,
+  UpdateCaseHearingInput,
   UpdateCaseInput,
   UpdateCaseTaskInput
 } from "./cases.schemas";
@@ -22,7 +27,9 @@ import {
   type UploadedCaseExpenseAttachmentFile
 } from "./use-cases/case-expense-attachments.use-case";
 import { CaseExpensesUseCase } from "./use-cases/case-expenses.use-case";
+import { CaseHearingsUseCase } from "./use-cases/case-hearings.use-case";
 import { CaseTasksUseCase } from "./use-cases/case-tasks.use-case";
+import { ExpenseOverdueUseCase } from "./use-cases/expense-overdue.use-case";
 
 @Injectable()
 export class CasesService {
@@ -30,6 +37,8 @@ export class CasesService {
     private readonly prisma: PrismaService,
     private readonly caseExpenseAttachmentsUseCase: CaseExpenseAttachmentsUseCase,
     private readonly caseExpensesUseCase: CaseExpensesUseCase,
+    private readonly expenseOverdueUseCase: ExpenseOverdueUseCase,
+    private readonly caseHearingsUseCase: CaseHearingsUseCase,
     private readonly caseTasksUseCase: CaseTasksUseCase
   ) {}
 
@@ -119,6 +128,32 @@ export class CasesService {
     };
   }
 
+  async getMetrics(tenantId: string) {
+    const [countsByStatus, pendingTasks] = await Promise.all([
+      this.prisma.case.groupBy({
+        by: ["status"],
+        _count: { _all: true },
+        where: { tenantId }
+      }),
+      this.prisma.caseTask.count({
+        where: {
+          status: { in: ["pending", "in_progress"] },
+          tenantId
+        }
+      })
+    ]);
+    const countByStatus = new Map(
+      countsByStatus.map(({ _count, status }) => [status, _count._all])
+    );
+
+    return {
+      totalCases: countsByStatus.reduce((total, item) => total + item._count._all, 0),
+      openCases: countByStatus.get("open") ?? 0,
+      closedCases: countByStatus.get("closed") ?? 0,
+      pendingTasks
+    };
+  }
+
   async create(tenantId: string, input: CreateCaseInput) {
     const relationContext = await this.assertCaseRelations(tenantId, input);
 
@@ -165,12 +200,58 @@ export class CasesService {
     return this.caseTasksUseCase.update(tenantId, caseId, taskId, input);
   }
 
+  async markTaskSeen(tenantId: string, caseId: string, taskId: string) {
+    return this.caseTasksUseCase.markSeen(tenantId, caseId, taskId);
+  }
+
   async deleteTask(tenantId: string, caseId: string, taskId: string) {
     return this.caseTasksUseCase.delete(tenantId, caseId, taskId);
   }
 
   async listExpenses(tenantId: string, caseId: string, query: ListCaseExpensesQuery) {
     return this.caseExpensesUseCase.list(tenantId, caseId, query);
+  }
+
+  async getExpense(tenantId: string, caseId: string, expenseId: string) {
+    return this.caseExpensesUseCase.get(tenantId, caseId, expenseId);
+  }
+
+  async getExpensesSummary(tenantId: string, caseId: string) {
+    return this.caseExpensesUseCase.summary(tenantId, caseId);
+  }
+
+  async recalculateOverdueExpenses(tenantId: string, caseId: string) {
+    return this.expenseOverdueUseCase.recalculate(tenantId, { caseId });
+  }
+
+  async getCalendar(
+    tenantId: string,
+    caseId: string,
+    query: CaseCalendarQuery,
+    permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
+  ) {
+    return this.caseExpensesUseCase.calendar(tenantId, caseId, query, permissions);
+  }
+
+  async listHearings(tenantId: string, caseId: string, query: ListCaseHearingsQuery) {
+    return this.caseHearingsUseCase.list(tenantId, caseId, query);
+  }
+
+  async createHearing(tenantId: string, caseId: string, input: CreateCaseHearingInput) {
+    return this.caseHearingsUseCase.create(tenantId, caseId, input);
+  }
+
+  async updateHearing(
+    tenantId: string,
+    caseId: string,
+    hearingId: string,
+    input: UpdateCaseHearingInput
+  ) {
+    return this.caseHearingsUseCase.update(tenantId, caseId, hearingId, input);
+  }
+
+  async deleteHearing(tenantId: string, caseId: string, hearingId: string) {
+    return this.caseHearingsUseCase.delete(tenantId, caseId, hearingId);
   }
 
   async createExpense(tenantId: string, caseId: string, input: CreateCaseExpenseInput) {
@@ -190,8 +271,13 @@ export class CasesService {
     return this.caseExpensesUseCase.delete(tenantId, caseId, expenseId);
   }
 
-  async listExpenseAttachments(tenantId: string, caseId: string, expenseId: string) {
-    return this.caseExpenseAttachmentsUseCase.list(tenantId, caseId, expenseId);
+  async listExpenseAttachments(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    query: ListCaseExpenseAttachmentsQuery
+  ) {
+    return this.caseExpenseAttachmentsUseCase.list(tenantId, caseId, expenseId, query);
   }
 
   async createExpenseAttachment(

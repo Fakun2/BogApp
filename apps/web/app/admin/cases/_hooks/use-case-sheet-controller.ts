@@ -9,11 +9,19 @@ import type {
   ParticipantDraft,
   ParticipantErrors
 } from "../_types/case-form.types";
-import type { CaseDto, ForumDto, JudicialCenterDto, ProvinceDto } from "../_types/cases.types";
+import type {
+  CaseDto,
+  CatalogResponse,
+  ForumDto,
+  JudicialCenterDto,
+  ProvinceDto
+} from "../_types/cases.types";
 import { createParticipantDraft, toCaseDraft } from "../_utils/case-draft";
 import { toCaseFormErrors, toParticipantErrors } from "../_utils/case-errors";
-import { useCatalogOptionsQuery } from "./use-catalog-options-query";
-import { useSaveCaseMutation } from "./use-save-case-mutation";
+import { casesMutations } from "../_api/cases.mutation-controller";
+import { casesQueries } from "../_api/cases.query-controller";
+import { useCasesMutation } from "./use-cases-mutation";
+import { useCasesQuery } from "./use-cases-query";
 
 export function useCaseSheetController({
   caseItem,
@@ -29,23 +37,34 @@ export function useCaseSheetController({
   const [errors, setErrors] = useState<CaseFormErrors>({});
   const [participantErrors, setParticipantErrors] = useState<ParticipantErrors>({});
 
-  const provincesQuery = useCatalogOptionsQuery<ProvinceDto>("/provinces", "provinces");
+  const provincesQuery = useCasesQuery<CatalogResponse<ProvinceDto>>(
+    casesQueries.catalogOptions<ProvinceDto>({ key: "provinces", path: "/provinces" })
+  );
   const selectedProvince = (provincesQuery.data?.items ?? []).find(
     (province) => province.id === draft.provinceId
   );
   const catalogStrategy = selectedProvince?.caseCatalogStrategy ?? "manual";
   const strategyConfig = caseCatalogStrategies[catalogStrategy];
 
-  const judicialCentersQuery = useCatalogOptionsQuery<JudicialCenterDto>(
-    "/judicial-centers",
-    "judicial-centers",
-    { provinceId: draft.provinceId }
+  const judicialCentersQuery = useCasesQuery(
+    casesQueries.catalogOptions<JudicialCenterDto>({
+      key: "judicial-centers",
+      path: "/judicial-centers",
+      params: { provinceId: draft.provinceId }
+    })
   );
-  const forumsQuery = useCatalogOptionsQuery<ForumDto>("/forums", "forums", {
-    judicialCenterId: strategyConfig.forumScope === "judicialCenter" ? judicialCenterId : undefined,
-    provinceId: draft.provinceId
-  });
-  const mutation = useSaveCaseMutation(caseItem?.id);
+  const forumsQuery = useCasesQuery(
+    casesQueries.catalogOptions<ForumDto>({
+      key: "forums",
+      path: "/forums",
+      params: {
+        judicialCenterId:
+          strategyConfig.forumScope === "judicialCenter" ? judicialCenterId : undefined,
+        provinceId: draft.provinceId
+      }
+    })
+  );
+  const mutation = useCasesMutation(casesMutations.saveCase(caseItem?.id));
 
   const forumDisabled =
     !draft.provinceId ||

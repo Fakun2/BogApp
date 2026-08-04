@@ -20,8 +20,8 @@ export function CreateAccountPanel({
   onToggleTheme
 }: CreateAccountPanelProps) {
   return (
-    <Card className="p-2 flex min-h-screen overflow-hidden rounded-2xl border border-border bg-card/95 shadow-none lg:h-full lg:min-h-0">
-      <CardContent className="flex w-full flex-col py-2 2xl:py-4 sm:px-5">
+    <Card className="flex min-h-0 overflow-hidden rounded-2xl border border-border bg-card/95 p-2 shadow-none">
+      <CardContent className="flex min-h-0 w-full flex-col overflow-y-auto overscroll-contain py-2 sm:px-5">
         <div className="flex items-center justify-between">
           <Button asChild variant="outline" className="size-9 rounded-full p-0">
             <Link href="/" aria-label="BOGAP">

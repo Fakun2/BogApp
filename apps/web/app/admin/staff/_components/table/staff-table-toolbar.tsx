@@ -1,53 +1,67 @@
 import type { Table } from "@tanstack/react-table";
-import { UsersRound } from "lucide-react";
-import { CardTitle } from "@/components/ui/card";
 import { Can } from "../../../_components/auth";
-import { adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
 import type {
+  StaffFilters,
   StaffListResponse,
   StaffSortDirection,
   StaffSortKey,
   StaffWorker
 } from "../../_types/staff.types";
+import { StaffFiltersPopover } from "../filters/staff-filters-popover";
 import { CreateStaffSheet } from "../create-staff/create-staff-sheet";
 import { DataTableViewOptions } from "./data-table-view-options";
 import { SortMenu } from "./sort-menu";
 
 export function StaffTableToolbar({
   canManageStaff,
+  filters,
+  filtersDisabled,
+  hasActiveFilters,
+  hasDraftFilters,
   sortDirection,
   sortKey,
   staffData,
   table,
+  onApplyFilters,
+  onResetFilters,
   onStaffCreated,
-  onSort
+  onSort,
+  onUpdateFilter
 }: {
   canManageStaff: boolean;
+  filters: StaffFilters;
+  filtersDisabled: boolean;
+  hasActiveFilters: boolean;
+  hasDraftFilters: boolean;
   sortDirection: StaffSortDirection;
   sortKey: StaffSortKey;
   staffData: StaffListResponse | undefined;
   table: Table<StaffWorker>;
+  onApplyFilters: () => void;
+  onResetFilters: () => void;
   onStaffCreated: () => void;
   onSort: (key: StaffSortKey) => void;
+  onUpdateFilter: <K extends keyof StaffFilters>(key: K, value: StaffFilters[K]) => void;
 }) {
   return (
     <>
-      <div className="flex min-w-0 items-center gap-3">
-        <UsersRound className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <CardTitle className={`truncate text-lg font-semibold ${adminSurfacePrimaryClassName}`}>
-          Personal
-        </CardTitle>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        <Can permissions={["staff:create"]}>
-          {canManageStaff ? (
-            <CreateStaffSheet staffData={staffData} onCreated={onStaffCreated} />
-          ) : null}
-        </Can>
-        <SortMenu sortDirection={sortDirection} sortKey={sortKey} onSort={onSort} />
-        <DataTableViewOptions table={table} />
-      </div>
+      <Can permissions={["staff:create"]}>
+        {canManageStaff ? (
+          <CreateStaffSheet staffData={staffData} onCreated={onStaffCreated} />
+        ) : null}
+      </Can>
+      <StaffFiltersPopover
+        disabled={filtersDisabled}
+        filters={filters}
+        hasActiveFilters={hasActiveFilters}
+        hasDraftFilters={hasDraftFilters}
+        staffData={staffData}
+        onApply={onApplyFilters}
+        onReset={onResetFilters}
+        onUpdateFilter={onUpdateFilter}
+      />
+      <SortMenu sortDirection={sortDirection} sortKey={sortKey} onSort={onSort} />
+      <DataTableViewOptions table={table} />
     </>
   );
 }

@@ -1,30 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UnauthorizedState } from "@/components/ui/not-found";
 import { RequirePermission } from "../_components/auth";
 import {
   adminSurfaceClassName,
   adminSurfacePrimaryClassName
 } from "../_constants/dashboard";
 import { CreateRoleSheet } from "./_components/create-role-sheet";
-import { RolesFilters, type RoleStatusFilter } from "./_components/roles-filters";
 import { RolesList } from "./_components/roles-list";
 import { RolesMetrics } from "./_components/roles-metrics";
 import { useRolesQuery } from "./_hooks/use-roles-query";
-import { filterRoles } from "./_utils/role-filters";
 
 export default function RolesPage() {
   const rolesQuery = useRolesQuery();
-  const [nameFilter, setNameFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<RoleStatusFilter>("all");
   const roles = rolesQuery.data?.roles ?? [];
   const permissions = rolesQuery.data?.permissions ?? [];
-  const filteredRoles = useMemo(
-    () => filterRoles({ name: nameFilter, roles, status: statusFilter }),
-    [nameFilter, roles, statusFilter]
-  );
 
   if (!rolesQuery.hasSession) {
     return <RestrictedRoles />;
@@ -32,16 +23,8 @@ export default function RolesPage() {
 
   return (
     <RequirePermission permissions={["roles:read"]} fallback={<RestrictedRoles />}>
-      <div className="flex h-[calc(100svh-4rem)] max-h-[calc(100svh-4rem)] min-h-0 flex-col gap-4 overflow-hidden md:h-[calc(100svh-5rem)] md:max-h-[calc(100svh-5rem)]">
+      <div className="flex h-[calc(100svh-4rem)] max-h-[calc(100svh-4rem)] min-h-0 flex-col gap-5 overflow-hidden md:h-[calc(100svh-5rem)] md:max-h-[calc(100svh-5rem)] md:gap-6">
         <RolesMetrics roles={roles} />
-
-        <RolesFilters
-          disabled={rolesQuery.isLoading}
-          name={nameFilter}
-          status={statusFilter}
-          onNameChange={setNameFilter}
-          onStatusChange={setStatusFilter}
-        />
 
         <Card
           data-admin-surface
@@ -65,7 +48,7 @@ export default function RolesPage() {
                 {rolesQuery.error.message}
               </div>
             ) : (
-              <RolesList permissions={permissions} roles={filteredRoles} />
+              <RolesList permissions={permissions} roles={roles} />
             )}
           </CardContent>
         </Card>
@@ -76,21 +59,9 @@ export default function RolesPage() {
 
 function RestrictedRoles() {
   return (
-    <Card
-      data-admin-surface
-      className="mx-auto max-w-xl rounded-xl border-0 bg-card text-card-foreground shadow-[var(--admin-card-shadow)]"
-    >
-      <CardContent className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
-          <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Roles restringidos</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            No tienes acceso para gestionar roles dentro de este estudio.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <UnauthorizedState
+      title="Roles restringidos"
+      description="Necesitas permisos adicionales para acceder al area de roles."
+    />
   );
 }

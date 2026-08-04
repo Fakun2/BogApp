@@ -32,7 +32,7 @@ export function StaffFiltersPanel({
     <CardContent
       className={
         surface === "card"
-          ? "grid gap-3 p-4 xl:grid-cols-[minmax(280px,1fr)_140px_150px_140px_140px_auto] xl:items-end"
+          ? "grid gap-3 p-4 lg:grid-cols-[minmax(280px,1fr)_140px_150px_140px_140px_auto] lg:items-end"
           : "grid gap-3 p-0"
       }
     >

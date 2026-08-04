@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 import type {
@@ -45,6 +45,7 @@ export class CaseTasksUseCase {
 
   async create(tenantId: string, caseId: string, input: CreateCaseTaskInput) {
     await this.findTenantCaseOrThrow(tenantId, caseId);
+    await this.assertAssignableMembership(tenantId, input.assignedMembershipId);
     const createdTask = await this.prisma.caseTask.create({
       data: {
         ...toCaseTaskWriteData(input),
@@ -59,9 +60,21 @@ export class CaseTasksUseCase {
 
   async update(tenantId: string, caseId: string, taskId: string, input: UpdateCaseTaskInput) {
     await this.findTenantTaskOrThrow(tenantId, caseId, taskId);
+    await this.assertAssignableMembership(tenantId, input.assignedMembershipId);
     const updatedTask = await this.prisma.caseTask.update({
       where: { id: taskId },
-      data: toCaseTaskWriteData(input),
+      data: toCaseTaskWriteData(input, { includeMissingAssignment: false }),
+      select: caseTaskSelect
+    });
+
+    return toCaseTaskDto(updatedTask);
+  }
+
+  async markSeen(tenantId: string, caseId: string, taskId: string) {
+    await this.findTenantTaskOrThrow(tenantId, caseId, taskId);
+    const updatedTask = await this.prisma.caseTask.update({
+      where: { id: taskId },
+      data: { lastSeenAt: new Date() },
       select: caseTaskSelect
     });
 
@@ -100,13 +113,47 @@ export class CaseTasksUseCase {
 
     return task;
   }
+
+  private async assertAssignableMembership(tenantId: string, assignedMembershipId?: string | null) {
+    if (!assignedMembershipId) {
+      return;
+    }
+
+    const membership = await this.prisma.tenantMembership.findFirst({
+      where: { id: assignedMembershipId, status: "active", tenantId },
+      select: { id: true }
+    });
+
+    if (!membership) {
+      throw new BadRequestException("El asignado no pertenece al staff activo del workspace.");
+    }
+  }
 }
 
 const caseTaskSelect = {
+  assignedMembershipId: true,
+  assignedTo: {
+    select: {
+      id: true,
+      role: {
+        select: {
+          name: true
+        }
+      },
+      user: {
+        select: {
+          email: true,
+          fullName: true
+        }
+      },
+      userId: true
+    }
+  },
   caseId: true,
   createdAt: true,
   endDate: true,
   id: true,
+  lastSeenAt: true,
   name: true,
   notes: true,
   startDate: true,
@@ -116,25 +163,51 @@ const caseTaskSelect = {
 
 type CaseTaskWithSelect = Prisma.CaseTaskGetPayload<{ select: typeof caseTaskSelect }>;
 
-function toCaseTaskWriteData(input: CreateCaseTaskInput | UpdateCaseTaskInput) {
-  return {
+function toCaseTaskWriteData(
+  input: CreateCaseTaskInput | UpdateCaseTaskInput,
+  options: { includeMissingAssignment?: boolean } = {}
+) {
+  const data = {
     endDate: input.endDate ? new Date(`${input.endDate}T00:00:00.000Z`) : null,
     name: input.name,
     notes: input.notes ?? null,
     startDate: input.startDate ? new Date(`${input.startDate}T00:00:00.000Z`) : null,
     status: input.status
   };
+
+  if (
+    options.includeMissingAssignment !== false ||
+    Object.prototype.hasOwnProperty.call(input, "assignedMembershipId")
+  ) {
+    return {
+      ...data,
+      assignedMembershipId: input.assignedMembershipId ?? null
+    };
+  }
+
+  return data;
 }
 
 function toCaseTaskDto(item: CaseTaskWithSelect) {
   return {
     id: item.id,
     caseId: item.caseId,
+    assignedMembershipId: item.assignedMembershipId,
+    assignedTo: item.assignedTo
+      ? {
+          id: item.assignedTo.id,
+          userId: item.assignedTo.userId,
+          fullName: item.assignedTo.user.fullName,
+          email: item.assignedTo.user.email,
+          roleName: item.assignedTo.role?.name ?? null
+        }
+      : null,
     name: item.name,
     startDate: item.startDate ? item.startDate.toISOString().slice(0, 10) : null,
     endDate: item.endDate ? item.endDate.toISOString().slice(0, 10) : null,
     status: item.status,
     notes: item.notes,
+    lastSeenAt: item.lastSeenAt ? item.lastSeenAt.toISOString() : null,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString()
   };

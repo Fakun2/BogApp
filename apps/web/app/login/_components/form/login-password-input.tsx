@@ -16,7 +16,7 @@ export function LoginPasswordInput({ onChange, value }: LoginPasswordInputProps)
     <div className="relative">
       <Input
         autoComplete="current-password"
-        className="h-12 rounded-2xl border-field-border bg-field px-4 pr-12 text-sm text-field-foreground"
+        className="h-12 w-full rounded-2xl border-field-border bg-field px-4 pr-12 text-base text-field-foreground md:text-sm"
         placeholder="••••••••"
         type={visible ? "text" : "password"}
         value={value}
