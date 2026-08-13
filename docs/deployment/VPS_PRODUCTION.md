@@ -125,6 +125,8 @@ Always test restore before trusting backups.
 
 - Only Nginx publishes host ports.
 - PostgreSQL, Redis and MinIO are internal Docker services.
+- PostgreSQL uses the `pgvector/pgvector:pg16` image because AI legal corpus
+  migrations require the `vector` extension.
 - Auth cookies require HTTPS because `AUTH_COOKIE_SECURE=true`.
 - The `/api` path intentionally goes through Next.js first, because Next owns
   httpOnly auth cookies, token refresh and tenant header forwarding.
