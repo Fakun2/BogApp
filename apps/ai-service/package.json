@@ -1,0 +1,18 @@
+{
+  "name": "@bogaap/ai-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@bogaap/ai-contracts": "0.1.0",
+    "@bogaap/ai-core": "0.1.0"
+  }
+}

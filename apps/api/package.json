@@ -1,0 +1,50 @@
+{
+  "name": "@bogaap/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/main.js",
+  "scripts": {
+    "build:ai-packages": "npm --prefix ../.. run build --workspace @bogaap/ai-contracts && npm --prefix ../.. run build --workspace @bogaap/ai-core",
+    "dev": "npm run build:ai-packages && nest start --watch",
+    "dev:lan": "npm run build:ai-packages && nest start --watch",
+    "build": "npm run build:ai-packages && nest build",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "npm run build:ai-packages && tsc -p tsconfig.json --noEmit",
+    "test:e2e": "node --test -r ts-node/register -r tsconfig-paths/register test/**/*.e2e-spec.ts",
+    "openapi": "npm run build:ai-packages && ts-node -r tsconfig-paths/register src/openapi.ts",
+    "start": "node dist/main.js",
+    "start:lan": "node dist/main.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1096.0",
+    "@bogaap/ai-contracts": "0.1.0",
+    "@bogaap/ai-core": "0.1.0",
+    "@bogaap/database": "0.1.0",
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.1.19",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/platform-express": "^11.1.19",
+    "@nestjs/swagger": "^11.0.0",
+    "bcryptjs": "^3.0.0",
+    "dotenv": "^16.4.0",
+    "ioredis": "^5.0.0",
+    "nestjs-zod": "^4.0.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/testing": "^11.1.26",
+    "@types/passport-jwt": "^4.0.0",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "ts-node": "^10.9.0",
+    "tsconfig-paths": "^4.2.0"
+  }
+}

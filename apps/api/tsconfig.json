@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "../..",
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@bogaap/ai-contracts": ["packages/ai-contracts/dist/index"],
+      "@bogaap/ai-core": ["packages/ai-core/dist/index"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

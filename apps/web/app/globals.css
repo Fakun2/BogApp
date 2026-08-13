@@ -1,0 +1,738 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root,
+.theme-navy-slate {
+  --background: #f7f9fb;
+  --foreground: #071827;
+  --card: #ffffff;
+  --card-foreground: #071827;
+  --primary: #073061;
+  --primary-foreground: #ffffff;
+  --btn-primary: #073061;
+  --btn-primary-foreground: #ffffff;
+  --admin-sidebar-active: var(--btn-primary);
+  --admin-sidebar-active-foreground: var(--btn-primary-foreground);
+  --admin-page-bg: #fbfbfb;
+  --admin-card-radius: 24px;
+  --admin-card-shadow: 0 18px 20px -24px rgba(15, 23, 42, 0.14);
+  --admin-header-control-shadow: 0 12px 26px -16px rgba(15, 23, 42, 0.44),
+    0 6px 14px -10px rgba(15, 23, 42, 0.34);
+  --admin-sidebar-bg: #eeeeee;
+  --admin-sidebar-hover: color-mix(in oklab, var(--btn-primary) 10%, transparent);
+  --dropdown-bg: #ffffff;
+  --dropdown-border: color-mix(in oklab, var(--border) 48%, transparent);
+  --dropdown-item-hover: color-mix(in oklab, var(--btn-primary) 7%, transparent);
+  --dropdown-item-hover-shadow: inset 0 0 0 1px color-mix(in oklab, var(--btn-primary) 8%, transparent),
+    0 8px 18px -16px color-mix(in oklab, var(--btn-primary) 36%, transparent);
+  --selectable-card-hover-bg: color-mix(in oklab, var(--btn-primary) 6%, transparent);
+  --selectable-card-hover-border: color-mix(in oklab, var(--btn-primary) 22%, var(--border));
+  --selectable-card-selected-bg: color-mix(in oklab, var(--btn-primary) 10%, var(--card));
+  --selectable-card-selected-border: color-mix(in oklab, var(--btn-primary) 42%, var(--border));
+  --selectable-card-selected-foreground: var(--foreground);
+  --selectable-card-icon-bg: color-mix(in oklab, var(--btn-primary) 10%, var(--card));
+  --selectable-card-icon-foreground: var(--btn-primary);
+  --scrollbar-size: 7px;
+  --scrollbar-thumb: color-mix(in oklab, var(--muted-foreground) 62%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--muted-foreground) 78%, transparent);
+  --scrollbar-track: transparent;
+  --btn-secondary: #ffffff;
+  --btn-secondary-foreground: #000000;
+  --btn-secondary-hover: rgba(207, 207, 207, 0.2);
+  --action: #073061;
+  --action-foreground: #ffffff;
+  --secondary: #e6ebf1;
+  --secondary-foreground: #073061;
+  --muted: #dde5ee;
+  --muted-foreground: #526273;
+  --border: #c7d1dc;
+  --input: #c7d1dc;
+  --field: #e6ebf1;
+  --field-border: #c7d1dc;
+  --field-foreground: #073061;
+  --accent: #e6ebf1;
+  --accent-foreground: #073061;
+  --popover: #ffffff;
+  --popover-foreground: #071827;
+  --destructive: #dc2626;
+  --onboarding-panel-bg: #eef5ff;
+  --onboarding-panel-foreground: #071827;
+  --onboarding-panel-muted: #526273;
+  --onboarding-panel-surface: #ffffff;
+  --onboarding-panel-surface-foreground: #071827;
+  --onboarding-panel-item: #ffffff;
+  --onboarding-panel-item-foreground: #071827;
+  --onboarding-panel-item-muted: #526273;
+  --onboarding-panel-item-active: #073061;
+  --onboarding-panel-item-active-foreground: #ffffff;
+  --onboarding-panel-item-active-muted: #c9d8ec;
+  --onboarding-panel-item-active-border: #073061;
+  --onboarding-panel-border: #c7d8ef;
+  --onboarding-panel-icon: #073061;
+  --onboarding-panel-icon-foreground: #ffffff;
+  --onboarding-panel-check-foreground: #ffffff;
+  --onboarding-panel-progress: #073061;
+  --onboarding-panel-progress-track: rgba(7, 48, 97, 0.16);
+  --onboarding-form-bg: color-mix(in oklab, var(--card) 95%, transparent);
+  --onboarding-form-progress: var(--primary);
+  --onboarding-form-progress-track: color-mix(in oklab, var(--primary) 18%, transparent);
+  --workspace-pill-selected: var(--btn-secondary);
+  --workspace-pill-selected-foreground: var(--btn-secondary-foreground);
+  --ring: #073061;
+}
+
+.dark,
+.theme-navy-slate.dark {
+  --background: #151618;
+  --foreground: #dbe6ff;
+  --card: #1d1f22;
+  --card-foreground: #dbe6ff;
+  --primary: #8998df;
+  --primary-foreground: #09204c;
+  --btn-primary: #0041c4;
+  --btn-primary-foreground: #ffffff;
+  --admin-sidebar-active: var(--btn-primary);
+  --admin-sidebar-active-foreground: var(--btn-primary-foreground);
+  --admin-page-bg: #151618;
+  --admin-card-radius: 24px;
+  --admin-card-shadow: 0 12px 24px -22px rgba(0, 0, 0, 0.62),
+    8px 0 20px -26px rgba(0, 0, 0, 0.52),
+    -8px 0 20px -26px rgba(0, 0, 0, 0.52);
+  --admin-header-control-shadow: 0 12px 26px -16px rgba(0, 0, 0, 0.9),
+    0 6px 14px -10px rgba(0, 0, 0, 0.78);
+  --admin-sidebar-bg: #1d1f22;
+  --admin-sidebar-hover: color-mix(in oklab, var(--btn-primary) 22%, transparent);
+  --dropdown-bg: var(--admin-sidebar-bg);
+  --dropdown-border: color-mix(in oklab, var(--border) 34%, transparent);
+  --dropdown-item-hover: color-mix(in oklab, var(--btn-primary) 18%, var(--admin-sidebar-bg));
+  --dropdown-item-hover-shadow: inset 0 0 0 1px color-mix(in oklab, var(--btn-primary) 18%, transparent),
+    0 10px 22px -18px color-mix(in oklab, var(--btn-primary) 62%, transparent);
+  --selectable-card-hover-bg: color-mix(in oklab, var(--btn-primary) 12%, var(--admin-sidebar-bg));
+  --selectable-card-hover-border: color-mix(in oklab, var(--btn-primary) 34%, var(--border));
+  --selectable-card-selected-bg: color-mix(in oklab, var(--btn-primary) 22%, var(--admin-sidebar-bg));
+  --selectable-card-selected-border: color-mix(in oklab, var(--btn-primary) 56%, var(--border));
+  --selectable-card-selected-foreground: var(--foreground);
+  --selectable-card-icon-bg: color-mix(in oklab, var(--btn-primary) 24%, var(--admin-sidebar-bg));
+  --selectable-card-icon-foreground: var(--btn-primary);
+  --scrollbar-size: 7px;
+  --scrollbar-thumb: color-mix(in oklab, var(--muted-foreground) 62%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--muted-foreground) 82%, transparent);
+  --scrollbar-track: transparent;
+  --btn-secondary: #ffffff;
+  --btn-secondary-foreground: #000000;
+  --btn-secondary-hover: rgba(231, 231, 231, 0.18);
+  --action: #8998df;
+  --action-foreground: #09204c;
+  --secondary: #202a43;
+  --secondary-foreground: #dbe6ff;
+  --muted: #1b2540;
+  --muted-foreground: #8795b8;
+  --border: #4d5b78;
+  --input: #4d5b78;
+  --field: #202a43;
+  --field-border: #4d5b78;
+  --field-foreground: #dbe6ff;
+  --accent: #26314d;
+  --accent-foreground: #dbe6ff;
+  --popover: #050b18;
+  --popover-foreground: #dbe6ff;
+  --destructive: #f87171;
+  --onboarding-panel-bg: #080d14;
+  --onboarding-panel-foreground: #f8fafc;
+  --onboarding-panel-muted: #94a3b8;
+  --onboarding-panel-surface: #0d131c;
+  --onboarding-panel-surface-foreground: #e5e7eb;
+  --onboarding-panel-item: #0d131c;
+  --onboarding-panel-item-foreground: #f8fafc;
+  --onboarding-panel-item-muted: #94a3b8;
+  --onboarding-panel-item-active: #101a22;
+  --onboarding-panel-item-active-foreground: #f8fafc;
+  --onboarding-panel-item-active-muted: #9ca3af;
+  --onboarding-panel-item-active-border: var(--onboarding-form-progress);
+  --onboarding-panel-border: #263241;
+  --onboarding-panel-icon: #111827;
+  --onboarding-panel-icon-foreground: var(--onboarding-form-progress);
+  --onboarding-panel-check-foreground: #09204c;
+  --onboarding-panel-progress: var(--onboarding-form-progress);
+  --onboarding-panel-progress-track: rgba(148, 163, 184, 0.2);
+  --onboarding-form-bg: #080d14;
+  --onboarding-form-progress: var(--primary);
+  --onboarding-form-progress-track: color-mix(in oklab, var(--primary) 18%, transparent);
+  --workspace-pill-selected: var(--btn-secondary);
+  --workspace-pill-selected-foreground: var(--btn-secondary-foreground);
+  --ring: #8998df;
+}
+
+.theme-light-dark {
+  --background: #18191b;
+  --foreground: #f2f4f7;
+  --card: #202124;
+  --card-foreground: #f2f4f7;
+  --primary: #8998df;
+  --primary-foreground: #09204c;
+  --btn-primary: var(--primary);
+  --btn-primary-foreground: #ffffff;
+  --admin-sidebar-active: var(--primary);
+  --admin-sidebar-active-foreground: var(--primary-foreground);
+  --admin-page-bg: #18191b;
+  --admin-card-radius: 24px;
+  --admin-card-shadow: 0 14px 28px -24px rgba(0, 0, 0, 0.72);
+  --admin-header-control-shadow: 0 12px 26px -18px rgba(0, 0, 0, 0.82),
+    0 6px 14px -12px rgba(0, 0, 0, 0.68);
+  --admin-sidebar-bg: #202124;
+  --admin-sidebar-hover: color-mix(in oklab, var(--primary) 12%, transparent);
+  --dropdown-bg: #202124;
+  --dropdown-border: color-mix(in oklab, var(--border) 46%, transparent);
+  --dropdown-item-hover: color-mix(in oklab, var(--primary) 10%, var(--admin-sidebar-bg));
+  --dropdown-item-hover-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 12%, transparent),
+    0 10px 22px -18px rgba(0, 0, 0, 0.74);
+  --selectable-card-hover-bg: color-mix(in oklab, var(--primary) 8%, var(--admin-sidebar-bg));
+  --selectable-card-hover-border: color-mix(in oklab, var(--primary) 28%, var(--border));
+  --selectable-card-selected-bg: color-mix(in oklab, var(--primary) 16%, var(--admin-sidebar-bg));
+  --selectable-card-selected-border: color-mix(in oklab, var(--primary) 48%, var(--border));
+  --selectable-card-selected-foreground: var(--foreground);
+  --selectable-card-icon-bg: color-mix(in oklab, var(--primary) 18%, var(--admin-sidebar-bg));
+  --selectable-card-icon-foreground: var(--primary);
+  --scrollbar-size: 7px;
+  --scrollbar-thumb: color-mix(in oklab, var(--muted-foreground) 62%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--muted-foreground) 82%, transparent);
+  --scrollbar-track: transparent;
+  --btn-secondary: #2b2d31;
+  --btn-secondary-foreground: #f2f4f7;
+  --btn-primary-hover: color-mix(in oklab, var(--primary) 84%, #000000);
+  --btn-secondary-hover: color-mix(in oklab, var(--primary) 14%, var(--admin-sidebar-bg));
+  --action: var(--primary);
+  --action-foreground: var(--primary-foreground);
+  --secondary: #2b2d31;
+  --secondary-foreground: #f2f4f7;
+  --muted: #303237;
+  --muted-foreground: #a9afb8;
+  --border: #4b4f57;
+  --input: #4b4f57;
+  --field: #26282c;
+  --field-border: #4b4f57;
+  --field-foreground: #f2f4f7;
+  --accent: #33363c;
+  --accent-foreground: #f2f4f7;
+  --popover: #202124;
+  --popover-foreground: #f2f4f7;
+  --destructive: #f87171;
+  --onboarding-panel-bg: #18191b;
+  --onboarding-panel-foreground: #f2f4f7;
+  --onboarding-panel-muted: #a9afb8;
+  --onboarding-panel-surface: #202124;
+  --onboarding-panel-surface-foreground: #f2f4f7;
+  --onboarding-panel-item: #202124;
+  --onboarding-panel-item-foreground: #f2f4f7;
+  --onboarding-panel-item-muted: #a9afb8;
+  --onboarding-panel-item-active: var(--primary);
+  --onboarding-panel-item-active-foreground: var(--primary-foreground);
+  --onboarding-panel-item-active-muted: #4b4f57;
+  --onboarding-panel-item-active-border: var(--primary);
+  --onboarding-panel-border: #4b4f57;
+  --onboarding-panel-icon: var(--primary);
+  --onboarding-panel-icon-foreground: var(--primary-foreground);
+  --onboarding-panel-check-foreground: var(--primary-foreground);
+  --onboarding-panel-progress: var(--primary);
+  --onboarding-panel-progress-track: color-mix(in oklab, var(--primary) 18%, transparent);
+  --onboarding-form-bg: #202124;
+  --onboarding-form-progress: var(--primary);
+  --onboarding-form-progress-track: color-mix(in oklab, var(--primary) 18%, transparent);
+  --workspace-pill-selected: var(--primary);
+  --workspace-pill-selected-foreground: var(--primary-foreground);
+  --ring: var(--primary);
+}
+
+.theme-light-dark.dark {
+  --background: #151618;
+  --card: #1d1f22;
+  --admin-page-bg: #151618;
+  --admin-sidebar-bg: #1d1f22;
+  --dropdown-bg: #1d1f22;
+  --field: #24262a;
+  --secondary: #282b30;
+  --muted: #2d3035;
+  --popover: #1d1f22;
+  --onboarding-panel-bg: #151618;
+  --onboarding-panel-surface: #1d1f22;
+  --onboarding-panel-item: #1d1f22;
+  --onboarding-form-bg: #1d1f22;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-btn-primary: var(--btn-primary);
+  --color-btn-primary-foreground: var(--btn-primary-foreground);
+  --color-btn-secondary: var(--btn-secondary);
+  --color-btn-secondary-foreground: var(--btn-secondary-foreground);
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-field: var(--field);
+  --color-field-border: var(--field-border);
+  --color-field-foreground: var(--field-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+  --font-sans: Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Source Code Pro", Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  min-height: 44px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes lumina-pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+:root,
+.theme-navy-slate {
+  --landing-dashboard-shadow: 0 25px 80px -12px rgba(7, 48, 97, 0.12),
+    0 0 0 1px color-mix(in oklab, var(--border) 72%, transparent);
+  --landing-soft-shadow: 0 24px 70px -42px rgba(7, 48, 97, 0.28);
+  --landing-mask-fade-x: linear-gradient(to right,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent);
+}
+
+.dark,
+.theme-navy-slate.dark {
+  --landing-dashboard-shadow: 0 25px 80px -12px rgba(0, 0, 0, 0.55),
+    0 0 0 1px color-mix(in oklab, var(--border) 62%, transparent);
+  --landing-soft-shadow: 0 24px 70px -44px rgba(0, 0, 0, 0.72);
+}
+
+.theme-light-dark {
+  --landing-dashboard-shadow: 0 25px 80px -12px rgba(0, 0, 0, 0.46),
+    0 0 0 1px color-mix(in oklab, var(--border) 58%, transparent);
+  --landing-soft-shadow: 0 24px 70px -44px rgba(0, 0, 0, 0.62);
+}
+
+.lumina-marquee {
+  animation: landing-marquee 40s linear infinite;
+  width: max-content;
+}
+
+.lumina-logo-track {
+  display: flex;
+  flex-direction: row;
+  gap: 4rem;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.lumina-logo-item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-width: clamp(180px, 18vw, 320px);
+  margin-right: clamp(96px, 10vw, 180px);
+  white-space: nowrap;
+}
+
+.lumina-grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 34%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.68;
+}
+
+.lumina-pulse-dot {
+  animation: lumina-pulse-dot 1.8s ease-in-out infinite;
+}
+
+.lumina-bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "a"
+    "b"
+    "c"
+    "d"
+    "e";
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .lumina-bento-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+      "a a b"
+      "c c c"
+      "d e e";
+  }
+}
+
+.lumina-bento-a {
+  grid-area: a;
+}
+
+.lumina-bento-b {
+  grid-area: b;
+}
+
+.lumina-bento-c {
+  grid-area: c;
+}
+
+.lumina-bento-d {
+  grid-area: d;
+}
+
+.lumina-bento-e {
+  grid-area: e;
+}
+
+@keyframes lumina-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lumina-image-placeholder {
+  position: relative;
+}
+
+.lumina-image-placeholder::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg,
+      transparent 0%,
+      transparent 38%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 50%,
+      transparent 62%,
+      transparent 100%),
+    radial-gradient(circle at 50% 0%,
+      color-mix(in oklab, var(--primary) 10%, transparent),
+      transparent 54%);
+  transform: translateX(-80%);
+  animation: lumina-placeholder-sheen 5.5s ease-in-out infinite;
+}
+
+@keyframes lumina-placeholder-sheen {
+
+  0%,
+  42% {
+    transform: translateX(-80%);
+  }
+
+  72%,
+  100% {
+    transform: translateX(80%);
+  }
+}
+
+.lumina-hero-preview {
+  animation: lumina-hero-float 7s ease-in-out infinite;
+}
+
+@keyframes lumina-hero-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.lumina-row-reveal {
+  opacity: 0;
+  animation: lumina-row-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--row-delay, 0s);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  position: fixed;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+[data-admin-surface] {
+  border-radius: var(--admin-card-radius) !important;
+}
+
+.dark [data-slot="card"],
+.theme-navy-slate.dark [data-slot="card"] {
+  background: var(--admin-sidebar-bg);
+  color: var(--foreground);
+}
+
+.dark [data-slot="card"] [data-slot="card-title"],
+.dark [data-slot="card"] .text-muted-foreground,
+.theme-navy-slate.dark [data-slot="card"] [data-slot="card-title"],
+.theme-navy-slate.dark [data-slot="card"] .text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+.dark [data-admin-surface],
+.theme-navy-slate.dark [data-admin-surface] {
+  background: var(--admin-sidebar-bg) !important;
+  color: var(--foreground) !important;
+}
+
+.dark [data-admin-surface] .text-foreground,
+.dark [data-admin-surface] .text-card-foreground,
+.theme-navy-slate.dark [data-admin-surface] .text-foreground,
+.theme-navy-slate.dark [data-admin-surface] .text-card-foreground {
+  color: var(--foreground) !important;
+}
+
+.dark [data-admin-surface] .text-muted-foreground,
+.theme-navy-slate.dark [data-admin-surface] .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+
+.dark [data-admin-surface] .bg-secondary,
+.dark [data-admin-surface] .bg-secondary\/70,
+.theme-navy-slate.dark [data-admin-surface] .bg-secondary,
+.theme-navy-slate.dark [data-admin-surface] .bg-secondary\/70 {
+  background: var(--secondary) !important;
+}
+
+.dark [data-admin-surface] .bg-card,
+.theme-navy-slate.dark [data-admin-surface] .bg-card {
+  background: var(--admin-sidebar-bg) !important;
+}
+
+.dark [data-admin-table-header] button.bg-card:hover,
+.theme-navy-slate.dark [data-admin-table-header] button.bg-card:hover {
+  background: var(--btn-secondary-hover) !important;
+  color: var(--foreground) !important;
+}
+
+.dark [data-admin-surface] .text-secondary-foreground,
+.theme-navy-slate.dark [data-admin-surface] .text-secondary-foreground {
+  color: var(--secondary-foreground) !important;
+}
+
+.dark [data-admin-surface] .border-border,
+.theme-navy-slate.dark [data-admin-surface] .border-border {
+  border-color: var(--border) !important;
+}
+
+.dark [data-admin-metric-icon],
+.theme-navy-slate.dark [data-admin-metric-icon],
+.dark [data-admin-metric-icon] svg,
+.theme-navy-slate.dark [data-admin-metric-icon] svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.theme-light-dark [data-slot="card"] {
+  background: var(--admin-sidebar-bg);
+  color: var(--foreground);
+}
+
+.theme-light-dark [data-slot="card"] [data-slot="card-title"],
+.theme-light-dark [data-slot="card"] .text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+.theme-light-dark [data-admin-surface] {
+  background: var(--admin-sidebar-bg) !important;
+  color: var(--foreground) !important;
+}
+
+.theme-light-dark [data-admin-surface] .text-foreground,
+.theme-light-dark [data-admin-surface] .text-card-foreground {
+  color: var(--foreground) !important;
+}
+
+.theme-light-dark [data-admin-surface] .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+
+.theme-light-dark [data-admin-surface] .bg-secondary,
+.theme-light-dark [data-admin-surface] .bg-secondary\/70 {
+  background: var(--secondary) !important;
+}
+
+.theme-light-dark [data-admin-surface] .bg-card {
+  background: var(--admin-sidebar-bg) !important;
+}
+
+.theme-light-dark [data-admin-table-header] button.bg-card:hover {
+  background: var(--btn-secondary-hover) !important;
+  color: var(--primary) !important;
+}
+
+.theme-light-dark [data-admin-surface] .text-secondary-foreground {
+  color: var(--secondary-foreground) !important;
+}
+
+.theme-light-dark [data-admin-surface] .border-border {
+  border-color: var(--border) !important;
+}
+
+.theme-light-dark [data-admin-table-header] button.bg-card,
+.theme-light-dark [data-admin-surface] button.border-border\/50:not(.bg-btn-primary),
+.theme-light-dark [data-admin-surface] button.border-border\/40:not(.bg-btn-primary) {
+  border-color: color-mix(in oklab, var(--primary) 28%, var(--border)) !important;
+  color: var(--primary) !important;
+}
+
+.theme-light-dark [data-admin-table-header] button.bg-card svg,
+.theme-light-dark [data-admin-surface] button.border-border\/50:not(.bg-btn-primary) svg,
+.theme-light-dark [data-admin-surface] button.border-border\/40:not(.bg-btn-primary) svg {
+  color: var(--primary) !important;
+  stroke: var(--primary) !important;
+}
+
+.theme-light-dark [data-admin-table-header] button.bg-card:hover,
+.theme-light-dark [data-admin-surface] button.border-border\/50:not(.bg-btn-primary):hover,
+.theme-light-dark [data-admin-surface] button.border-border\/40:not(.bg-btn-primary):hover {
+  background: var(--btn-secondary-hover) !important;
+  border-color: color-mix(in oklab, var(--primary) 46%, var(--border)) !important;
+  color: var(--primary) !important;
+}
+
+.theme-light-dark [data-admin-table-header] .bg-btn-primary,
+.theme-light-dark [data-admin-surface] .bg-btn-primary {
+  background: var(--btn-primary) !important;
+  border-color: color-mix(in oklab, var(--primary) 58%, var(--border)) !important;
+  color: #ffffff !important;
+}
+
+.theme-light-dark [data-admin-table-header] .bg-btn-primary:hover,
+.theme-light-dark [data-admin-surface] .bg-btn-primary:hover {
+  background: var(--btn-primary-hover) !important;
+  border-color: color-mix(in oklab, var(--primary) 76%, var(--border)) !important;
+  color: #ffffff !important;
+}
+
+.theme-light-dark [data-admin-table-header] .bg-btn-primary svg,
+.theme-light-dark [data-admin-surface] .bg-btn-primary svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.theme-light-dark [data-admin-metric-icon],
+.theme-light-dark [data-admin-metric-icon] svg {
+  color: var(--primary) !important;
+  stroke: var(--primary) !important;
+}
+
+.dark .cashbox-date-input::-webkit-calendar-picker-indicator,
+.theme-light-dark .cashbox-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.25);
+  opacity: 1;
+}
+
+@keyframes create-account-loading-bar {
+  0% {
+    transform: translateX(-110%) scaleX(0.7);
+  }
+
+  50% {
+    transform: translateX(70%) scaleX(1);
+  }
+
+  100% {
+    transform: translateX(220%) scaleX(0.72);
+  }
+}
+
+@keyframes calendar-loading {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(320%);
+  }
+}

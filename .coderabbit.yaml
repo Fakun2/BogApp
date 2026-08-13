@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "es-ES"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  review_details: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+    labels:
+      - "!do-not-review"
+      - "!wip"
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+      - "[skip review]"
+    ignore_usernames:
+      - "dependabot[bot]"
+      - "github-actions[bot]"
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 2
+
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/.next/**"
+    - "!**/dist/**"
+    - "!**/coverage/**"
+    - "!**/package-lock.json"
+    - "!packages/api-client/src/**"
+    - "!**/*.png"
+    - "!**/*.jpg"
+    - "!**/*.jpeg"
+    - "!**/*.webp"
+    - "!**/*.svg"
+
+  path_instructions:
+    - path: "apps/api/**"
+      instructions: |
+        Revisar como backend NestJS multi-tenant.
+        Priorizar:
+        - DTOs validados;
+        - guards de autenticación, tenant context y RBAC;
+        - evitar acceso cross-tenant;
+        - errores HTTP claros;
+        - separación controller/service;
+        - no exponer datos sensibles.
+
+    - path: "apps/web/**"
+      instructions: |
+        Revisar como frontend Next.js App Router.
+        Priorizar:
+        - UX profesional para estudio jurídico;
+        - componentes reutilizables;
+        - accesibilidad básica;
+        - estados loading/error/empty;
+        - formularios validados;
+        - no duplicar lógica de negocio en componentes visuales.
+
+    - path: "packages/database/prisma/**"
+      instructions: |
+        Revisar como Prisma para SaaS B2B multi-tenant.
+        Priorizar:
+        - tenantId obligatorio en entidades operativas;
+        - índices para búsquedas frecuentes;
+        - relaciones explícitas;
+        - migraciones seguras;
+        - evitar cambios destructivos sin justificación.
+
+    - path: "docs/**"
+      instructions: |
+        Revisar documentación de producto y gestión.
+        Priorizar:
+        - claridad;
+        - consistencia con roadmap;
+        - dependencias entre issues;
+        - criterios de aceptación verificables;
+        - lenguaje profesional para cliente y equipo técnico.
+
+    - path: ".github/workflows/**"
+      instructions: |
+        Revisar workflows de GitHub Actions.
+        Priorizar:
+        - comandos reproducibles;
+        - jobs separados para lint, typecheck, build y tests;
+        - no exponer secretos;
+        - fallos claros antes de merge.
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "AGENTS.md"
+      - "docs/github/CODERABBIT_GUIDELINES.md"

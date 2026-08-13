@@ -1,0 +1,747 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../database/prisma.service";
+import type {
+  CreateCaseExpenseInput,
+  CreateCaseHearingInput,
+  CreateCaseInput,
+  CreateCaseTaskInput,
+  CaseCalendarQuery,
+  ListCaseExpenseAttachmentsQuery,
+  ListCaseExpensesQuery,
+  ListCaseHearingsQuery,
+  ListCaseTasksQuery,
+  ListCasesQuery,
+  UpdateCaseExpenseInput,
+  UpdateCaseHearingInput,
+  UpdateCaseInput,
+  UpdateCaseTaskInput
+} from "./cases.schemas";
+import {
+  CaseExpenseAttachmentsUseCase,
+  type UploadedCaseExpenseAttachmentFile
+} from "./use-cases/case-expense-attachments.use-case";
+import { CaseExpensesUseCase } from "./use-cases/case-expenses.use-case";
+import { CaseHearingsUseCase } from "./use-cases/case-hearings.use-case";
+import { CaseTasksUseCase } from "./use-cases/case-tasks.use-case";
+import { ExpenseOverdueUseCase } from "./use-cases/expense-overdue.use-case";
+
+@Injectable()
+export class CasesService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly caseExpenseAttachmentsUseCase: CaseExpenseAttachmentsUseCase,
+    private readonly caseExpensesUseCase: CaseExpensesUseCase,
+    private readonly expenseOverdueUseCase: ExpenseOverdueUseCase,
+    private readonly caseHearingsUseCase: CaseHearingsUseCase,
+    private readonly caseTasksUseCase: CaseTasksUseCase
+  ) {}
+
+  async list(tenantId: string, query: ListCasesQuery) {
+    const cursor = decodeCasesCursor(query.cursor);
+    if (cursor?.sortBy !== undefined && cursor.sortBy !== query.sortBy) {
+      throw new BadRequestException("El cursor no corresponde al orden seleccionado.");
+    }
+    if (cursor && query.sortBy === "filingDate") {
+      throw new BadRequestException("La paginacion por cursor no soporta fecha de ingreso.");
+    }
+
+    const andFilters: Prisma.CaseWhereInput[] = [
+      ...(cursor ? [{ OR: getCursorWhere(cursor, query.sortBy, query.sortDirection) }] : []),
+      ...(query.search
+        ? [
+            {
+              OR: [
+                { caseNumber: { contains: query.search, mode: Prisma.QueryMode.insensitive } },
+                { caption: { contains: query.search, mode: Prisma.QueryMode.insensitive } },
+                { subject: { contains: query.search, mode: Prisma.QueryMode.insensitive } }
+              ]
+            }
+          ]
+        : []),
+      ...(query.judicialCenter
+        ? [
+            {
+              OR: [
+                {
+                  judicialCenterText: {
+                    contains: query.judicialCenter,
+                    mode: Prisma.QueryMode.insensitive
+                  }
+                },
+                {
+                  judicialCenterForum: {
+                    judicialCenter: {
+                      name: { contains: query.judicialCenter, mode: Prisma.QueryMode.insensitive }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        : [])
+    ];
+    const where: Prisma.CaseWhereInput = {
+      tenantId,
+      ...(andFilters.length ? { AND: andFilters } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.instance ? { instance: query.instance } : {}),
+      ...(query.filingDate ? { filingDate: new Date(`${query.filingDate}T00:00:00.000Z`) } : {}),
+      ...(query.provinceId ? { provinceId: query.provinceId } : {}),
+      ...(query.forumTemplateId ? { forumTemplateId: query.forumTemplateId } : {}),
+      ...(query.court
+        ? { court: { contains: query.court, mode: Prisma.QueryMode.insensitive } }
+        : {})
+    };
+
+    const items = await this.prisma.case.findMany({
+      where,
+      orderBy: getOrderBy(query.sortBy, query.sortDirection),
+      take: query.limit + 1,
+      include: caseInclude
+    });
+    const pageItems = items.slice(0, query.limit);
+    const lastItem = pageItems.at(-1);
+    const hasNextPage = items.length > query.limit;
+
+    return {
+      items: pageItems.map(toCaseDto),
+      pageInfo: {
+        limit: query.limit,
+        offset: query.offset,
+        nextCursor:
+          hasNextPage && lastItem && query.sortBy !== "filingDate"
+            ? encodeCasesCursor({
+                id: lastItem.id,
+                sortBy: query.sortBy,
+                value: getCursorSortValue(lastItem, query.sortBy)
+              })
+            : null,
+        hasNextPage,
+        total: query.offset + pageItems.length + (hasNextPage ? 1 : 0)
+      }
+    };
+  }
+
+  async getMetrics(tenantId: string) {
+    const [countsByStatus, pendingTasks] = await Promise.all([
+      this.prisma.case.groupBy({
+        by: ["status"],
+        _count: { _all: true },
+        where: { tenantId }
+      }),
+      this.prisma.caseTask.count({
+        where: {
+          status: { in: ["pending", "in_progress"] },
+          tenantId
+        }
+      })
+    ]);
+    const countByStatus = new Map(
+      countsByStatus.map(({ _count, status }) => [status, _count._all])
+    );
+
+    return {
+      totalCases: countsByStatus.reduce((total, item) => total + item._count._all, 0),
+      openCases: countByStatus.get("open") ?? 0,
+      closedCases: countByStatus.get("closed") ?? 0,
+      pendingTasks
+    };
+  }
+
+  async create(tenantId: string, input: CreateCaseInput) {
+    const relationContext = await this.assertCaseRelations(tenantId, input);
+
+    try {
+      const createdCase = await this.prisma.case.create({
+        data: {
+          ...toCaseData(input, relationContext.province.caseCatalogStrategy),
+          tenantId,
+          participants: {
+            create: input.participants.map(toParticipantData)
+          }
+        },
+        include: caseInclude
+      });
+
+      return toCaseDto(createdCase);
+    } catch (error) {
+      handleKnownCaseWriteError(error);
+      throw error;
+    }
+  }
+
+  async getDetail(tenantId: string, caseId: string) {
+    const [caseItem, taskMetrics] = await Promise.all([
+      this.findTenantCaseDetailOrThrow(tenantId, caseId),
+      this.getCaseTaskMetrics(tenantId, caseId)
+    ]);
+
+    return {
+      ...toCaseDto(caseItem),
+      metrics: taskMetrics
+    };
+  }
+
+  async listTasks(tenantId: string, caseId: string, query: ListCaseTasksQuery) {
+    return this.caseTasksUseCase.list(tenantId, caseId, query);
+  }
+
+  async createTask(tenantId: string, caseId: string, input: CreateCaseTaskInput) {
+    return this.caseTasksUseCase.create(tenantId, caseId, input);
+  }
+
+  async updateTask(tenantId: string, caseId: string, taskId: string, input: UpdateCaseTaskInput) {
+    return this.caseTasksUseCase.update(tenantId, caseId, taskId, input);
+  }
+
+  async markTaskSeen(tenantId: string, caseId: string, taskId: string) {
+    return this.caseTasksUseCase.markSeen(tenantId, caseId, taskId);
+  }
+
+  async deleteTask(tenantId: string, caseId: string, taskId: string) {
+    return this.caseTasksUseCase.delete(tenantId, caseId, taskId);
+  }
+
+  async listExpenses(tenantId: string, caseId: string, query: ListCaseExpensesQuery) {
+    return this.caseExpensesUseCase.list(tenantId, caseId, query);
+  }
+
+  async getExpense(tenantId: string, caseId: string, expenseId: string) {
+    return this.caseExpensesUseCase.get(tenantId, caseId, expenseId);
+  }
+
+  async getExpensesSummary(tenantId: string, caseId: string) {
+    return this.caseExpensesUseCase.summary(tenantId, caseId);
+  }
+
+  async recalculateOverdueExpenses(tenantId: string, caseId: string) {
+    return this.expenseOverdueUseCase.recalculate(tenantId, { caseId });
+  }
+
+  async getCalendar(
+    tenantId: string,
+    caseId: string,
+    query: CaseCalendarQuery,
+    permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
+  ) {
+    return this.caseExpensesUseCase.calendar(tenantId, caseId, query, permissions);
+  }
+
+  async listHearings(tenantId: string, caseId: string, query: ListCaseHearingsQuery) {
+    return this.caseHearingsUseCase.list(tenantId, caseId, query);
+  }
+
+  async createHearing(tenantId: string, caseId: string, input: CreateCaseHearingInput) {
+    return this.caseHearingsUseCase.create(tenantId, caseId, input);
+  }
+
+  async updateHearing(
+    tenantId: string,
+    caseId: string,
+    hearingId: string,
+    input: UpdateCaseHearingInput
+  ) {
+    return this.caseHearingsUseCase.update(tenantId, caseId, hearingId, input);
+  }
+
+  async deleteHearing(tenantId: string, caseId: string, hearingId: string) {
+    return this.caseHearingsUseCase.delete(tenantId, caseId, hearingId);
+  }
+
+  async createExpense(tenantId: string, caseId: string, input: CreateCaseExpenseInput) {
+    return this.caseExpensesUseCase.create(tenantId, caseId, input);
+  }
+
+  async updateExpense(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    input: UpdateCaseExpenseInput
+  ) {
+    return this.caseExpensesUseCase.update(tenantId, caseId, expenseId, input);
+  }
+
+  async deleteExpense(tenantId: string, caseId: string, expenseId: string) {
+    return this.caseExpensesUseCase.delete(tenantId, caseId, expenseId);
+  }
+
+  async listExpenseAttachments(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    query: ListCaseExpenseAttachmentsQuery
+  ) {
+    return this.caseExpenseAttachmentsUseCase.list(tenantId, caseId, expenseId, query);
+  }
+
+  async createExpenseAttachment(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    uploadedByUserId: string,
+    file?: UploadedCaseExpenseAttachmentFile
+  ) {
+    return this.caseExpenseAttachmentsUseCase.create(
+      tenantId,
+      caseId,
+      expenseId,
+      uploadedByUserId,
+      file
+    );
+  }
+
+  async downloadExpenseAttachment(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    attachmentId: string
+  ) {
+    return this.caseExpenseAttachmentsUseCase.download(tenantId, caseId, expenseId, attachmentId);
+  }
+
+  async deleteExpenseAttachment(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    attachmentId: string
+  ) {
+    return this.caseExpenseAttachmentsUseCase.delete(tenantId, caseId, expenseId, attachmentId);
+  }
+
+  async update(tenantId: string, caseId: string, input: UpdateCaseInput) {
+    await this.findTenantCaseOrThrow(tenantId, caseId);
+    const relationContext = await this.assertCaseRelations(tenantId, input);
+
+    try {
+      const updatedCase = await this.prisma.$transaction(async (tx) => {
+        await tx.caseParticipant.deleteMany({ where: { caseId } });
+
+        return tx.case.update({
+          where: { id: caseId },
+          data: {
+            ...toCaseData(input, relationContext.province.caseCatalogStrategy),
+            participants: {
+              create: input.participants.map(toParticipantData)
+            }
+          },
+          include: caseInclude
+        });
+      });
+
+      return toCaseDto(updatedCase);
+    } catch (error) {
+      handleKnownCaseWriteError(error);
+      throw error;
+    }
+  }
+
+  async delete(tenantId: string, caseId: string) {
+    await this.findTenantCaseOrThrow(tenantId, caseId);
+    await this.prisma.case.delete({ where: { id: caseId } });
+
+    return { status: "ok" as const };
+  }
+
+  private async findTenantCaseOrThrow(tenantId: string, caseId: string) {
+    const existingCase = await this.prisma.case.findFirst({
+      where: { id: caseId, tenantId },
+      select: { id: true }
+    });
+
+    if (!existingCase) {
+      throw new NotFoundException("El expediente no existe en el estudio activo.");
+    }
+
+    return existingCase;
+  }
+
+  private async findTenantCaseDetailOrThrow(tenantId: string, caseId: string) {
+    const existingCase = await this.prisma.case.findFirst({
+      include: caseInclude,
+      where: { id: caseId, tenantId }
+    });
+
+    if (!existingCase) {
+      throw new NotFoundException("El expediente no existe en el estudio activo.");
+    }
+
+    return existingCase;
+  }
+
+  private async getCaseTaskMetrics(tenantId: string, caseId: string) {
+    const [totalTasks, pendingTasks, paidExpenses, pendingPayments] = await Promise.all([
+      this.prisma.caseTask.count({ where: { caseId, tenantId } }),
+      this.prisma.caseTask.count({
+        where: { caseId, status: { in: ["pending", "in_progress"] }, tenantId }
+      }),
+      this.prisma.caseExpense.aggregate({
+        _sum: { amount: true },
+        where: { caseId, status: "paid", tenantId }
+      }),
+      this.prisma.caseExpense.aggregate({
+        _sum: { amount: true },
+        where: { caseId, status: { in: ["pending", "overdue"] }, tenantId }
+      })
+    ]);
+
+    return {
+      pendingTasks,
+      pendingPayments: Number(pendingPayments._sum.amount ?? 0),
+      totalExpenses: Number(paidExpenses._sum.amount ?? 0),
+      totalTasks
+    };
+  }
+
+  private async assertCaseRelations(tenantId: string, input: CreateCaseInput | UpdateCaseInput) {
+    const participantClientIds = getParticipantClientIds(input);
+    const [
+      province,
+      forumTemplate,
+      judicialCenterForum,
+      primaryClient,
+      practiceArea,
+      responsibleMembership,
+      participantClients
+    ] = await Promise.all([
+      this.prisma.province.findFirst({
+        where: { active: true, id: input.provinceId },
+        select: { caseCatalogStrategy: true, id: true }
+      }),
+      this.prisma.forumTemplate.findFirst({
+        where: {
+          active: true,
+          id: input.forumTemplateId,
+          provinceId: input.provinceId
+        },
+        select: { id: true }
+      }),
+      input.judicialCenterForumId
+        ? this.prisma.judicialCenterForum.findFirst({
+            where: {
+              active: true,
+              id: input.judicialCenterForumId,
+              forumTemplateId: input.forumTemplateId,
+              forumTemplate: { active: true, provinceId: input.provinceId },
+              judicialCenter: { active: true, provinceId: input.provinceId }
+            },
+            select: { id: true }
+          })
+        : Promise.resolve(null),
+      input.primaryClientId
+        ? this.prisma.client.findFirst({
+            where: { id: input.primaryClientId, tenantId },
+            select: { id: true }
+          })
+        : Promise.resolve(null),
+      input.practiceAreaId
+        ? this.prisma.practiceArea.findFirst({
+            where: { active: true, id: input.practiceAreaId, tenantId },
+            select: { id: true }
+          })
+        : Promise.resolve(null),
+      input.responsibleMembershipId
+        ? this.prisma.tenantMembership.findFirst({
+            where: { id: input.responsibleMembershipId, status: "active", tenantId },
+            select: { id: true }
+          })
+        : Promise.resolve(null),
+      participantClientIds.length
+        ? this.prisma.client.findMany({
+            where: { id: { in: participantClientIds }, tenantId },
+            select: { id: true }
+          })
+        : Promise.resolve([])
+    ]);
+
+    if (!province) {
+      throw new BadRequestException("La provincia seleccionada no existe.");
+    }
+
+    if (!forumTemplate) {
+      throw new BadRequestException("El fuero seleccionado no pertenece a esa provincia.");
+    }
+
+    if (province.caseCatalogStrategy === "center_forum" && !input.judicialCenterForumId) {
+      throw new BadRequestException("Selecciona un centro judicial para esa provincia.");
+    }
+
+    if (province.caseCatalogStrategy === "manual" && input.judicialCenterForumId) {
+      throw new BadRequestException(
+        "La provincia seleccionada no usa centros judiciales catalogados."
+      );
+    }
+
+    if (input.judicialCenterForumId && !judicialCenterForum) {
+      throw new BadRequestException("El fuero seleccionado no pertenece al centro judicial.");
+    }
+
+    if (input.primaryClientId && !primaryClient) {
+      throw new BadRequestException("El cliente principal no pertenece al estudio activo.");
+    }
+
+    if (input.practiceAreaId && !practiceArea) {
+      throw new BadRequestException("El area de practica no pertenece al estudio activo.");
+    }
+
+    if (input.responsibleMembershipId && !responsibleMembership) {
+      throw new BadRequestException("El responsable no pertenece al estudio activo.");
+    }
+
+    if (participantClients.length !== participantClientIds.length) {
+      throw new BadRequestException("Uno o mas participantes referencian clientes invalidos.");
+    }
+
+    return { province };
+  }
+}
+
+const caseInclude = {
+  province: {
+    select: {
+      code: true,
+      id: true,
+      name: true
+    }
+  },
+  forumTemplate: {
+    select: {
+      code: true,
+      id: true,
+      name: true
+    }
+  },
+  judicialCenterForum: {
+    select: {
+      id: true,
+      judicialCenter: {
+        select: {
+          code: true,
+          id: true,
+          name: true
+        }
+      }
+    }
+  },
+  participants: {
+    orderBy: { createdAt: "asc" },
+    select: {
+      address: true,
+      clientId: true,
+      displayName: true,
+      document: true,
+      email: true,
+      id: true,
+      notes: true,
+      participantKind: true,
+      phone: true,
+      role: true
+    }
+  }
+} satisfies Prisma.CaseInclude;
+
+type CaseWithInclude = Prisma.CaseGetPayload<{ include: typeof caseInclude }>;
+
+function toCaseData(
+  input: CreateCaseInput | UpdateCaseInput,
+  caseCatalogStrategy: "manual" | "center_forum"
+) {
+  return {
+    caseNumber: input.caseNumber,
+    caption: input.caption,
+    court: input.court ?? null,
+    description: input.description ?? null,
+    filingDate: input.filingDate ? new Date(`${input.filingDate}T00:00:00.000Z`) : null,
+    forumTemplateId: input.forumTemplateId,
+    instance: input.instance,
+    judicialCenterForumId:
+      caseCatalogStrategy === "center_forum" ? (input.judicialCenterForumId ?? null) : null,
+    judicialCenterText:
+      caseCatalogStrategy === "manual" ? (input.judicialCenterText ?? null) : null,
+    practiceAreaId: input.practiceAreaId ?? null,
+    primaryClientId: input.primaryClientId ?? null,
+    provinceId: input.provinceId,
+    responsibleMembershipId: input.responsibleMembershipId ?? null,
+    status: input.status,
+    subject: input.subject ?? null
+  };
+}
+
+function toParticipantData(
+  participant: CreateCaseInput["participants"][number]
+): Prisma.CaseParticipantCreateWithoutCaseInput {
+  return {
+    address: participant.address ?? null,
+    ...(participant.clientId ? { client: { connect: { id: participant.clientId } } } : {}),
+    displayName: participant.displayName,
+    document: participant.document ?? null,
+    email: participant.email ?? null,
+    notes: participant.notes ?? null,
+    participantKind: participant.participantKind,
+    phone: participant.phone ?? null,
+    role: participant.role
+  };
+}
+
+function toCaseDto(item: CaseWithInclude) {
+  return {
+    id: item.id,
+    caseNumber: item.caseNumber,
+    caption: item.caption,
+    subject: item.subject,
+    description: item.description,
+    province: item.province,
+    forum: item.forumTemplate,
+    judicialCenter: item.judicialCenterForum?.judicialCenter ?? null,
+    judicialCenterForumId: item.judicialCenterForumId,
+    judicialCenterText: item.judicialCenterText,
+    court: item.court,
+    instance: item.instance,
+    status: item.status,
+    filingDate: item.filingDate ? item.filingDate.toISOString().slice(0, 10) : null,
+    primaryClientId: item.primaryClientId,
+    practiceAreaId: item.practiceAreaId,
+    responsibleMembershipId: item.responsibleMembershipId,
+    participants: item.participants,
+    createdAt: item.createdAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString()
+  };
+}
+
+function getParticipantClientIds(input: CreateCaseInput | UpdateCaseInput) {
+  return [
+    ...new Set(
+      input.participants
+        .map((participant) => participant.clientId)
+        .filter((clientId): clientId is string => Boolean(clientId))
+    )
+  ];
+}
+
+function getOrderBy(sortBy: ListCasesQuery["sortBy"], direction: "asc" | "desc") {
+  const tieBreaker = { id: direction } as const;
+
+  if (sortBy === "caseNumber") {
+    return [{ caseNumber: direction }, tieBreaker];
+  }
+
+  if (sortBy === "caption") {
+    return [{ caption: direction }, tieBreaker];
+  }
+
+  if (sortBy === "filingDate") {
+    return [{ filingDate: direction }, tieBreaker];
+  }
+
+  if (sortBy === "status") {
+    return [{ status: direction }, tieBreaker];
+  }
+
+  return [{ createdAt: direction }, tieBreaker];
+}
+
+type CasesCursor = {
+  id: string;
+  sortBy: Exclude<ListCasesQuery["sortBy"], "filingDate">;
+  value: Date | string;
+};
+
+function encodeCasesCursor(cursor: CasesCursor) {
+  const value = cursor.value instanceof Date ? cursor.value.toISOString() : cursor.value;
+
+  return Buffer.from(
+    JSON.stringify({
+      id: cursor.id,
+      sortBy: cursor.sortBy,
+      value
+    })
+  ).toString("base64url");
+}
+
+function decodeCasesCursor(cursor?: string): CasesCursor | null {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
+      id?: string;
+      sortBy?: ListCasesQuery["sortBy"];
+      value?: string;
+    };
+
+    if (!parsed.id || !parsed.sortBy || !parsed.value || parsed.sortBy === "filingDate") {
+      return null;
+    }
+
+    return {
+      id: parsed.id,
+      sortBy: parsed.sortBy,
+      value: parsed.sortBy === "createdAt" ? new Date(parsed.value) : parsed.value
+    };
+  } catch {
+    throw new BadRequestException("El cursor de paginacion es invalido.");
+  }
+}
+
+function getCursorWhere(
+  cursor: CasesCursor,
+  sortBy: ListCasesQuery["sortBy"],
+  direction: "asc" | "desc"
+): Prisma.CaseWhereInput[] {
+  if (sortBy === "filingDate") {
+    return [];
+  }
+
+  if (sortBy === "status") {
+    return getStatusCursorWhere(cursor, direction);
+  }
+
+  const operator = direction === "asc" ? "gt" : "lt";
+
+  return [
+    { [sortBy]: { [operator]: cursor.value } },
+    { [sortBy]: cursor.value, id: { [operator]: cursor.id } }
+  ] as Prisma.CaseWhereInput[];
+}
+
+function getStatusCursorWhere(
+  cursor: CasesCursor,
+  direction: "asc" | "desc"
+): Prisma.CaseWhereInput[] {
+  const statusOrder = ["open", "paused", "closed"] as const;
+  const currentStatusIndex = statusOrder.indexOf(cursor.value as (typeof statusOrder)[number]);
+  const remainingStatuses =
+    direction === "asc"
+      ? statusOrder.slice(currentStatusIndex + 1)
+      : statusOrder.slice(0, currentStatusIndex);
+  const operator = direction === "asc" ? "gt" : "lt";
+
+  return [
+    ...(remainingStatuses.length ? [{ status: { in: [...remainingStatuses] } }] : []),
+    { status: cursor.value as (typeof statusOrder)[number], id: { [operator]: cursor.id } }
+  ];
+}
+
+function getCursorSortValue(item: CaseWithInclude, sortBy: ListCasesQuery["sortBy"]) {
+  if (sortBy === "createdAt") {
+    return item.createdAt;
+  }
+
+  if (sortBy === "filingDate") {
+    return item.filingDate ?? item.createdAt;
+  }
+
+  return item[sortBy];
+}
+
+function handleKnownCaseWriteError(error: unknown): never | void {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    throw new ConflictException("Ya existe un expediente con ese numero en el estudio activo.");
+  }
+}

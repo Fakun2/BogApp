@@ -1,0 +1,26 @@
+{
+  "name": "@bogaap/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed:rbac": "node prisma/seed-rbac.cjs",
+    "db:seed:practice-area-templates": "node prisma/seed-practice-area-templates.cjs",
+    "db:seed:demo": "node prisma/seed-demo-data.cjs",
+    "db:clear:demo": "node prisma/clear-demo-data.cjs",
+    "db:prepare": "prisma migrate deploy && npm run db:seed:rbac && npm run db:seed:practice-area-templates",
+    "db:studio": "prisma studio",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "dotenv": "^16.4.0",
+    "prisma": "^6.19.0"
+  }
+}

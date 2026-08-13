@@ -1,0 +1,896 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  active
+  inactive
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+enum MembershipStatus {
+  invited
+  active
+  suspended
+}
+
+enum CaseNumberingMode {
+  manual
+  automatic
+}
+
+enum DocumentStorageMode {
+  local
+  s3
+}
+
+enum ClientType {
+  human
+  legal_entity
+}
+
+enum ClientStatus {
+  active
+  inactive
+  archived
+}
+
+enum CaseInstance {
+  first
+  second
+  third
+}
+
+enum CaseStatus {
+  open
+  paused
+  closed
+}
+
+enum CaseTaskStatus {
+  pending
+  in_progress
+  completed
+  cancelled
+}
+
+enum CaseExpenseStatus {
+  pending
+  paid
+  cancelled
+  overdue
+}
+
+enum CaseParticipantRole {
+  claimant
+  defendant
+  complainant
+  accused
+  third_party
+  client
+  opposing_party
+  other
+}
+
+enum CaseParticipantKind {
+  client
+  opposing_party
+  third_party
+  other
+}
+
+enum CaseCatalogStrategy {
+  manual
+  center_forum
+}
+
+enum CaseHearingType {
+  preliminary
+  trial_view
+  conciliation
+  mediation
+  testimonial
+  confessional
+  debate
+  investigative_statement
+  other
+}
+
+enum AiChatRunStatus {
+  accepted
+  failed
+}
+
+enum AiLegalDocumentType {
+  constitution
+  code
+  law
+  decree
+  resolution
+  jurisprudence
+  doctrine
+  other
+}
+
+enum AiLegalNormUnitType {
+  preamble
+  part
+  book
+  title
+  chapter
+  section
+  article
+  paragraph
+  clause
+  subsection
+  other
+}
+
+enum AiEmbeddingStatus {
+  pending
+  embedded
+  stale
+  failed
+}
+
+enum FinanceCategoryKind {
+  income
+  expense
+  both
+}
+
+enum CashboxMovementType {
+  income
+  expense
+  conversion_in
+  conversion_out
+}
+
+model Tenant {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  name               String
+  legalName          String?                 @map("legal_name")
+  taxId              String?                 @map("tax_id")
+  status             TenantStatus            @default(active)
+  profile            TenantProfile?
+  settings           TenantSettings?
+  memberships        TenantMembership[]
+  practiceAreas      PracticeArea[]
+  clients            Client[]
+  cases              Case[]
+  caseTasks          CaseTask[]
+  caseExpenses       CaseExpense[]
+  caseHearings       CaseHearing[]
+  expenseAttachments CaseExpenseAttachment[]
+  aiChatRuns         AiChatRun[]
+  aiLegalDocuments   AiLegalDocument[]
+  aiLegalVersions    AiLegalDocumentVersion[]
+  aiLegalNormUnits   AiLegalNormUnit[]
+  aiLegalNormChunks  AiLegalNormChunk[]
+  roles              Role[]
+  tenantCurrencies   TenantCurrency[]
+  financeCategories  TenantFinanceCategory[]
+  cashboxMovements    CashboxMovement[]
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("tenants")
+}
+
+model User {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  email              String                  @unique
+  fullName           String                  @map("full_name")
+  passwordHash       String                  @map("password_hash")
+  dni                String?
+  phone              String?
+  emailVerifiedAt    DateTime?               @map("email_verified_at") @db.Timestamptz(6)
+  lastLoginAt        DateTime?               @map("last_login_at") @db.Timestamptz(6)
+  sessionVersion     Int                     @default(0) @map("session_version")
+  status             UserStatus              @default(active)
+  memberships        TenantMembership[]
+  expenseAttachments CaseExpenseAttachment[]
+  cashboxMovements    CashboxMovement[]
+  aiChatRuns         AiChatRun[]
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([dni])
+  @@map("users")
+}
+
+model TenantProfile {
+  id                String   @id @default(uuid()) @db.Uuid
+  tenantId          String   @unique @map("tenant_id") @db.Uuid
+  country           String
+  province          String
+  city              String
+  address           String?
+  website           String?
+  logoUrl           String?  @map("logo_url")
+  size              String?
+  mainPracticeAreas String[] @default([]) @map("main_practice_areas")
+  referralSource    String?  @map("referral_source")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_profiles")
+}
+
+model TenantSettings {
+  id                    String              @id @default(uuid()) @db.Uuid
+  tenantId              String              @unique @map("tenant_id") @db.Uuid
+  timezone              String
+  defaultCurrencyCode   String              @map("default_currency_code")
+  defaultRoleForInvites String              @default("lawyer") @map("default_role_for_invites")
+  caseNumberingMode     CaseNumberingMode   @default(manual) @map("case_numbering_mode")
+  documentStorageMode   DocumentStorageMode @default(local) @map("document_storage_mode")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  defaultCurrency Currency @relation(fields: [defaultCurrencyCode], references: [code], onDelete: Restrict)
+
+  @@map("tenant_settings")
+}
+
+model PracticeAreaTemplate {
+  id            String         @id @default(uuid()) @db.Uuid
+  code          String         @unique
+  name          String
+  description   String?
+  active        Boolean        @default(true)
+  displayOrder  Int            @default(0) @map("display_order")
+  practiceAreas PracticeArea[]
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, displayOrder])
+  @@map("practice_area_templates")
+}
+
+model PracticeArea {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  templateId  String?  @map("template_id") @db.Uuid
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant                Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template              PracticeAreaTemplate?          @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  membershipAssignments TenantMembershipPracticeArea[]
+  cases                 Case[]
+
+  @@unique([tenantId, name])
+  @@unique([tenantId, templateId])
+  @@index([tenantId])
+  @@index([tenantId, active, name])
+  @@index([templateId])
+  @@map("practice_areas")
+}
+
+model Province {
+  id                  String              @id @default(uuid()) @db.Uuid
+  code                String              @unique
+  name                String
+  province            String?
+  country             String
+  caseCatalogStrategy CaseCatalogStrategy @default(manual) @map("case_catalog_strategy")
+  active              Boolean             @default(true)
+  displayOrder        Int                 @default(0) @map("display_order")
+  forumTemplates      ForumTemplate[]
+  judicialCenters     JudicialCenter[]
+  cases               Case[]
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, displayOrder])
+  @@map("provinces")
+}
+
+model ForumTemplate {
+  id           String   @id @default(uuid()) @db.Uuid
+  provinceId   String   @map("province_id") @db.Uuid
+  code         String   @unique
+  name         String
+  description  String?
+  active       Boolean  @default(true)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  province             Province              @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  judicialCenterForums JudicialCenterForum[]
+  cases                Case[]
+
+  @@unique([provinceId, name])
+  @@index([provinceId, active, displayOrder])
+  @@map("forum_templates")
+}
+
+model JudicialCenter {
+  id           String   @id @default(uuid()) @db.Uuid
+  provinceId   String   @map("province_id") @db.Uuid
+  code         String   @unique
+  name         String
+  active       Boolean  @default(true)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  province Province              @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  forums   JudicialCenterForum[]
+
+  @@unique([provinceId, name])
+  @@index([provinceId, active, displayOrder])
+  @@map("judicial_centers")
+}
+
+model JudicialCenterForum {
+  id               String   @id @default(uuid()) @db.Uuid
+  judicialCenterId String   @map("judicial_center_id") @db.Uuid
+  forumTemplateId  String   @map("forum_template_id") @db.Uuid
+  active           Boolean  @default(true)
+  displayOrder     Int      @default(0) @map("display_order")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  judicialCenter JudicialCenter @relation(fields: [judicialCenterId], references: [id], onDelete: Cascade)
+  forumTemplate  ForumTemplate  @relation(fields: [forumTemplateId], references: [id], onDelete: Cascade)
+  cases          Case[]
+
+  @@unique([judicialCenterId, forumTemplateId])
+  @@index([judicialCenterId, active, displayOrder])
+  @@index([forumTemplateId, active])
+  @@map("judicial_center_forums")
+}
+
+model Client {
+  id               String       @id @default(uuid()) @db.Uuid
+  tenantId         String       @map("tenant_id") @db.Uuid
+  type             ClientType   @default(human)
+  status           ClientStatus @default(active)
+  firstName        String?      @map("first_name")
+  lastName         String?      @map("last_name")
+  age              Int?
+  dni              String?
+  cuil             String?
+  cuit             String?
+  businessName     String?      @map("business_name")
+  email            String?
+  phone            String?
+  address          String?
+  notes            String?
+  statute          String?
+  salaryReceiptRef String?      @map("salary_receipt_ref")
+  cbu              String?
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  primaryCases       Case[]            @relation("CasePrimaryClient")
+  caseParticipations CaseParticipant[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([tenantId, dni])
+  @@index([tenantId, cuil])
+  @@index([tenantId, cuit])
+  @@index([tenantId, businessName])
+  @@index([tenantId, lastName, firstName])
+  @@map("clients")
+}
+
+model Case {
+  id                      String       @id @default(uuid()) @db.Uuid
+  tenantId                String       @map("tenant_id") @db.Uuid
+  caseNumber              String       @map("case_number")
+  caption                 String
+  subject                 String?
+  description             String?
+  provinceId              String       @map("province_id") @db.Uuid
+  forumTemplateId         String       @map("forum_template_id") @db.Uuid
+  judicialCenterForumId   String?      @map("judicial_center_forum_id") @db.Uuid
+  judicialCenterText      String?      @map("judicial_center_text")
+  court                   String?
+  instance                CaseInstance @default(first)
+  status                  CaseStatus   @default(open)
+  filingDate              DateTime?    @map("filing_date") @db.Date
+  primaryClientId         String?      @map("primary_client_id") @db.Uuid
+  practiceAreaId          String?      @map("practice_area_id") @db.Uuid
+  responsibleMembershipId String?      @map("responsible_membership_id") @db.Uuid
+  createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  province              Province                @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  forumTemplate         ForumTemplate           @relation(fields: [forumTemplateId], references: [id], onDelete: Restrict)
+  judicialCenterForum   JudicialCenterForum?    @relation(fields: [judicialCenterForumId], references: [id], onDelete: SetNull)
+  primaryClient         Client?                 @relation("CasePrimaryClient", fields: [primaryClientId], references: [id], onDelete: SetNull)
+  practiceArea          PracticeArea?           @relation(fields: [practiceAreaId], references: [id], onDelete: SetNull)
+  responsibleMembership TenantMembership?       @relation(fields: [responsibleMembershipId], references: [id], onDelete: SetNull)
+  participants          CaseParticipant[]
+  tasks                 CaseTask[]
+  expenses              CaseExpense[]
+  hearings              CaseHearing[]
+  expenseAttachments    CaseExpenseAttachment[]
+  aiChatRuns            AiChatRun[]
+
+  @@unique([tenantId, caseNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, caption])
+  @@index([tenantId, filingDate])
+  @@index([provinceId])
+  @@index([forumTemplateId])
+  @@index([judicialCenterForumId])
+  @@index([primaryClientId])
+  @@index([practiceAreaId])
+  @@index([responsibleMembershipId])
+  @@map("cases")
+}
+
+model AiChatRun {
+  id           String          @id @default(uuid()) @db.Uuid
+  tenantId     String          @map("tenant_id") @db.Uuid
+  userId       String          @map("user_id") @db.Uuid
+  caseId       String?         @map("case_id") @db.Uuid
+  tool         String
+  model        String
+  provider     String?
+  promptLength Int             @map("prompt_length")
+  inputTokens  Int?            @map("input_tokens")
+  outputTokens Int?            @map("output_tokens")
+  finishReason String?         @map("finish_reason")
+  status       AiChatRunStatus
+  errorCode    String?         @map("error_code")
+  errorMessage String?         @map("error_message")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  case   Case?  @relation(fields: [caseId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, userId, createdAt])
+  @@index([tenantId, caseId, createdAt])
+  @@index([tenantId, status, createdAt])
+  @@map("ai_chat_runs")
+}
+
+model AiLegalDocument {
+  id           String              @id @default(uuid()) @db.Uuid
+  tenantId     String?             @map("tenant_id") @db.Uuid
+  jurisdiction String
+  documentType AiLegalDocumentType @map("document_type")
+  title        String
+  sourceUrl    String?             @map("source_url")
+  isPublic     Boolean             @default(true) @map("is_public")
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant   Tenant?                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  versions AiLegalDocumentVersion[]
+
+  @@index([tenantId])
+  @@index([tenantId, jurisdiction, documentType])
+  @@index([jurisdiction, documentType, title])
+  @@index([isPublic])
+  @@map("ai_legal_documents")
+}
+
+model AiLegalDocumentVersion {
+  id                String    @id @default(uuid()) @db.Uuid
+  tenantId          String?   @map("tenant_id") @db.Uuid
+  legalDocumentId   String    @map("legal_document_id") @db.Uuid
+  versionLabel      String    @map("version_label")
+  effectiveFrom     DateTime  @map("effective_from") @db.Date
+  effectiveTo       DateTime? @map("effective_to") @db.Date
+  sourceHash        String    @map("source_hash")
+  sourcePublishedAt DateTime? @map("source_published_at") @db.Date
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant?           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  legalDocument AiLegalDocument   @relation(fields: [legalDocumentId], references: [id], onDelete: Cascade)
+  normUnits     AiLegalNormUnit[]
+
+  @@unique([legalDocumentId, versionLabel])
+  @@index([tenantId])
+  @@index([legalDocumentId, effectiveFrom])
+  @@index([effectiveFrom, effectiveTo])
+  @@map("ai_legal_document_versions")
+}
+
+model AiLegalNormUnit {
+  id                     String              @id @default(uuid()) @db.Uuid
+  tenantId               String?             @map("tenant_id") @db.Uuid
+  legalDocumentVersionId String              @map("legal_document_version_id") @db.Uuid
+  parentUnitId           String?             @map("parent_unit_id") @db.Uuid
+  canonicalRef           String              @map("canonical_ref")
+  unitType               AiLegalNormUnitType @map("unit_type")
+  articleNumber          String?             @map("article_number")
+  clauseNumber           String?             @map("clause_number")
+  orderIndex             Int                 @map("order_index")
+  text                   String
+  textHash               String              @map("text_hash")
+  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant               Tenant?                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  legalDocumentVersion AiLegalDocumentVersion   @relation(fields: [legalDocumentVersionId], references: [id], onDelete: Cascade)
+  parentUnit           AiLegalNormUnit?         @relation("AiLegalNormUnitHierarchy", fields: [parentUnitId], references: [id], onDelete: SetNull)
+  childUnits           AiLegalNormUnit[]        @relation("AiLegalNormUnitHierarchy")
+  chunks               AiLegalNormChunk[]
+
+  @@unique([legalDocumentVersionId, canonicalRef])
+  @@unique([legalDocumentVersionId, textHash])
+  @@index([tenantId])
+  @@index([legalDocumentVersionId, orderIndex])
+  @@index([parentUnitId])
+  @@index([canonicalRef])
+  @@index([unitType])
+  @@index([articleNumber])
+  @@map("ai_legal_norm_units")
+}
+
+model AiLegalNormChunk {
+  id                  String            @id @default(uuid()) @db.Uuid
+  tenantId            String?           @map("tenant_id") @db.Uuid
+  legalNormUnitId     String            @map("legal_norm_unit_id") @db.Uuid
+  chunkIndex          Int               @default(0) @map("chunk_index")
+  content             String
+  contentHash         String            @map("content_hash")
+  tokenCount          Int?              @map("token_count")
+  embeddingModel      String            @map("embedding_model")
+  embeddingDimensions Int               @default(1536) @map("embedding_dimensions")
+  embedding           Unsupported("vector(1536)")?
+  status              AiEmbeddingStatus @default(pending)
+  embeddedAt          DateTime?         @map("embedded_at") @db.Timestamptz(6)
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  legalNormUnit AiLegalNormUnit @relation(fields: [legalNormUnitId], references: [id], onDelete: Cascade)
+
+  @@unique([legalNormUnitId, chunkIndex])
+  @@unique([legalNormUnitId, contentHash])
+  @@index([tenantId])
+  @@index([tenantId, status, updatedAt])
+  @@index([legalNormUnitId])
+  @@index([embeddingModel, status])
+  @@map("ai_legal_norm_chunks")
+}
+
+model CaseTask {
+  id                   String         @id @default(uuid()) @db.Uuid
+  tenantId             String         @map("tenant_id") @db.Uuid
+  caseId               String         @map("case_id") @db.Uuid
+  assignedMembershipId String?        @map("assigned_membership_id") @db.Uuid
+  name                 String
+  startDate            DateTime?      @map("start_date") @db.Date
+  endDate              DateTime?      @map("end_date") @db.Date
+  status               CaseTaskStatus @default(pending)
+  notes                String?
+  lastSeenAt           DateTime?      @map("last_seen_at") @db.Timestamptz(6)
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case       Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  assignedTo TenantMembership? @relation("CaseTaskAssignee", fields: [assignedMembershipId], references: [id], onDelete: SetNull)
+  expenses   CaseExpense[]
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, assignedMembershipId])
+  @@index([tenantId, lastSeenAt])
+  @@index([tenantId, status])
+  @@index([tenantId, startDate])
+  @@index([tenantId, endDate])
+  @@map("case_tasks")
+}
+
+model CaseExpense {
+  id           String            @id @default(uuid()) @db.Uuid
+  tenantId     String            @map("tenant_id") @db.Uuid
+  caseId       String            @map("case_id") @db.Uuid
+  taskId       String?           @map("task_id") @db.Uuid
+  concept      String
+  amount       Decimal           @db.Decimal(12, 2)
+  expenseDate  DateTime          @map("expense_date") @db.Date
+  paymentDate  DateTime          @map("payment_date") @db.Date
+  status       CaseExpenseStatus @default(pending)
+  notes        String?
+  alertEnabled Boolean           @default(false) @map("alert_enabled")
+  alertAt      DateTime?         @map("alert_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant      Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case        Case                    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  task        CaseTask?               @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  attachments CaseExpenseAttachment[]
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([taskId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, status])
+  @@index([tenantId, expenseDate])
+  @@index([tenantId, paymentDate])
+  @@index([tenantId, alertAt])
+  @@map("case_expenses")
+}
+
+model CaseHearing {
+  id                  String          @id @default(uuid()) @db.Uuid
+  tenantId            String          @map("tenant_id") @db.Uuid
+  caseId              String          @map("case_id") @db.Uuid
+  type                CaseHearingType
+  date                DateTime        @db.Date
+  time                String          @db.VarChar(5)
+  description         String
+  notificationsEnabled Boolean        @default(false) @map("notifications_enabled")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, date])
+  @@index([tenantId, type])
+  @@map("case_hearings")
+}
+
+model CaseExpenseAttachment {
+  id               String    @id @default(uuid()) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  caseId           String    @map("case_id") @db.Uuid
+  expenseId        String    @map("expense_id") @db.Uuid
+  uploadedByUserId String    @map("uploaded_by_user_id") @db.Uuid
+  storageProvider  String    @map("storage_provider")
+  bucket           String
+  objectKey        String    @map("object_key")
+  originalName     String    @map("original_name")
+  mimeType         String    @map("mime_type")
+  sizeBytes        Int       @map("size_bytes")
+  checksum         String?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  tenant         Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case           Case        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  expense        CaseExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  uploadedByUser User        @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([expenseId])
+  @@index([uploadedByUserId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, expenseId])
+  @@index([tenantId, deletedAt])
+  @@map("case_expense_attachments")
+}
+
+model CaseParticipant {
+  id              String              @id @default(uuid()) @db.Uuid
+  caseId          String              @map("case_id") @db.Uuid
+  participantKind CaseParticipantKind @default(other) @map("participant_kind")
+  role            CaseParticipantRole @default(other)
+  displayName     String              @map("display_name")
+  document        String?
+  address         String?
+  email           String?
+  phone           String?
+  notes           String?
+  clientId        String?             @map("client_id") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  case   Case    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([caseId])
+  @@index([clientId])
+  @@map("case_participants")
+}
+
+model Currency {
+  id             String           @id @default(uuid()) @db.Uuid
+  name           String
+  code           String           @unique @db.Char(3)
+  symbol         String
+  active         Boolean          @default(true)
+  tenantSettings TenantSettings[]
+  tenants        TenantCurrency[]
+  cashboxMovements CashboxMovement[]
+
+  @@index([active, name])
+  @@map("currencies")
+}
+
+model TenantCurrency {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  currencyCode String   @map("currency_code") @db.Char(3)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  currency Currency @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+
+  @@unique([tenantId, currencyCode])
+  @@index([tenantId, active])
+  @@index([currencyCode])
+  @@map("tenant_currencies")
+}
+
+model GlobalFinanceCategory {
+  id        String              @id @default(uuid()) @db.Uuid
+  name      String
+  code      String              @unique
+  kind      FinanceCategoryKind
+  active    Boolean             @default(true)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, kind, name])
+  @@map("global_finance_categories")
+}
+
+model TenantFinanceCategory {
+  id        String              @id @default(uuid()) @db.Uuid
+  tenantId  String              @map("tenant_id") @db.Uuid
+  name      String
+  kind      FinanceCategoryKind
+  active    Boolean             @default(true)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, active])
+  @@index([tenantId, kind])
+  @@map("tenant_finance_categories")
+}
+
+model CashboxMovement {
+  id                String              @id @default(uuid()) @db.Uuid
+  tenantId          String              @map("tenant_id") @db.Uuid
+  type              CashboxMovementType
+  currencyCode      String              @map("currency_code") @db.Char(3)
+  amount            Decimal             @db.Decimal(18, 2)
+  occurredAt        DateTime            @map("occurred_at") @db.Timestamptz(6)
+  description       String?
+  categoryOrigin    String?             @map("category_origin")
+  categoryId        String?             @map("category_id") @db.Uuid
+  conversionGroupId String?             @map("conversion_group_id") @db.Uuid
+  exchangeRate      Decimal?            @map("exchange_rate") @db.Decimal(18, 8)
+  createdByUserId   String              @map("created_by_user_id") @db.Uuid
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  currency      Currency @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+  createdByUser User     @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, currencyCode, occurredAt, id])
+  @@index([tenantId, occurredAt, id])
+  @@index([tenantId, conversionGroupId])
+  @@index([createdByUserId])
+  @@map("cashbox_movements")
+}
+
+model Role {
+  id              String             @id @default(uuid()) @db.Uuid
+  tenantId        String?            @map("tenant_id") @db.Uuid
+  code            String             @unique
+  name            String
+  description     String?
+  active          Boolean            @default(true)
+  hierarchyLevel  Int                @default(1) @map("hierarchy_level")
+  isSystem        Boolean            @default(true) @map("is_system")
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  memberships     TenantMembership[]
+  rolePermissions RolePermission[]
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, name])
+  @@index([hierarchyLevel])
+  @@index([isSystem, name])
+  @@index([tenantId, active, name])
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            String           @unique
+  resource        String
+  action          String
+  description     String?
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([resource, action])
+  @@index([resource])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid()) @db.Uuid
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model TenantMembership {
+  id        String           @id @default(uuid()) @db.Uuid
+  tenantId  String           @map("tenant_id") @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  roleId    String?          @map("role_id") @db.Uuid
+  status    MembershipStatus @default(invited)
+  invitedAt DateTime?        @map("invited_at") @db.Timestamptz(6)
+  joinedAt  DateTime?        @map("joined_at") @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant           Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user             User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             Role?                          @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  practiceAreas    TenantMembershipPracticeArea[]
+  responsibleCases Case[]
+  assignedTasks    CaseTask[]                     @relation("CaseTaskAssignee")
+
+  @@unique([tenantId, userId])
+  @@index([tenantId, status])
+  @@index([tenantId, roleId])
+  @@index([userId])
+  @@map("tenant_memberships")
+}
+
+model TenantMembershipPracticeArea {
+  id                 String   @id @default(uuid()) @db.Uuid
+  tenantMembershipId String   @map("tenant_membership_id") @db.Uuid
+  practiceAreaId     String   @map("practice_area_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenantMembership TenantMembership @relation(fields: [tenantMembershipId], references: [id], onDelete: Cascade)
+  practiceArea     PracticeArea     @relation(fields: [practiceAreaId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantMembershipId, practiceAreaId])
+  @@index([practiceAreaId])
+  @@index([practiceAreaId, tenantMembershipId])
+  @@map("tenant_membership_practice_areas")
+}

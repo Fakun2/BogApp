@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@bogaap/ai-contracts": ["packages/ai-contracts/dist/index"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
