@@ -3,6 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Test } from "@nestjs/testing";
 import { ZodValidationPipe } from "nestjs-zod";
+import { CashboxMovementType, Prisma } from "@prisma/client";
 import { after, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
@@ -24,8 +25,16 @@ type TenantCurrencyRecord = {
   tenantId: string;
 };
 
+type CashboxMovementRecord = {
+  amount: string;
+  currencyCode: string;
+  tenantId: string;
+  type: CashboxMovementType;
+};
+
 class InMemoryCurrenciesPrismaService {
   private currencies: CurrencyRecord[] = [];
+  private cashboxMovements: CashboxMovementRecord[] = [];
   private tenantCurrencies: TenantCurrencyRecord[] = [];
   private tenantSettingsRecords: Array<{ defaultCurrencyCode: string; tenantId: string }> = [];
 
@@ -188,6 +197,45 @@ class InMemoryCurrenciesPrismaService {
       this.tenantSettingsRecords.find((settings) => settings.tenantId === where.tenantId) ?? null
   };
 
+  readonly cashboxMovement = {
+    groupBy: async ({
+      where
+    }: {
+      where: { currencyCode?: { in?: string[] }; tenantId?: string };
+    }) => {
+      const groups = new Map<
+        string,
+        { amount: Prisma.Decimal; currencyCode: string; type: CashboxMovementType }
+      >();
+
+      for (const movement of this.cashboxMovements) {
+        if (where.tenantId && movement.tenantId !== where.tenantId) {
+          continue;
+        }
+
+        if (where.currencyCode?.in && !where.currencyCode.in.includes(movement.currencyCode)) {
+          continue;
+        }
+
+        const key = `${movement.currencyCode}:${movement.type}`;
+        const current = groups.get(key) ?? {
+          amount: new Prisma.Decimal(0),
+          currencyCode: movement.currencyCode,
+          type: movement.type
+        };
+
+        current.amount = current.amount.plus(movement.amount);
+        groups.set(key, current);
+      }
+
+      return [...groups.values()].map((group) => ({
+        currencyCode: group.currencyCode,
+        type: group.type,
+        _sum: { amount: group.amount }
+      }));
+    }
+  };
+
   async $queryRaw() {
     return [{ sessionVersion: 0, status: "active" }];
   }
@@ -235,6 +283,11 @@ class InMemoryCurrenciesPrismaService {
       }
     ];
     this.tenantSettingsRecords = [{ defaultCurrencyCode: "ARS", tenantId: "tenant-a" }];
+    this.cashboxMovements = [];
+  }
+
+  seedCashboxMovements(movements: CashboxMovementRecord[]) {
+    this.cashboxMovements = movements;
   }
 
   private matchesCurrency(currency: CurrencyRecord, where?: CurrencyWhere) {
@@ -430,6 +483,7 @@ describe("Currencies endpoints (e2e)", () => {
       active: 1,
       available: 1
     });
+    assert.equal(response.body.items[0]?.cashboxBalance, "0.00");
     assert.equal(response.body.pageInfo.hasNextPage, false);
   });
 
@@ -505,6 +559,78 @@ describe("Currencies endpoints (e2e)", () => {
       active: 1,
       available: 1
     });
+  });
+
+  it("lists tenant currencies with their remaining cashbox balance", async () => {
+    await request(app.getHttpServer())
+      .post("/api/currencies/tenant")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["finance:update"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({ currencyCodes: ["USD"] })
+      .expect(201);
+
+    prisma.seedCashboxMovements([
+      {
+        amount: "200.00",
+        currencyCode: "USD",
+        tenantId: "tenant-a",
+        type: CashboxMovementType.income
+      },
+      {
+        amount: "50.00",
+        currencyCode: "USD",
+        tenantId: "tenant-a",
+        type: CashboxMovementType.expense
+      },
+      {
+        amount: "10.00",
+        currencyCode: "USD",
+        tenantId: "tenant-b",
+        type: CashboxMovementType.income
+      }
+    ]);
+
+    const response = await request(app.getHttpServer())
+      .get("/api/currencies/tenant")
+      .query({ search: "dolar" })
+      .set("Authorization", `Bearer ${makeToken(jwt, ["currencies:read"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .expect(200);
+
+    assert.equal(response.body.items[0]?.code, "USD");
+    assert.equal(response.body.items[0]?.cashboxBalance, "150.00");
+  });
+
+  it("reactivates disabled tenant currencies from the tenant add endpoint", async () => {
+    await request(app.getHttpServer())
+      .post("/api/currencies/tenant")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["finance:update"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({ currencyCodes: ["USD"] })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete("/api/currencies/tenant/USD")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["finance:update"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post("/api/currencies/tenant")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["finance:update"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({ currencyCodes: ["USD"] })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .get("/api/currencies/tenant")
+      .query({ active: true, search: "dolar" })
+      .set("Authorization", `Bearer ${makeToken(jwt, ["currencies:read"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .expect(200);
+
+    assert.equal(response.body.items[0]?.code, "USD");
+    assert.equal(response.body.items[0]?.active, true);
   });
 
   it("does not disable the tenant default currency", async () => {

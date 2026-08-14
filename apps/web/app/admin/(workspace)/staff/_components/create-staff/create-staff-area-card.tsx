@@ -1,4 +1,5 @@
-import { Checkbox } from "@/components/ui/checkbox";
+import type { KeyboardEvent } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   getPracticeAreaDescription,
@@ -23,7 +24,7 @@ export function CreateStaffAreaCard({
   const Icon = getPracticeAreaIcon(templateCode);
   const displayDescription = getPracticeAreaDescription({ description, name: label });
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onToggle(value);
@@ -31,10 +32,10 @@ export function CreateStaffAreaCard({
   }
 
   return (
-    <div
+    <button
       aria-checked={checked}
+      type="button"
       role="checkbox"
-      tabIndex={0}
       className={cn(
         "flex min-h-24 items-start gap-3 rounded-2xl border border-border/50 bg-card p-3 text-left transition-colors duration-200 ease-out hover:border-[var(--selectable-card-hover-border)] hover:bg-[var(--selectable-card-hover-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
         checked &&
@@ -43,15 +44,15 @@ export function CreateStaffAreaCard({
       onClick={() => onToggle(value)}
       onKeyDown={handleKeyDown}
     >
-      <Checkbox
-        checked={checked}
+      <span
+        aria-hidden="true"
         className={cn(
-          "mt-0.5 transition-colors duration-200",
+          "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input shadow-xs transition-colors duration-200",
           checked && "border-sky-500 bg-sky-500 text-white"
         )}
-        tabIndex={-1}
-        aria-hidden="true"
-      />
+      >
+        {checked ? <Check className="size-3.5" aria-hidden="true" /> : null}
+      </span>
       <span className="grid min-w-0 gap-2">
         <span
           className={cn(
@@ -66,6 +67,6 @@ export function CreateStaffAreaCard({
           <span className="text-xs leading-5 text-muted-foreground">{displayDescription}</span>
         </span>
       </span>
-    </div>
+    </button>
   );
 }

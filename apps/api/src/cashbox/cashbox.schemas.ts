@@ -70,13 +70,55 @@ export const createCashboxMovementSchema = z.object({
   type: z.enum(["income", "expense"])
 });
 
-export const createCashboxConversionSchema = z.object({
+const createCashboxConversionBaseSchema = z.object({
   description: z.string().trim().max(240).optional(),
-  exchangeRate: positiveLocalDecimalStringSchema.refine((value) => getLocalDecimalScale(value) <= 8),
   fromAmount: positiveLocalDecimalStringSchema.refine((value) => getLocalDecimalScale(value) <= 2),
   fromCurrencyCode: currencyCodeSchema,
   occurredAt: optionalDateTimeSchema,
+  quoteBaseCurrencyCode: currencyCodeSchema,
+  quoteCounterCurrencyCode: currencyCodeSchema,
+  quoteRate: positiveLocalDecimalStringSchema.refine((value) => getLocalDecimalScale(value) <= 8),
   toCurrencyCode: currencyCodeSchema
+});
+
+export const createCashboxConversionSchema = createCashboxConversionBaseSchema.superRefine((value, context) => {
+  if (value.fromCurrencyCode === value.toCurrencyCode) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Las monedas de origen y destino deben ser distintas.",
+      path: ["toCurrencyCode"]
+    });
+  }
+
+  if (value.quoteBaseCurrencyCode === value.quoteCounterCurrencyCode) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Las monedas de cotizacion deben ser distintas.",
+      path: ["quoteCounterCurrencyCode"]
+    });
+  }
+
+  if (
+    value.quoteBaseCurrencyCode !== value.fromCurrencyCode &&
+    value.quoteBaseCurrencyCode !== value.toCurrencyCode
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La moneda base de cotizacion debe ser origen o destino.",
+      path: ["quoteBaseCurrencyCode"]
+    });
+  }
+
+  if (
+    value.quoteCounterCurrencyCode !== value.fromCurrencyCode &&
+    value.quoteCounterCurrencyCode !== value.toCurrencyCode
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La moneda contraparte de cotizacion debe ser origen o destino.",
+      path: ["quoteCounterCurrencyCode"]
+    });
+  }
 });
 
 export const updateCashboxMovementSchema = z.object({
@@ -111,8 +153,14 @@ export class CreateCashboxConversionDto extends createZodDto(createCashboxConver
   @ApiProperty({ example: "100.000,00" })
   fromAmount!: string;
 
-  @ApiProperty({ example: "1.000,00000000" })
-  exchangeRate!: string;
+  @ApiProperty({ example: "USD" })
+  quoteBaseCurrencyCode!: string;
+
+  @ApiProperty({ example: "ARS" })
+  quoteCounterCurrencyCode!: string;
+
+  @ApiProperty({ example: "1350,00000000" })
+  quoteRate!: string;
 }
 
 export class UpdateCashboxMovementDto extends createZodDto(updateCashboxMovementSchema) {

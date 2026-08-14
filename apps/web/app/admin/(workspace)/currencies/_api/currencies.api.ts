@@ -66,6 +66,12 @@ export async function addTenantCurrencies(
   });
 }
 
+export async function enableTenantCurrency(currencyCode: string): Promise<CurrencyDto> {
+  const response = await addTenantCurrencies({ currencyCodes: [currencyCode] });
+
+  return response.items[0] as CurrencyDto;
+}
+
 export async function disableTenantCurrency(currencyCode: string): Promise<CurrencyDto> {
   return dashboardHttpClient.request<CurrencyDto>({
     method: "DELETE",

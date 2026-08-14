@@ -130,14 +130,14 @@ export class CashboxService {
     const conversionGroupId = randomUUID();
     const occurredAt = input.occurredAt ?? new Date();
     const fromAmount = parseLocalDecimal(input.fromAmount);
-    const exchangeRate = parseLocalDecimal(input.exchangeRate);
+    const exchangeRate = getEffectiveExchangeRate(input);
     const currentBalance = await this.getCurrentBalance(tenantId, input.fromCurrencyCode, new Date());
 
     if (fromAmount.gt(currentBalance)) {
       throw new BadRequestException("El monto a convertir supera el saldo disponible de la moneda origen.");
     }
 
-    const toAmount = fromAmount.div(exchangeRate).toDecimalPlaces(2);
+    const toAmount = fromAmount.mul(exchangeRate).toDecimalPlaces(2);
 
     const items = await this.prisma.$transaction([
       this.prisma.cashboxMovement.create({
@@ -546,6 +546,26 @@ function decimalToString(decimal: Prisma.Decimal, decimals = 2) {
 function parseLocalDecimal(value: string) {
   const normalized = value.replace(/\./g, "").replace(",", ".");
   return new Prisma.Decimal(normalized);
+}
+
+function getEffectiveExchangeRate(input: CreateCashboxConversionInput) {
+  const quoteRate = parseLocalDecimal(input.quoteRate);
+
+  if (
+    input.quoteBaseCurrencyCode === input.fromCurrencyCode &&
+    input.quoteCounterCurrencyCode === input.toCurrencyCode
+  ) {
+    return quoteRate;
+  }
+
+  if (
+    input.quoteBaseCurrencyCode === input.toCurrencyCode &&
+    input.quoteCounterCurrencyCode === input.fromCurrencyCode
+  ) {
+    return new Prisma.Decimal(1).div(quoteRate);
+  }
+
+  throw new BadRequestException("La cotizacion debe corresponder al par de monedas convertido.");
 }
 
 function formatDateInTimezone(date: Date, timezone: string) {

@@ -39,20 +39,62 @@ export function subtractLocalFromCanonicalDecimal(canonicalValue: string, localV
   );
 }
 
-export function divideLocalDecimal(dividend: string, divisor: string) {
-  const dividendMinor = localDecimalToMinor(dividend, 2);
-  const divisorScaled = localDecimalToMinor(divisor, 8);
+export function multiplyLocalDecimalByLocalRate(value: string, localRate: string) {
+  const valueMinor = localDecimalToMinor(value, 2);
+  const rateScaled = localDecimalToMinor(localRate, 8);
 
-  if (dividendMinor <= 0n || divisorScaled <= 0n) {
+  if (valueMinor <= 0n || rateScaled <= 0n) {
     return "0,00";
   }
 
-  const scaledDividend = dividendMinor * 100000000n;
-  const quotient = scaledDividend / divisorScaled;
-  const remainder = scaledDividend % divisorScaled;
-  const rounded = remainder * 2n >= divisorScaled ? quotient + 1n : quotient;
+  const product = valueMinor * rateScaled;
+  const quotient = product / 100000000n;
+  const remainder = product % 100000000n;
+  const rounded = remainder * 2n >= 100000000n ? quotient + 1n : quotient;
 
   return minorToLocalDecimal(rounded, 2);
+}
+
+export function divideLocalDecimalByLocalRate(value: string, localRate: string) {
+  const valueMinor = localDecimalToMinor(value, 2);
+  const rateScaled = localDecimalToMinor(localRate, 8);
+
+  if (valueMinor <= 0n || rateScaled <= 0n) {
+    return "0,00";
+  }
+
+  const scaledValue = valueMinor * 100000000n;
+  const quotient = scaledValue / rateScaled;
+  const remainder = scaledValue % rateScaled;
+  const rounded = remainder * 2n >= rateScaled ? quotient + 1n : quotient;
+
+  return minorToLocalDecimal(rounded, 2);
+}
+
+export function convertLocalDecimalWithQuote({
+  fromAmount,
+  fromCurrencyCode,
+  quoteBaseCurrencyCode,
+  quoteCounterCurrencyCode,
+  quoteRate,
+  toCurrencyCode
+}: {
+  fromAmount: string;
+  fromCurrencyCode: string;
+  quoteBaseCurrencyCode: string;
+  quoteCounterCurrencyCode: string;
+  quoteRate: string;
+  toCurrencyCode: string;
+}) {
+  if (quoteBaseCurrencyCode === fromCurrencyCode && quoteCounterCurrencyCode === toCurrencyCode) {
+    return multiplyLocalDecimalByLocalRate(fromAmount, quoteRate);
+  }
+
+  if (quoteBaseCurrencyCode === toCurrencyCode && quoteCounterCurrencyCode === fromCurrencyCode) {
+    return divideLocalDecimalByLocalRate(fromAmount, quoteRate);
+  }
+
+  return "0,00";
 }
 
 export function canonicalDecimalToLocal(value: string) {

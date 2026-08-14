@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { Repeat2 } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { ArrowLeftRight, Repeat2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,11 @@ import type { CurrencyDto } from "../../currencies/_types/currencies.types";
 import { useCashboxConversionForm } from "../_hooks/use-cashbox-conversion-form";
 import { CashboxDialogActions } from "./cashbox-dialog-actions";
 import { LocalDecimalInput } from "./local-decimal-input";
+
+const cashboxConversionFieldClassName =
+  "h-12 rounded-2xl border-border/40 bg-card px-4 shadow-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/10";
+const cashboxConversionSelectClassName =
+  "!h-12 w-full rounded-2xl border-border/40 bg-card px-4 shadow-none focus:border-ring/40 focus:ring-2 focus:ring-ring/10";
 
 export function CashboxConversionDialog({
   currencies,
@@ -65,27 +72,73 @@ export function CashboxConversionDialog({
         </DialogHeader>
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <CurrencySelect label="Origen" value={form.fromCurrencyCode} currencies={currencies} onChange={form.setFromCurrencyCode} />
-            <CurrencySelect label="Destino" value={form.toCurrencyCode} currencies={currencies} onChange={form.setToCurrencyCode} />
+            <CurrencySelect
+              label="Origen"
+              value={form.fromCurrencyCode}
+              currencies={currencies}
+              onChange={form.setFromCurrencyCode}
+            />
+            <CurrencySelect
+              label="Destino"
+              value={form.toCurrencyCode}
+              currencies={currencies}
+              onChange={form.setToCurrencyCode}
+            />
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="grid gap-2 text-sm font-medium">
-              Monto origen
-              <LocalDecimalInput value={form.fromAmount} onChange={form.setFromAmount} decimalScale={2} className="h-11" />
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              Tipo de cambio
-              <LocalDecimalInput value={form.exchangeRate} onChange={form.setExchangeRate} decimalScale={8} className="h-11" />
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              Monto destino
-              <Input value={form.toAmount} disabled className="h-11" />
-            </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ConversionField label="Monto origen">
+              <LocalDecimalInput
+                value={form.fromAmount}
+                onChange={form.setFromAmount}
+                decimalScale={2}
+                className={cashboxConversionFieldClassName}
+              />
+            </ConversionField>
+            <ConversionField label="Monto destino">
+              <Input value={form.toAmount} disabled className={cashboxConversionFieldClassName} />
+            </ConversionField>
           </div>
-          <label className="grid gap-2 text-sm font-medium">
-            Descripcion
-            <Input value={form.description} onChange={(event) => form.setDescription(event.target.value)} className="h-11" />
-          </label>
+          <div className="grid gap-2">
+            <Label>Cotizacion</Label>
+            <div className="grid items-end gap-2 sm:grid-cols-[0.6fr_1fr_0.6fr_auto]">
+              <CurrencySelect
+                label="1"
+                value={form.quoteBaseCurrencyCode}
+                currencies={getPairCurrencies(currencies, form.fromCurrencyCode, form.toCurrencyCode)}
+                onChange={form.setQuoteBaseCurrencyCode}
+              />
+              <ConversionField label="Vale">
+                <LocalDecimalInput
+                  value={form.quoteRate}
+                  onChange={form.setQuoteRate}
+                  decimalScale={8}
+                  className={cashboxConversionFieldClassName}
+                />
+              </ConversionField>
+              <CurrencySelect
+                label="En"
+                value={form.quoteCounterCurrencyCode}
+                currencies={getPairCurrencies(currencies, form.fromCurrencyCode, form.toCurrencyCode)}
+                onChange={form.setQuoteCounterCurrencyCode}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 self-center rounded-xl border-border/40 bg-card shadow-none hover:bg-secondary/60 sm:mb-1.5 sm:self-end"
+                onClick={form.invertQuote}
+              >
+                <ArrowLeftRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <ConversionField label="Descripcion">
+            <Input
+              value={form.description}
+              onChange={(event) => form.setDescription(event.target.value)}
+              className={cashboxConversionFieldClassName}
+            />
+          </ConversionField>
           {form.balanceError || form.mutation.error ? (
             <p className="text-sm text-destructive">{form.balanceError ?? form.mutation.error?.message}</p>
           ) : null}
@@ -94,6 +147,20 @@ export function CashboxConversionDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function ConversionField({ children, label }: { children: ReactNode; label: string }) {
+  return (
+    <div className="grid gap-2">
+      <Label>{label}</Label>
+      {children}
+    </div>
+  );
+}
+
+function getPairCurrencies(currencies: CurrencyDto[], fromCurrencyCode: string, toCurrencyCode: string) {
+  const pairCodes = new Set([fromCurrencyCode, toCurrencyCode]);
+  return currencies.filter((currency) => pairCodes.has(currency.code));
 }
 
 function CurrencySelect({
@@ -108,10 +175,10 @@ function CurrencySelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-medium">
-      {label}
+    <div className="grid gap-2">
+      <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-11 w-full">
+        <SelectTrigger className={cashboxConversionSelectClassName}>
           <SelectValue placeholder="Moneda" />
         </SelectTrigger>
         <SelectContent>
@@ -122,6 +189,6 @@ function CurrencySelect({
           ))}
         </SelectContent>
       </Select>
-    </label>
+    </div>
   );
 }

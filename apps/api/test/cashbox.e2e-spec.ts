@@ -85,25 +85,27 @@ describe("CashboxService", () => {
     );
   });
 
-  it("creates conversion as two linked movements in a transaction", async () => {
-    const createdMovements: Array<{ amount?: unknown; conversionGroupId?: string | null; type: CashboxMovementType }> = [];
+  it("creates conversion as two linked movements using the manually supplied directional rate", async () => {
+    const createdMovements: CreatedMovementRecord[] = [];
     const service = new CashboxService(
       createPrismaMock({
         aggregateSums: {
           expense: "0.00",
           income: "0.00",
           negativeBalance: "0.00",
-          positiveBalance: "100000.00"
+          positiveBalance: "100.00"
         },
         createdMovements
       }) as never
     );
 
     const result = await service.createConversion(tenantId, userId, {
-      exchangeRate: "1.000,00000000",
-      fromAmount: "100.000,00",
-      fromCurrencyCode: "ARS",
-      toCurrencyCode: "USD"
+      quoteBaseCurrencyCode: "USD",
+      quoteCounterCurrencyCode: "ARS",
+      quoteRate: "1.350,00000000",
+      fromAmount: "100,00",
+      fromCurrencyCode: "USD",
+      toCurrencyCode: "ARS"
     });
 
     assert.equal(result.items.length, 2);
@@ -113,6 +115,39 @@ describe("CashboxService", () => {
     );
     assert.ok(createdMovements[0]?.conversionGroupId);
     assert.equal(createdMovements[0]?.conversionGroupId, createdMovements[1]?.conversionGroupId);
+    assert.equal(String(createdMovements[0]?.amount), "100");
+    assert.equal(String(createdMovements[1]?.amount), "135000");
+    assert.equal(String(createdMovements[0]?.exchangeRate), "1350");
+    assert.equal(String(createdMovements[1]?.exchangeRate), "1350");
+  });
+
+  it("converts ARS to USD using a natural USD quoted in ARS rate", async () => {
+    const createdMovements: CreatedMovementRecord[] = [];
+    const service = new CashboxService(
+      createPrismaMock({
+        aggregateSums: {
+          expense: "0.00",
+          income: "0.00",
+          negativeBalance: "0.00",
+          positiveBalance: "150000.00"
+        },
+        createdMovements
+      }) as never
+    );
+
+    const result = await service.createConversion(tenantId, userId, {
+      fromAmount: "150.000,00",
+      fromCurrencyCode: "ARS",
+      quoteBaseCurrencyCode: "USD",
+      quoteCounterCurrencyCode: "ARS",
+      quoteRate: "1.500,00000000",
+      toCurrencyCode: "USD"
+    });
+
+    assert.equal(result.items.length, 2);
+    assert.equal(String(createdMovements[0]?.amount), "150000");
+    assert.equal(String(createdMovements[1]?.amount), "100");
+    assert.ok(String(createdMovements[0]?.exchangeRate).startsWith("0.000666666"));
   });
 
   it("rejects conversions when origin amount is greater than current balance", async () => {
@@ -130,17 +165,19 @@ describe("CashboxService", () => {
     await assert.rejects(
       () =>
         service.createConversion(tenantId, userId, {
-          exchangeRate: "1.000,00",
           fromAmount: "1.000,00",
-          fromCurrencyCode: "ARS",
-          toCurrencyCode: "USD"
+          fromCurrencyCode: "USD",
+          quoteBaseCurrencyCode: "USD",
+          quoteCounterCurrencyCode: "ARS",
+          quoteRate: "1.350,00000000",
+          toCurrencyCode: "ARS"
         }),
       BadRequestException
     );
   });
 
   it("allows conversions when origin amount is equal to current balance", async () => {
-    const createdMovements: Array<{ amount?: unknown; conversionGroupId?: string | null; type: CashboxMovementType }> = [];
+    const createdMovements: CreatedMovementRecord[] = [];
     const service = new CashboxService(
       createPrismaMock({
         aggregateSums: {
@@ -154,10 +191,12 @@ describe("CashboxService", () => {
     );
 
     const result = await service.createConversion(tenantId, userId, {
-      exchangeRate: "1.000,00",
       fromAmount: "1.000,00",
-      fromCurrencyCode: "ARS",
-      toCurrencyCode: "USD"
+      fromCurrencyCode: "USD",
+      quoteBaseCurrencyCode: "USD",
+      quoteCounterCurrencyCode: "ARS",
+      quoteRate: "1.350,00000000",
+      toCurrencyCode: "ARS"
     });
 
     assert.equal(result.items.length, 2);
@@ -215,18 +254,60 @@ describe("CashboxService", () => {
     assert.equal(createCashboxMovementSchema.safeParse({ amount: 100, currencyCode: "ARS", type: "income" }).success, false);
     assert.equal(
       createCashboxConversionSchema.safeParse({
-        exchangeRate: "1.234,12345678",
         fromAmount: "1.000,00",
-        fromCurrencyCode: "ARS",
-        toCurrencyCode: "USD"
+        fromCurrencyCode: "usd",
+        quoteBaseCurrencyCode: "usd",
+        quoteCounterCurrencyCode: "ars",
+        quoteRate: "1.350,12345678",
+        toCurrencyCode: "ars"
       }).success,
       true
+    );
+    assert.equal(
+      createCashboxConversionSchema.safeParse({
+        fromAmount: "1.000,00",
+        fromCurrencyCode: "USD",
+        quoteBaseCurrencyCode: "USD",
+        quoteCounterCurrencyCode: "ARS",
+        quoteRate: "1.350,12345678",
+        toCurrencyCode: "USD"
+      }).success,
+      false
+    );
+    assert.equal(
+      createCashboxConversionSchema.safeParse({
+        fromAmount: "1.000,00",
+        fromCurrencyCode: "USD",
+        quoteBaseCurrencyCode: "USD",
+        quoteCounterCurrencyCode: "ARS",
+        quoteRate: "1.350,123456789",
+        toCurrencyCode: "ARS"
+      }).success,
+      false
+    );
+    assert.equal(
+      createCashboxConversionSchema.safeParse({
+        fromAmount: "1.000,00",
+        fromCurrencyCode: "USD",
+        quoteBaseCurrencyCode: "EUR",
+        quoteCounterCurrencyCode: "ARS",
+        quoteRate: "1.350,12345678",
+        toCurrencyCode: "ARS"
+      }).success,
+      false
     );
   });
 });
 
 const income = "1000.00";
 const expense = "200.00";
+
+type CreatedMovementRecord = {
+  amount?: unknown;
+  conversionGroupId?: string | null;
+  exchangeRate?: unknown;
+  type: CashboxMovementType;
+};
 
 function createPrismaMock({
   activeCurrency = true,
@@ -250,7 +331,7 @@ function createPrismaMock({
     negativeBalance: string;
     positiveBalance: string;
   };
-  createdMovements?: Array<{ amount?: unknown; conversionGroupId?: string | null; type: CashboxMovementType }>;
+  createdMovements?: CreatedMovementRecord[];
   deletedMovementIds?: string[];
   editableMovementType?: CashboxMovementType;
   globalCategoryKind?: "income" | "expense" | "both";
@@ -273,11 +354,17 @@ function createPrismaMock({
             : aggregateSums.expense;
         return { _sum: { amount: new Prisma.Decimal(value) } };
       },
-      create: async ({ data }: { data: { amount?: unknown; conversionGroupId?: string | null; type: CashboxMovementType } }) => {
-        createdMovements.push({ amount: data.amount, conversionGroupId: data.conversionGroupId, type: data.type });
+      create: async ({ data }: { data: CreatedMovementRecord }) => {
+        createdMovements.push({
+          amount: data.amount,
+          conversionGroupId: data.conversionGroupId,
+          exchangeRate: data.exchangeRate,
+          type: data.type
+        });
         return createMovement({
           amount: String((data as { amount?: unknown }).amount ?? "100.00"),
           conversionGroupId: data.conversionGroupId,
+          exchangeRate: data.exchangeRate,
           type: data.type
         });
       },
@@ -363,10 +450,12 @@ function buildHourlyRows(
 function createMovement({
   amount,
   conversionGroupId = null,
+  exchangeRate = null,
   type
 }: {
   amount: string;
   conversionGroupId?: string | null;
+  exchangeRate?: unknown;
   type: CashboxMovementType;
 }) {
   return {
@@ -378,7 +467,7 @@ function createMovement({
     currency: { symbol: "$" },
     currencyCode: "ARS",
     description: null,
-    exchangeRate: null,
+    exchangeRate: exchangeRate ? new Prisma.Decimal(String(exchangeRate)) : null,
     id: randomUUID(),
     occurredAt: now,
     type

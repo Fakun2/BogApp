@@ -113,6 +113,9 @@ export class CurrencyDto {
 
   @ApiProperty({ example: true })
   active!: boolean;
+
+  @ApiProperty({ example: "1250.00", required: false })
+  cashboxBalance?: string;
 }
 
 export class CurrencyMetricsDto {

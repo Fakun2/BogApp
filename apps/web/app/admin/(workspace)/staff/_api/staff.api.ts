@@ -54,6 +54,7 @@ export async function createStaff({
     body: {
       ...input,
       avatarUrl: input.avatarUrl || undefined,
+      dni: input.dni || undefined,
       phone: input.phone || undefined
     },
     method: "POST",
@@ -74,6 +75,7 @@ export async function updateStaff({
     body: {
       ...input,
       avatarUrl: input.avatarUrl || undefined,
+      dni: input.dni || undefined,
       password: input.password || undefined,
       phone: input.phone || undefined
     },

@@ -8,7 +8,9 @@ export const createStaffFormSchema = z.object({
   dni: z
     .string()
     .trim()
-    .regex(/^\d{1,8}$/, "El DNI debe tener solo numeros y maximo 8 digitos."),
+    .regex(/^\d{7,8}$/, "El DNI debe tener 7 u 8 digitos.")
+    .optional()
+    .or(z.literal("")),
   email: z.string().trim().toLowerCase().regex(emailRegex, "Ingresa un email valido."),
   password: z
     .string()
@@ -24,7 +26,7 @@ export const createStaffFormSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(/^\d{10,13}$/, "El telefono debe tener solo numeros, minimo 10 y maximo 13 digitos.")
+    .regex(/^\d{0,15}$/, "El telefono debe tener solo numeros y maximo 15 digitos.")
     .optional()
     .or(z.literal("")),
   avatarUrl: z.string().trim().url("La URL del avatar no es valida.").optional().or(z.literal(""))

@@ -23,7 +23,7 @@ export function CreateStaffPasswordField({
   return (
     <div className="grid gap-2">
       <Label htmlFor="create-worker-password">
-        Contrasena
+        Contraseña
         {required ? <span className="text-destructive"> *</span> : null}
       </Label>
       <div className="relative">
@@ -34,7 +34,7 @@ export function CreateStaffPasswordField({
           name="createWorkerPassword"
           onChange={(event) => onChange(event.target.value)}
           placeholder="Contrasena inicial"
-          className="h-12 rounded-2xl border-border/40 bg-card px-4 pr-12 shadow-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/10"
+          className="h-12 w-full rounded-2xl border-border/40 bg-card px-4 pr-12 shadow-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/10"
           type={visible ? "text" : "password"}
           value={value}
         />

@@ -4,9 +4,9 @@ export default function NotFoundPage() {
   return (
     <NotFound
       title="Pagina no encontrada"
-      description="La ruta que intentas abrir no existe o ya no esta disponible en BogApp."
+      description="La ruta que intentas abrir no existe o ya no esta disponible en Justinia."
       showSearch
-      searchPlaceholder="Buscar en BogApp"
+      searchPlaceholder="Buscar en Justinia"
     />
   );
 }

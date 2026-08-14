@@ -19,7 +19,7 @@ const optionalPhoneSchema = z.preprocess(
   z
     .string()
     .trim()
-    .regex(/^\d{13,15}$/)
+    .regex(/^\d{0,15}$/)
     .optional()
 );
 

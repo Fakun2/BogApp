@@ -10,12 +10,18 @@ const optionalTrimmedString = z.preprocess(
 const requiredName = z.string().trim().min(3).max(40);
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const dniSchema = z.preprocess(
-  (value) => (typeof value === "number" ? String(value) : value),
-  z.string().trim().regex(/^\d{7,8}$/)
+  (value) => {
+    if (typeof value === "string" && value.trim() === "") {
+      return undefined;
+    }
+
+    return typeof value === "number" ? String(value) : value;
+  },
+  z.string().trim().regex(/^\d{7,8}$/).optional()
 );
 const phoneSchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-  z.string().trim().regex(/^(?:\d{10}|54\d{10}|549\d{10})$/).optional()
+  z.string().trim().regex(/^\d{0,15}$/).optional()
 );
 const passwordSchema = z
   .string()
@@ -66,8 +72,8 @@ export class CreateStaffDto extends createZodDto(createStaffSchema) {
   @ApiProperty({ minLength: 3, maxLength: 50, example: "Alvarez" })
   lastName!: string;
 
-  @ApiProperty({ minLength: 7, maxLength: 8, example: "30111222" })
-  dni!: string;
+  @ApiProperty({ required: false, minLength: 7, maxLength: 8, example: "30111222" })
+  dni?: string;
 
   @ApiProperty({ example: "mateo@estudio.com" })
   email!: string;
@@ -84,7 +90,7 @@ export class CreateStaffDto extends createZodDto(createStaffSchema) {
   @ApiProperty({ required: false, type: [String], format: "uuid" })
   practiceAreaIds!: string[];
 
-  @ApiProperty({ required: false, example: "5491155555555" })
+  @ApiProperty({ required: false, minLength: 0, maxLength: 15, example: "5491155555555" })
   phone?: string;
 
   @ApiProperty({ required: false, example: "https://cdn.bogaap.local/avatar.png" })
@@ -98,8 +104,8 @@ export class UpdateStaffDto extends createZodDto(updateStaffSchema) {
   @ApiProperty({ minLength: 3, maxLength: 50, example: "Alvarez" })
   lastName!: string;
 
-  @ApiProperty({ minLength: 7, maxLength: 8, example: "30111222" })
-  dni!: string;
+  @ApiProperty({ required: false, minLength: 7, maxLength: 8, example: "30111222" })
+  dni?: string;
 
   @ApiProperty({ example: "mateo@estudio.com" })
   email!: string;
@@ -116,7 +122,7 @@ export class UpdateStaffDto extends createZodDto(updateStaffSchema) {
   @ApiProperty({ required: false, type: [String], format: "uuid" })
   practiceAreaIds!: string[];
 
-  @ApiProperty({ required: false, example: "5491155555555" })
+  @ApiProperty({ required: false, minLength: 0, maxLength: 15, example: "5491155555555" })
   phone?: string;
 
   @ApiProperty({ required: false, example: "https://cdn.bogaap.local/avatar.png" })
