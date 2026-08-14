@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { CashboxMovementType, Prisma } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import type {
   AddTenantCurrenciesInput,
@@ -80,8 +80,13 @@ export class CurrenciesService {
     const hasNextPage = items.length > query.limit;
     const pageItems = hasNextPage ? items.slice(0, query.limit) : items;
 
+    const balancesByCurrency = await this.getCashboxBalancesByCurrency(
+      tenantId,
+      pageItems.map((item) => item.currency.code)
+    );
+
     return {
-      items: pageItems.map(toTenantCurrencyDto),
+      items: pageItems.map((item) => toTenantCurrencyDto(item, balancesByCurrency.get(item.currency.code))),
       metrics: {
         active,
         available
@@ -168,7 +173,9 @@ export class CurrenciesService {
       select: tenantCurrencySelect
     });
 
-    return toTenantCurrencyDto(updated);
+    const balance = await this.getCashboxBalanceByCurrency(tenantId, normalizedCode);
+
+    return toTenantCurrencyDto(updated, balance);
   }
 
   async listAvailableTenantCurrencies(
@@ -301,6 +308,40 @@ export class CurrenciesService {
       throw new BadRequestException("No se puede deshabilitar la moneda default del estudio.");
     }
   }
+
+  private async getCashboxBalanceByCurrency(tenantId: string, currencyCode: string) {
+    const balances = await this.getCashboxBalancesByCurrency(tenantId, [currencyCode]);
+
+    return balances.get(currencyCode) ?? new Prisma.Decimal(0);
+  }
+
+  private async getCashboxBalancesByCurrency(tenantId: string, currencyCodes: string[]) {
+    const balances = new Map<string, Prisma.Decimal>();
+    const uniqueCurrencyCodes = [...new Set(currencyCodes)];
+
+    if (uniqueCurrencyCodes.length === 0) {
+      return balances;
+    }
+
+    const rows = await this.prisma.cashboxMovement.groupBy({
+      by: ["currencyCode", "type"],
+      where: {
+        currencyCode: { in: uniqueCurrencyCodes },
+        tenantId
+      },
+      _sum: { amount: true }
+    });
+
+    for (const row of rows) {
+      const current = balances.get(row.currencyCode) ?? new Prisma.Decimal(0);
+      const amount = row._sum.amount ?? new Prisma.Decimal(0);
+      const signedAmount = isPositiveCashboxMovement(row.type) ? amount : amount.negated();
+
+      balances.set(row.currencyCode, current.plus(signedAmount));
+    }
+
+    return balances;
+  }
 }
 
 const currencySelect = {
@@ -409,11 +450,19 @@ function toCurrencyDto(currency: CurrencyWithSelect) {
   return currency;
 }
 
-function toTenantCurrencyDto(tenantCurrency: TenantCurrencyWithSelect) {
+function toTenantCurrencyDto(
+  tenantCurrency: TenantCurrencyWithSelect,
+  cashboxBalance?: Prisma.Decimal
+) {
   return {
     ...tenantCurrency.currency,
-    active: tenantCurrency.active
+    active: tenantCurrency.active,
+    cashboxBalance: (cashboxBalance ?? new Prisma.Decimal(0)).toDecimalPlaces(2).toFixed(2)
   };
+}
+
+function isPositiveCashboxMovement(type: CashboxMovementType) {
+  return type === CashboxMovementType.income || type === CashboxMovementType.conversion_in;
 }
 
 function encodeTenantCurrencyCursor(

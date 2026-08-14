@@ -76,10 +76,10 @@ export function CreateStaffSheet({
             <span className="flex size-9 items-center justify-center rounded-xl bg-btn-primary text-btn-primary-foreground">
               <HeaderIcon className="h-4 w-4" aria-hidden="true" />
             </span>
-            Cargar Empleado
+            Cargar Staff
           </SheetTitle>
           <SheetDescription className="sr-only">
-            Formulario para cargar o actualizar los datos, rol y areas de trabajo de un empleado.
+            Formulario para cargar o actualizar los datos, rol y areas de trabajo del staff.
           </SheetDescription>
         </SheetHeader>
 
@@ -118,7 +118,6 @@ export function CreateStaffSheet({
               onChange={(value) => updateWorkerDraft("dni", value.replace(/\D/g, "").slice(0, 8))}
               pattern="[0-9]*"
               placeholder="Documento"
-              required
               value={workerDraft.dni}
             />
             <CreateStaffField
@@ -126,10 +125,10 @@ export function CreateStaffSheet({
               id="create-worker-phone"
               inputMode="numeric"
               label="Celular"
-              maxLength={13}
+              maxLength={15}
               name="createWorkerPhone"
               onChange={(value) =>
-                updateWorkerDraft("phone", value.replace(/\D/g, "").slice(0, 13))
+                updateWorkerDraft("phone", value.replace(/\D/g, "").slice(0, 15))
               }
               pattern="[0-9]*"
               placeholder="Numero de telefono"

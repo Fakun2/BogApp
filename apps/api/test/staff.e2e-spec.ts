@@ -9,6 +9,10 @@ import request from "supertest";
 import { PrismaService } from "../src/database/prisma.service";
 import { StaffModule } from "../src/staff/staff.module";
 
+const areaCivilId = "11111111-1111-4111-8111-111111111111";
+const areaCustomId = "22222222-2222-4222-8222-222222222222";
+const areaLaborId = "33333333-3333-4333-8333-333333333333";
+
 type UserRecord = {
   dni: string | null;
   email: string;
@@ -201,9 +205,9 @@ class InMemoryStaffPrismaService {
     const paralegalRole = makeRole("role-paralegal", "paralegal", "Paralegal", 1);
     this.roles = [ownerRole, adminRole, lawyerRole, paralegalRole];
 
-    const civil = makePracticeArea("area-civil", "tenant-a", "Derecho Civil", "derecho-civil");
-    const custom = makePracticeArea("area-custom", "tenant-a", "Marcas y Patentes", null);
-    const labor = makePracticeArea("area-labor", "tenant-b", "Derecho Laboral", "derecho-laboral");
+    const civil = makePracticeArea(areaCivilId, "tenant-a", "Derecho Civil", "derecho-civil");
+    const custom = makePracticeArea(areaCustomId, "tenant-a", "Marcas y Patentes", null);
+    const labor = makePracticeArea(areaLaborId, "tenant-b", "Derecho Laboral", "derecho-laboral");
     this.practiceAreas = [civil, custom, labor];
 
     this.memberships = [
@@ -309,7 +313,7 @@ type PracticeAreaWhere = {
 };
 
 type CreateUserData = {
-  dni: string;
+  dni: string | null;
   email: string;
   fullName: string;
   passwordHash: string;
@@ -446,7 +450,7 @@ describe("Staff endpoints (e2e)", () => {
   it("filters by role, status and practice area", async () => {
     const response = await request(app.getHttpServer())
       .get("/api/staff")
-      .query({ practiceAreaId: "area-custom", role: "lawyer", status: "active" })
+      .query({ practiceAreaId: areaCustomId, role: "lawyer", status: "active" })
       .set("Authorization", `Bearer ${makeToken(jwt, ["staff:read"])}`)
       .set("x-tenant-id", "tenant-a")
       .expect(200);
@@ -495,6 +499,61 @@ describe("Staff endpoints (e2e)", () => {
     assert.deepEqual(response.body.practiceAreas, []);
     assert.equal(response.body.password, undefined);
     assert.equal(response.body.passwordHash, undefined);
+  });
+
+  it("creates staff when phone is omitted", async () => {
+    const { phone: _phone, ...payload } = makeCreateStaffPayload();
+
+    const response = await request(app.getHttpServer())
+      .post("/api/staff")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["staff:create"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send(payload)
+      .expect(201);
+
+    assert.equal(response.body.phone, null);
+  });
+
+  it("creates staff when dni is omitted", async () => {
+    const { dni: _dni, ...payload } = makeCreateStaffPayload();
+
+    const response = await request(app.getHttpServer())
+      .post("/api/staff")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["staff:create"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send(payload)
+      .expect(201);
+
+    assert.equal(response.body.dni, null);
+  });
+
+  it("creates staff with assigned practice areas", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/api/staff")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["staff:create"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({
+        ...makeCreateStaffPayload(),
+        practiceAreaIds: [areaCivilId, areaCustomId]
+      })
+      .expect(201);
+
+    assert.deepEqual(
+      response.body.practiceAreas.map((area: { id: string }) => area.id).sort(),
+      [areaCivilId, areaCustomId]
+    );
+  });
+
+  it("rejects staff phone with more than 15 digits", async () => {
+    await request(app.getHttpServer())
+      .post("/api/staff")
+      .set("Authorization", `Bearer ${makeToken(jwt, ["staff:create"])}`)
+      .set("x-tenant-id", "tenant-a")
+      .send({
+        ...makeCreateStaffPayload(),
+        phone: "1234567890123456"
+      })
+      .expect(400);
   });
 
   it("prevents an admin from assigning a role with equal or higher hierarchy", async () => {

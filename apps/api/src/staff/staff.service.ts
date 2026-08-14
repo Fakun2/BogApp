@@ -22,6 +22,7 @@ export class StaffService {
 
   async create(tenantId: string, actorUserId: string, input: CreateStaffInput) {
     const email = input.email.toLowerCase();
+    const dni = input.dni ?? null;
     const practiceAreaIds = input.practiceAreaIds ?? [];
     const fullName = toFullName(input.firstName, input.lastName);
 
@@ -42,7 +43,7 @@ export class StaffService {
         },
         select: { id: true }
       }),
-      findTenantMembershipByUserDni(this.prisma, tenantId, input.dni),
+      input.dni ? findTenantMembershipByUserDni(this.prisma, tenantId, input.dni) : null,
       findTenantMembershipByFullName(this.prisma, tenantId, fullName),
       this.prisma.user.findUnique({ where: { email } }),
       findAssignableRole(this.prisma, tenantId, input.role),
@@ -81,13 +82,13 @@ export class StaffService {
         existingUser ??
         (await tx.user.create({
           data: {
-            dni: input.dni,
+            dni,
             email,
             fullName,
             passwordHash: await hash(input.password, 12),
             phone: input.phone,
             status: "active"
-          } as Prisma.UserCreateInput & { dni: string }
+          } as Prisma.UserCreateInput & { dni: string | null }
         }));
 
       const createdMembership = await tx.tenantMembership.create({
@@ -126,6 +127,7 @@ export class StaffService {
     input: UpdateStaffInput
   ) {
     const email = input.email.toLowerCase();
+    const dni = input.dni ?? null;
     const practiceAreaIds = input.practiceAreaIds ?? [];
     const fullName = toFullName(input.firstName, input.lastName);
 
@@ -161,7 +163,9 @@ export class StaffService {
         },
         select: { id: true }
       }),
-      findTenantMembershipByUserDni(this.prisma, tenantId, input.dni, membershipId),
+      input.dni
+        ? findTenantMembershipByUserDni(this.prisma, tenantId, input.dni, membershipId)
+        : null,
       findTenantMembershipByFullName(this.prisma, tenantId, fullName, membershipId),
       this.prisma.user.findUnique({ where: { email }, select: { id: true } }),
       findAssignableRole(this.prisma, tenantId, input.role),
@@ -220,12 +224,12 @@ export class StaffService {
       await tx.user.update({
         where: { id: currentMembership.userId },
         data: {
-          dni: input.dni,
+          dni,
           email,
           fullName,
           ...(input.password ? { passwordHash: await hash(input.password, 12) } : {}),
           phone: input.phone
-        } as Prisma.UserUpdateInput & { dni: string }
+        } as Prisma.UserUpdateInput & { dni: string | null }
       });
 
       if (shouldInvalidateUserSessions) {

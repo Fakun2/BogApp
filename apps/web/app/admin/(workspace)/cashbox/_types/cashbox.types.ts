@@ -87,9 +87,11 @@ export type UpdateCashboxMovementInput = {
 
 export type CashboxConversionInput = {
   description?: string;
-  exchangeRate: string;
   fromAmount: string;
   fromCurrencyCode: string;
   occurredAt?: string;
+  quoteBaseCurrencyCode: string;
+  quoteCounterCurrencyCode: string;
+  quoteRate: string;
   toCurrencyCode: string;
 };

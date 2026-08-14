@@ -123,6 +123,10 @@ Post-MVP o despues del core legal:
   multimoneda. Ingresos y egresos pueden referenciar categorias globales o del
   estudio mediante validacion de aplicacion; conversiones se guardan como dos
   movimientos vinculados por `conversion_group_id`.
+- En conversiones, el operador ingresa una cotizacion manual legible, por
+  ejemplo `1 USD = 1500 ARS`. La aplicacion calcula la tasa efectiva
+  origen-destino y la guarda como snapshot en `cashbox_movements.exchange_rate`;
+  no existe catalogo persistente de tasas.
 - `permissions` es catalogo global. `roles` mezcla roles de sistema globales
   (`tenant_id = null`) y roles custom por estudio (`tenant_id` definido).
   `roles.active` define si un rol esta disponible para nuevas asignaciones.

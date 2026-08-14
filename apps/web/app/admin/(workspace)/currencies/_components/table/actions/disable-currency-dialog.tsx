@@ -5,20 +5,29 @@ import { Loader2, PowerOff, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function DisableCurrencyDialog({
+  cashboxBalance,
+  currencyCode,
   currencyName,
+  currencySymbol,
   error,
   loading,
   onConfirm,
   onOpenChange,
   open
 }: {
+  cashboxBalance?: string;
+  currencyCode: string;
   currencyName: string;
+  currencySymbol: string;
   error?: string;
   loading: boolean;
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
 }) {
+  const hasRemainingBalance = hasNonZeroBalance(cashboxBalance);
+  const formattedBalance = `${currencySymbol} ${cashboxBalance ?? "0.00"} ${currencyCode}`;
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -37,6 +46,15 @@ export function DisableCurrencyDialog({
               </DialogPrimitive.Description>
             </div>
           </div>
+
+          {hasRemainingBalance ? (
+            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+              Esta moneda tiene un saldo remanente de{" "}
+              <span className="font-semibold">{formattedBalance}</span>. Al deshabilitarla se
+              ocultara para nuevas operaciones, pero los movimientos y saldos historicos se
+              conservaran.
+            </div>
+          ) : null}
 
           {error ? (
             <p className="mt-4 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
@@ -73,4 +91,10 @@ export function DisableCurrencyDialog({
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
   );
+}
+
+function hasNonZeroBalance(balance?: string) {
+  const numericBalance = Number(balance ?? "0");
+
+  return Number.isFinite(numericBalance) && numericBalance !== 0;
 }

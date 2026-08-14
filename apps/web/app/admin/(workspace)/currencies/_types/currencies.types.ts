@@ -1,6 +1,7 @@
 export type CurrencyDto = {
   active: boolean;
   code: string;
+  cashboxBalance?: string;
   id: string;
   name: string;
   symbol: string;

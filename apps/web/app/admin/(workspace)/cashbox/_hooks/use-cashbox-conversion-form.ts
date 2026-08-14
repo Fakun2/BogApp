@@ -5,7 +5,7 @@ import type { CashboxConversionInput } from "../_types/cashbox.types";
 import {
   canonicalDecimalToLocal,
   compareLocalDecimals,
-  divideLocalDecimal,
+  convertLocalDecimalWithQuote,
   isPositiveLocalDecimal
 } from "../_utils/local-decimal";
 
@@ -23,10 +23,23 @@ export function useCashboxConversionForm({
   const [fromCurrencyCode, setFromCurrencyCode] = useState(selectedCurrencyCode ?? "");
   const [toCurrencyCode, setToCurrencyCode] = useState("");
   const [fromAmount, setFromAmount] = useState("");
-  const [exchangeRate, setExchangeRate] = useState("");
+  const [quoteBaseCurrencyCode, setQuoteBaseCurrencyCode] = useState("");
+  const [quoteCounterCurrencyCode, setQuoteCounterCurrencyCode] = useState("");
+  const [quoteRate, setQuoteRate] = useState("");
   const [description, setDescription] = useState("");
   const mutation = useCreateCashboxConversionMutation();
-  const toAmount = useMemo(() => divideLocalDecimal(fromAmount, exchangeRate), [exchangeRate, fromAmount]);
+  const toAmount = useMemo(
+    () =>
+      convertLocalDecimalWithQuote({
+        fromAmount,
+        fromCurrencyCode,
+        quoteBaseCurrencyCode,
+        quoteCounterCurrencyCode,
+        quoteRate,
+        toCurrencyCode
+      }),
+    [fromAmount, fromCurrencyCode, quoteBaseCurrencyCode, quoteCounterCurrencyCode, quoteRate, toCurrencyCode]
+  );
   const localSelectedBalance = canonicalDecimalToLocal(selectedBalance);
   const balanceError =
     fromCurrencyCode === selectedCurrencyCode &&
@@ -35,9 +48,59 @@ export function useCashboxConversionForm({
       ? "El monto origen supera el saldo disponible de la moneda seleccionada."
       : null;
 
+  function setQuoteDefaults(nextFromCurrencyCode: string, nextToCurrencyCode: string) {
+    setQuotePair({
+      fromCurrencyCode: nextFromCurrencyCode,
+      setQuoteBaseCurrencyCode,
+      setQuoteCounterCurrencyCode,
+      toCurrencyCode: nextToCurrencyCode
+    });
+  }
+
   function prepareCurrencyDefaults() {
-    setFromCurrencyCode(selectedCurrencyCode ?? currencies[0]?.code ?? "");
-    setToCurrencyCode(currencies.find((currency) => currency.code !== selectedCurrencyCode)?.code ?? "");
+    const nextFromCurrencyCode = selectedCurrencyCode ?? currencies[0]?.code ?? "";
+    const nextToCurrencyCode = currencies.find((currency) => currency.code !== nextFromCurrencyCode)?.code ?? "";
+
+    setFromCurrencyCode(nextFromCurrencyCode);
+    setToCurrencyCode(nextToCurrencyCode);
+    setQuoteDefaults(nextFromCurrencyCode, nextToCurrencyCode);
+  }
+
+  function handleFromCurrencyCodeChange(nextFromCurrencyCode: string) {
+    const nextToCurrencyCode = nextFromCurrencyCode === toCurrencyCode ? "" : toCurrencyCode;
+
+    setFromCurrencyCode(nextFromCurrencyCode);
+    setToCurrencyCode(nextToCurrencyCode);
+    setQuoteDefaults(nextFromCurrencyCode, nextToCurrencyCode);
+  }
+
+  function handleToCurrencyCodeChange(nextToCurrencyCode: string) {
+    const nextFromCurrencyCode = nextToCurrencyCode === fromCurrencyCode ? "" : fromCurrencyCode;
+
+    setFromCurrencyCode(nextFromCurrencyCode);
+    setToCurrencyCode(nextToCurrencyCode);
+    setQuoteDefaults(nextFromCurrencyCode, nextToCurrencyCode);
+  }
+
+  function handleQuoteBaseCurrencyCodeChange(nextQuoteBaseCurrencyCode: string) {
+    setQuoteBaseCurrencyCode(nextQuoteBaseCurrencyCode);
+
+    if (nextQuoteBaseCurrencyCode === quoteCounterCurrencyCode) {
+      setQuoteCounterCurrencyCode("");
+    }
+  }
+
+  function handleQuoteCounterCurrencyCodeChange(nextQuoteCounterCurrencyCode: string) {
+    if (nextQuoteCounterCurrencyCode === quoteBaseCurrencyCode) {
+      setQuoteBaseCurrencyCode("");
+    }
+
+    setQuoteCounterCurrencyCode(nextQuoteCounterCurrencyCode);
+  }
+
+  function invertQuote() {
+    setQuoteBaseCurrencyCode(quoteCounterCurrencyCode);
+    setQuoteCounterCurrencyCode(quoteBaseCurrencyCode);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -48,7 +111,10 @@ export function useCashboxConversionForm({
       !toCurrencyCode ||
       fromCurrencyCode === toCurrencyCode ||
       !isPositiveLocalDecimal(fromAmount, 2) ||
-      !isPositiveLocalDecimal(exchangeRate, 8) ||
+      !quoteBaseCurrencyCode ||
+      !quoteCounterCurrencyCode ||
+      quoteBaseCurrencyCode === quoteCounterCurrencyCode ||
+      !isPositiveLocalDecimal(quoteRate, 8) ||
       balanceError
     ) {
       return false;
@@ -56,9 +122,11 @@ export function useCashboxConversionForm({
 
     const input: CashboxConversionInput = {
       description: description.trim() || undefined,
-      exchangeRate,
       fromAmount,
       fromCurrencyCode,
+      quoteBaseCurrencyCode,
+      quoteCounterCurrencyCode,
+      quoteRate,
       toCurrencyCode
     };
 
@@ -71,25 +139,68 @@ export function useCashboxConversionForm({
 
   function reset() {
     setFromAmount("");
-    setExchangeRate("");
+    setQuoteRate("");
     setDescription("");
   }
 
   return {
     balanceError,
     description,
-    exchangeRate,
     fromAmount,
     fromCurrencyCode,
+    invertQuote,
     mutation,
+    quoteBaseCurrencyCode,
+    quoteCounterCurrencyCode,
+    quoteRate,
     setDescription,
-    setExchangeRate,
     setFromAmount,
-    setFromCurrencyCode,
-    setToCurrencyCode,
+    setFromCurrencyCode: handleFromCurrencyCodeChange,
+    setQuoteBaseCurrencyCode: handleQuoteBaseCurrencyCodeChange,
+    setQuoteCounterCurrencyCode: handleQuoteCounterCurrencyCodeChange,
+    setQuoteRate,
+    setToCurrencyCode: handleToCurrencyCodeChange,
     toAmount,
     toCurrencyCode,
     handleSubmit,
     prepareCurrencyDefaults
   };
+}
+
+function getPreferredQuoteBaseCurrencyCode(fromCurrencyCode: string, toCurrencyCode: string) {
+  if (fromCurrencyCode === "ARS") {
+    return toCurrencyCode;
+  }
+
+  if (toCurrencyCode === "ARS") {
+    return fromCurrencyCode;
+  }
+
+  return fromCurrencyCode;
+}
+
+function getCounterCurrencyCode(baseCurrencyCode: string, fromCurrencyCode: string, toCurrencyCode: string) {
+  return baseCurrencyCode === fromCurrencyCode ? toCurrencyCode : fromCurrencyCode;
+}
+
+function setQuotePair({
+  fromCurrencyCode,
+  setQuoteBaseCurrencyCode,
+  setQuoteCounterCurrencyCode,
+  toCurrencyCode
+}: {
+  fromCurrencyCode: string;
+  setQuoteBaseCurrencyCode: (value: string) => void;
+  setQuoteCounterCurrencyCode: (value: string) => void;
+  toCurrencyCode: string;
+}) {
+  if (!fromCurrencyCode || !toCurrencyCode || fromCurrencyCode === toCurrencyCode) {
+    setQuoteBaseCurrencyCode("");
+    setQuoteCounterCurrencyCode("");
+    return;
+  }
+
+  const baseCurrencyCode = getPreferredQuoteBaseCurrencyCode(fromCurrencyCode, toCurrencyCode);
+  setQuoteBaseCurrencyCode(baseCurrencyCode);
+  setQuoteCounterCurrencyCode(getCounterCurrencyCode(baseCurrencyCode, fromCurrencyCode, toCurrencyCode));
 }

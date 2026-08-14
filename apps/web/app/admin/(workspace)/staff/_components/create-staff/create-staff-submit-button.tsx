@@ -10,7 +10,7 @@ export function CreateStaffSubmitButton({
   mode?: "create" | "update";
 }) {
   const Icon = mode === "create" ? UserPlus : PencilLine;
-  const label = mode === "create" ? "Crear empleado" : "Actualizar empleado";
+  const label = mode === "create" ? "Crear staff" : "Actualizar staff";
 
   return (
     <Button

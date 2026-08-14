@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, PowerOff } from "lucide-react";
+import { Loader2, MoreHorizontal, Power, PowerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { hasPermission } from "@/lib/auth/permissions";
 import { useSession } from "@/lib/auth/use-session";
-import { useDisableTenantCurrencyMutation } from "../../../_hooks/use-currencies-query";
+import {
+  useDisableTenantCurrencyMutation,
+  useEnableTenantCurrencyMutation
+} from "../../../_hooks/use-currencies-query";
 import type { CurrencyDto } from "../../../_types/currencies.types";
 import { DisableCurrencyDialog } from "./disable-currency-dialog";
 
@@ -19,7 +22,9 @@ export function CurrencyRowActions({ currency }: { currency: CurrencyDto }) {
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
   const session = useSession();
   const disableMutation = useDisableTenantCurrencyMutation();
-  const canDisable = hasPermission(session, "finance:update") && currency.active;
+  const enableMutation = useEnableTenantCurrencyMutation();
+  const canManage = hasPermission(session, "finance:update");
+  const isMutating = disableMutation.isPending || enableMutation.isPending;
 
   async function handleDisable() {
     try {
@@ -30,7 +35,15 @@ export function CurrencyRowActions({ currency }: { currency: CurrencyDto }) {
     }
   }
 
-  if (!canDisable) {
+  async function handleEnable() {
+    try {
+      await enableMutation.mutateAsync(currency.code);
+    } catch {
+      // The mutation exposes the error through the dashboard mutation boundary.
+    }
+  }
+
+  if (!canManage) {
     return null;
   }
 
@@ -48,21 +61,42 @@ export function CurrencyRowActions({ currency }: { currency: CurrencyDto }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem
-            variant="destructive"
-            onSelect={(event) => {
-              event.preventDefault();
-              setDisableDialogOpen(true);
-            }}
-          >
-            <PowerOff className="h-4 w-4" aria-hidden="true" />
-            Deshabilitar
-          </DropdownMenuItem>
+          {currency.active ? (
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={isMutating}
+              onSelect={(event) => {
+                event.preventDefault();
+                setDisableDialogOpen(true);
+              }}
+            >
+              <PowerOff className="h-4 w-4" aria-hidden="true" />
+              Deshabilitar
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              disabled={isMutating}
+              onSelect={(event) => {
+                event.preventDefault();
+                void handleEnable();
+              }}
+            >
+              {enableMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Power className="h-4 w-4" aria-hidden="true" />
+              )}
+              Habilitar
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
       <DisableCurrencyDialog
+        cashboxBalance={currency.cashboxBalance}
+        currencyCode={currency.code}
         currencyName={currency.name}
+        currencySymbol={currency.symbol}
         error={disableMutation.error?.message}
         loading={disableMutation.isPending}
         open={disableDialogOpen}

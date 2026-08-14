@@ -7,6 +7,7 @@ import {
   addTenantCurrencies,
   currencyKeys,
   disableTenantCurrency,
+  enableTenantCurrency,
   listAvailableTenantCurrencies,
   listCurrencies,
   listTenantCurrencies
@@ -58,6 +59,16 @@ export function useDisableTenantCurrencyMutation() {
   return useDashboardMutation({
     permission: "finance:update",
     mutationFn: (currencyCode: string) => disableTenantCurrency(currencyCode),
+    onSuccess: () => invalidateCurrencyQueries(queryClient)
+  });
+}
+
+export function useEnableTenantCurrencyMutation() {
+  const queryClient = useQueryClient();
+
+  return useDashboardMutation({
+    permission: "finance:update",
+    mutationFn: (currencyCode: string) => enableTenantCurrency(currencyCode),
     onSuccess: () => invalidateCurrencyQueries(queryClient)
   });
 }

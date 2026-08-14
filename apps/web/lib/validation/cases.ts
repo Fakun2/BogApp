@@ -17,7 +17,7 @@ const optionalPhoneSchema = z.preprocess(
   z
     .string()
     .trim()
-    .regex(/^\d{13,15}$/, "El telefono debe tener solo numeros, minimo 13 y maximo 15 digitos.")
+    .regex(/^\d{0,15}$/, "El telefono debe tener solo numeros y maximo 15 digitos.")
     .optional()
 );
 
