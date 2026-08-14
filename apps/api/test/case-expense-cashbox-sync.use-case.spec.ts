@@ -24,7 +24,8 @@ describe("CaseExpenseCashboxSyncUseCase", () => {
           concept: "Tasa judicial",
           currencyCode: "USD",
           paymentDate: new Date("2026-08-10T00:00:00.000Z"),
-          status: "paid"
+          status: "paid",
+          updatedAt: new Date("2026-08-10T17:57:00.000Z")
         }
       ],
       tenantCurrencies: [{ active: true, currencyCode: "USD", tenantId }]
@@ -42,7 +43,7 @@ describe("CaseExpenseCashboxSyncUseCase", () => {
     assert.equal(movement.caseExpenseId, expenseId);
     assert.equal(movement.currencyCode, "USD");
     assert.equal(movement.type, "expense");
-    assert.equal(movement.occurredAt.toISOString(), "2026-08-10T12:00:00.000Z");
+    assert.equal(movement.occurredAt.toISOString(), "2026-08-10T17:57:00.000Z");
     assert.equal(job.status, CaseExpenseCashboxSyncJobStatus.completed);
   });
 
@@ -55,7 +56,8 @@ describe("CaseExpenseCashboxSyncUseCase", () => {
           concept: "Honorarios perito",
           currencyCode: "ARS",
           paymentDate: new Date("2026-08-11T00:00:00.000Z"),
-          status: "paid"
+          status: "paid",
+          updatedAt: new Date("2026-08-11T18:30:00.000Z")
         }
       ],
       movements: [
@@ -92,7 +94,8 @@ describe("CaseExpenseCashboxSyncUseCase", () => {
           concept: "Gasto pendiente",
           currencyCode: "ARS",
           paymentDate: new Date("2026-08-12T00:00:00.000Z"),
-          status: "pending"
+          status: "pending",
+          updatedAt: new Date("2026-08-12T19:00:00.000Z")
         }
       ],
       movements: [
@@ -127,7 +130,8 @@ describe("CaseExpenseCashboxSyncUseCase", () => {
           concept: "Gasto en moneda inactiva",
           currencyCode: "EUR",
           paymentDate: new Date("2026-08-12T00:00:00.000Z"),
-          status: "paid"
+          status: "paid",
+          updatedAt: new Date("2026-08-12T20:00:00.000Z")
         }
       ],
       tenantCurrencies: [{ active: false, currencyCode: "EUR", tenantId }]
@@ -152,6 +156,7 @@ type ExpenseRecord = {
   currencyCode: string;
   paymentDate: Date;
   status: "paid" | "pending" | "overdue" | "cancelled";
+  updatedAt: Date;
 };
 
 type MovementRecord = {

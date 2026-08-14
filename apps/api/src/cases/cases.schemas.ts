@@ -215,7 +215,6 @@ export const caseCalendarQuerySchema = z.object({
   mode: z.enum(["month", "list"]).default("month"),
   limit: z.coerce.number().int().min(1).max(8).default(5),
   cursor: optionalTrimmedString,
-  search: optionalTrimmedString,
   types: optionalTrimmedString
 });
 

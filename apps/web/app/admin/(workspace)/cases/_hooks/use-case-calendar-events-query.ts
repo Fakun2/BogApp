@@ -10,13 +10,11 @@ export function useCaseCalendarEventsQuery({
   caseId,
   enabled,
   month,
-  search,
   visibleTypes
 }: {
   caseId: string;
   enabled: boolean;
   month: string;
-  search: string;
   visibleTypes: CalendarEventType[];
 }) {
   const [cursorStack, setCursorStack] = useState<string[]>([""]);
@@ -30,14 +28,13 @@ export function useCaseCalendarEventsQuery({
       limit: calendarEventListPageSize,
       mode: "list",
       month,
-      search,
       types
     })
   );
 
   useEffect(() => {
     setCursorStack([""]);
-  }, [month, search, types]);
+  }, [month, types]);
 
   return {
     ...query,

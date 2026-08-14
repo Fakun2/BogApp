@@ -157,7 +157,6 @@ export const casesQueries = {
     limit,
     mode = "month",
     month,
-    search,
     types
   }: {
     caseId: string;
@@ -166,10 +165,9 @@ export const casesQueries = {
     limit?: number;
     mode?: "month" | "list";
     month: string;
-    search?: string;
     types?: string;
   }): CasesQuerySpec<CaseCalendarResponseDto> {
-    const params = { cursor, limit, mode, month, search, types };
+    const params = { cursor, limit, mode, month, types };
 
     return {
       enabled,

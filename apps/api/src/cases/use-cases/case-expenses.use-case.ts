@@ -131,7 +131,6 @@ export class CaseExpensesUseCase {
         canReadTaskEvents,
         caseId,
         endDate,
-        search: query.search,
         startDate,
         tenantId
       });
@@ -148,7 +147,6 @@ export class CaseExpensesUseCase {
       cursor,
       endDate,
       limit: query.limit + 1,
-      search: query.search,
       startDate,
       tenantId
     });
@@ -178,7 +176,6 @@ export class CaseExpensesUseCase {
     canReadTaskEvents,
     caseId,
     endDate,
-    search,
     startDate,
     tenantId
   }: {
@@ -187,7 +184,6 @@ export class CaseExpensesUseCase {
     canReadTaskEvents: boolean;
     caseId: string;
     endDate: Date;
-    search?: string;
     startDate: Date;
     tenantId: string;
   }) {
@@ -210,8 +206,7 @@ export class CaseExpensesUseCase {
                 gte: startDate,
                 lt: endDate
               },
-              status: { in: ["pending", "overdue"] },
-              ...(search ? { concept: { contains: search, mode: "insensitive" as const } } : {})
+              status: { in: ["pending", "overdue"] }
             }
           })
         : Promise.resolve([]),
@@ -243,8 +238,7 @@ export class CaseExpensesUseCase {
                     lt: endDate
                   }
                 }
-              ],
-              ...(search ? { name: { contains: search, mode: "insensitive" as const } } : {})
+              ]
             }
           })
         : Promise.resolve([]),
@@ -264,10 +258,7 @@ export class CaseExpensesUseCase {
               date: {
                 gte: startDate,
                 lt: endDate
-              },
-              ...(search
-                ? { description: { contains: search, mode: Prisma.QueryMode.insensitive } }
-                : {})
+              }
             }
           })
         : Promise.resolve([])
@@ -288,7 +279,6 @@ export class CaseExpensesUseCase {
     cursor,
     endDate,
     limit,
-    search,
     startDate,
     tenantId
   }: {
@@ -299,12 +289,10 @@ export class CaseExpensesUseCase {
     cursor: CalendarCursor | null;
     endDate: Date;
     limit: number;
-    search?: string;
     startDate: Date;
     tenantId: string;
   }) {
     const eventQueries: Prisma.Sql[] = [];
-    const searchPattern = search ? toIlikeContainsPattern(search) : null;
 
     if (canReadPaymentEvents) {
       eventQueries.push(Prisma.sql`
@@ -324,7 +312,6 @@ export class CaseExpensesUseCase {
           AND case_expenses.payment_date >= ${startDate}::date
           AND case_expenses.payment_date < ${endDate}::date
           AND case_expenses.status IN ('pending', 'overdue')
-          ${searchPattern ? Prisma.sql`AND case_expenses.concept ILIKE ${searchPattern} ESCAPE '\'` : Prisma.empty}
       `);
     }
 
@@ -346,7 +333,6 @@ export class CaseExpensesUseCase {
           AND case_tasks.status IN ('pending', 'in_progress')
           AND COALESCE(case_tasks.end_date, case_tasks.start_date) >= ${startDate}::date
           AND COALESCE(case_tasks.end_date, case_tasks.start_date) < ${endDate}::date
-          ${searchPattern ? Prisma.sql`AND case_tasks.name ILIKE ${searchPattern} ESCAPE '\'` : Prisma.empty}
       `);
     }
 
@@ -367,7 +353,6 @@ export class CaseExpensesUseCase {
           AND case_hearings.case_id = ${caseId}::uuid
           AND case_hearings.date >= ${startDate}::date
           AND case_hearings.date < ${endDate}::date
-          ${searchPattern ? Prisma.sql`AND case_hearings.description ILIKE ${searchPattern} ESCAPE '\'` : Prisma.empty}
       `);
     }
 
@@ -441,6 +426,7 @@ export class CaseExpensesUseCase {
     }
 
     await this.findActiveTenantCurrencyOrThrow(tenantId, input.currencyCode);
+    assertPaidExpensePaymentDateIsToday(input);
   }
 
   private async findTenantCaseOrThrow(tenantId: string, caseId: string) {
@@ -700,10 +686,6 @@ function toCalendarDateString(date: Date | string) {
   return date instanceof Date ? date.toISOString().slice(0, 10) : date.slice(0, 10);
 }
 
-function toIlikeContainsPattern(search: string) {
-  return `%${search.replace(/[\\%_]/g, "\\$&")}%`;
-}
-
 function encodeCalendarCursor(cursor: CalendarCursor) {
   return Buffer.from(
     JSON.stringify({
@@ -808,6 +790,20 @@ function toCaseExpenseWriteData(input: CreateCaseExpenseInput | UpdateCaseExpens
   };
 }
 
+function assertPaidExpensePaymentDateIsToday(
+  input: CreateCaseExpenseInput | UpdateCaseExpenseInput
+) {
+  if (input.status !== "paid") {
+    return;
+  }
+
+  const today = getBuenosAiresTodayDateString();
+
+  if (input.paymentDate !== today) {
+    throw new BadRequestException("La fecha de pago de un gasto pagado debe ser la fecha de hoy.");
+  }
+}
+
 function toCaseExpenseDto(item: CaseExpenseWithSelect) {
   return {
     id: item.id,
@@ -847,6 +843,10 @@ function normalizeExpenseStatus(
 }
 
 function getBuenosAiresTodayDate() {
+  return new Date(`${getBuenosAiresTodayDateString()}T00:00:00.000Z`);
+}
+
+function getBuenosAiresTodayDateString() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
     month: "2-digit",
@@ -855,7 +855,7 @@ function getBuenosAiresTodayDate() {
   }).formatToParts(new Date());
   const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
 
-  return new Date(`${dateParts.year}-${dateParts.month}-${dateParts.day}T00:00:00.000Z`);
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 }
 
 function getBuenosAiresMonth() {

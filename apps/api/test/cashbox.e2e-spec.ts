@@ -203,6 +203,45 @@ describe("CashboxService", () => {
     assert.equal(String(createdMovements[0]?.amount), "1000");
   });
 
+  it("serializes conversion balance checks so concurrent requests cannot overspend", async () => {
+    const createdMovements: CreatedMovementRecord[] = [];
+    const service = new CashboxService(
+      createPrismaMock({
+        balanceMovements: [
+          {
+            amount: new Prisma.Decimal("100.00"),
+            currencyCode: "USD",
+            occurredAt: new Date("2026-08-12T14:00:00.000Z"),
+            tenantId,
+            type: CashboxMovementType.income
+          }
+        ],
+        createdMovements
+      }) as never
+    );
+    const conversionInput = {
+      fromAmount: "100,00",
+      fromCurrencyCode: "USD" as const,
+      quoteBaseCurrencyCode: "USD" as const,
+      quoteCounterCurrencyCode: "ARS" as const,
+      quoteRate: "1.350,00000000",
+      toCurrencyCode: "ARS" as const
+    };
+
+    const results = await Promise.allSettled([
+      service.createConversion(tenantId, userId, conversionInput),
+      service.createConversion(tenantId, userId, conversionInput)
+    ]);
+
+    assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
+    assert.equal(results.filter((result) => result.status === "rejected").length, 1);
+    assert.equal(
+      createdMovements.filter((movement) => movement.type === CashboxMovementType.conversion_out)
+        .length,
+      1
+    );
+  });
+
   it("updates editable income and expense movements", async () => {
     const updatedMovements: Array<{ amount?: unknown; categoryId?: string | null; categoryOrigin?: string | null }> = [];
     const service = new CashboxService(createPrismaMock({ updatedMovements }) as never);
@@ -219,9 +258,42 @@ describe("CashboxService", () => {
     assert.equal(result.amount, "2500.50");
   });
 
+  it("updates case expense cashbox movements from cashbox", async () => {
+    const updatedMovements: Array<{ amount?: unknown; categoryId?: string | null; categoryOrigin?: string | null }> = [];
+    const service = new CashboxService(
+      createPrismaMock({
+        editableMovementCaseExpenseId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        updatedMovements
+      }) as never
+    );
+
+    const result = await service.updateMovement(tenantId, "22222222-2222-2222-2222-222222222222", {
+      amount: "3.000,00",
+      description: "Ajuste desde caja"
+    });
+
+    assert.equal(String(updatedMovements[0]?.amount), "3000");
+    assert.equal(result.amount, "3000.00");
+  });
+
   it("deletes editable income and expense movements", async () => {
     const deletedMovementIds: string[] = [];
     const service = new CashboxService(createPrismaMock({ deletedMovementIds }) as never);
+
+    const result = await service.deleteMovement(tenantId, "22222222-2222-2222-2222-222222222222");
+
+    assert.equal(result.id, "22222222-2222-2222-2222-222222222222");
+    assert.deepEqual(deletedMovementIds, ["22222222-2222-2222-2222-222222222222"]);
+  });
+
+  it("deletes case expense cashbox movements from cashbox", async () => {
+    const deletedMovementIds: string[] = [];
+    const service = new CashboxService(
+      createPrismaMock({
+        deletedMovementIds,
+        editableMovementCaseExpenseId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+      }) as never
+    );
 
     const result = await service.deleteMovement(tenantId, "22222222-2222-2222-2222-222222222222");
 
@@ -305,7 +377,10 @@ const expense = "200.00";
 type CreatedMovementRecord = {
   amount?: unknown;
   conversionGroupId?: string | null;
+  currencyCode?: string;
   exchangeRate?: unknown;
+  occurredAt?: Date;
+  tenantId?: string;
   type: CashboxMovementType;
 };
 
@@ -317,8 +392,10 @@ function createPrismaMock({
     negativeBalance: expense,
     positiveBalance: income
   },
+  balanceMovements = [],
   createdMovements = [],
   deletedMovementIds = [],
+  editableMovementCaseExpenseId = null,
   editableMovementType = CashboxMovementType.income,
   globalCategoryKind = "both",
   hourlyMovements = [],
@@ -331,19 +408,86 @@ function createPrismaMock({
     negativeBalance: string;
     positiveBalance: string;
   };
+  balanceMovements?: Array<{
+    amount: Prisma.Decimal;
+    currencyCode: string;
+    occurredAt: Date;
+    tenantId: string;
+    type: CashboxMovementType;
+  }>;
   createdMovements?: CreatedMovementRecord[];
   deletedMovementIds?: string[];
+  editableMovementCaseExpenseId?: string | null;
   editableMovementType?: CashboxMovementType;
   globalCategoryKind?: "income" | "expense" | "both";
   hourlyMovements?: Array<{ amount: string; occurredAt: Date; type: CashboxMovementType }>;
   updatedMovements?: Array<{ amount?: unknown; categoryId?: string | null; categoryOrigin?: string | null }>;
 }) {
-  return {
-    $transaction: async (operations: Array<Promise<unknown>>) => Promise.all(operations),
+  let transactionChain = Promise.resolve();
+  type PrismaMock = {
+    [key: string]: unknown;
+    $transaction: (
+      operations: Array<Promise<unknown>> | ((client: PrismaMock) => Promise<unknown>)
+    ) => Promise<unknown>;
+  };
+  const prisma: PrismaMock = {
+    $executeRaw: async () => 1,
+    $transaction: async (
+      operations:
+        | Array<Promise<unknown>>
+        | ((client: typeof prisma) => Promise<unknown>)
+    ) => {
+      if (Array.isArray(operations)) {
+        return Promise.all(operations);
+      }
+
+      const run = transactionChain.then(() => operations(prisma));
+      transactionChain = run.then(
+        () => undefined,
+        () => undefined
+      );
+
+      return run;
+    },
     $queryRaw: async () => buildHourlyRows(hourlyMovements),
+    caseExpense: {
+      findMany: async () => [
+        {
+          caseId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          concept: "Tasa judicial",
+          id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+        }
+      ]
+    },
     cashboxMovement: {
-      aggregate: async ({ where }: { where: { occurredAt?: { gte?: Date; lt?: Date; lte?: Date }; type?: { in?: CashboxMovementType[] } } }) => {
+      aggregate: async ({ where }: { where: { currencyCode?: string; occurredAt?: { gte?: Date; lt?: Date; lte?: Date }; tenantId?: string; type?: { in?: CashboxMovementType[] } } }) => {
         const types = where.type?.in ?? [];
+        if (balanceMovements.length > 0) {
+          const amount = [...balanceMovements, ...createdMovements].reduce((total, movement) => {
+            const occurredAt = movement.occurredAt ?? now;
+            const matches =
+              movement.tenantId === where.tenantId &&
+              movement.currencyCode === where.currencyCode &&
+              types.includes(movement.type) &&
+              (!where.occurredAt?.lte || occurredAt <= where.occurredAt.lte) &&
+              (!where.occurredAt?.gte || occurredAt >= where.occurredAt.gte) &&
+              (!where.occurredAt?.lt || occurredAt < where.occurredAt.lt);
+
+            if (!matches) {
+              return total;
+            }
+
+            const movementAmount =
+              movement.amount instanceof Prisma.Decimal
+                ? movement.amount
+                : new Prisma.Decimal(String(movement.amount ?? 0));
+
+            return total.plus(movementAmount);
+          }, new Prisma.Decimal(0));
+
+          return { _sum: { amount } };
+        }
+
         const isBalanceSum = Boolean(where.occurredAt?.lte || (where.occurredAt?.lt && !where.occurredAt.gte));
         const value = isBalanceSum
           ? types.includes(CashboxMovementType.income)
@@ -358,7 +502,10 @@ function createPrismaMock({
         createdMovements.push({
           amount: data.amount,
           conversionGroupId: data.conversionGroupId,
+          currencyCode: data.currencyCode,
           exchangeRate: data.exchangeRate,
+          occurredAt: data.occurredAt,
+          tenantId: data.tenantId,
           type: data.type
         });
         return createMovement({
@@ -375,6 +522,7 @@ function createPrismaMock({
       findFirst: async ({ where }: { where: { id?: string; tenantId?: string } }) =>
         where.id && where.tenantId
           ? {
+              caseExpenseId: editableMovementCaseExpenseId,
               id: where.id,
               type: editableMovementType
             }
@@ -414,6 +562,8 @@ function createPrismaMock({
       })
     }
   };
+
+  return prisma;
 }
 
 function buildHourlyRows(

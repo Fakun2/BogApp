@@ -56,7 +56,8 @@ export function CaseExpenseSheet({
     open,
     setOpen,
     updateAmount,
-    updateDraft
+    updateDraft,
+    updateStatus
   } = useCaseExpenseSheet({
     caseId,
     defaultCurrencyCode: currencies[0]?.code,
@@ -169,7 +170,7 @@ export function CaseExpenseSheet({
             <Select
               value={draft.status}
               onValueChange={(value) =>
-                updateDraft("status", value as CaseExpenseFormValues["status"])
+                updateStatus(value as CaseExpenseFormValues["status"])
               }
             >
               <SelectTrigger className={caseSelectTriggerClassName}>

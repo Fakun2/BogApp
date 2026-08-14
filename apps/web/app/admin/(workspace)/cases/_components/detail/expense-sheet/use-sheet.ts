@@ -73,6 +73,17 @@ export function useCaseExpenseSheet({
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
+  function updateStatus(status: CaseExpenseFormValues["status"]) {
+    setDraft((current) => ({
+      ...current,
+      paymentDate:
+        status === "paid" && current.status !== "paid"
+          ? getBuenosAiresTodayDateString()
+          : current.paymentDate,
+      status
+    }));
+  }
+
   function updateAmount(value: string) {
     const nextAmountText = formatCaseExpenseAmountText(value);
     setAmountText(nextAmountText);
@@ -116,7 +127,8 @@ export function useCaseExpenseSheet({
     open,
     setOpen,
     updateAmount,
-    updateDraft
+    updateDraft,
+    updateStatus
   };
 }
 
@@ -158,4 +170,16 @@ function getAlertParts(alertAt: string | null) {
     date: `${partMap.year}-${partMap.month}-${partMap.day}`,
     time: `${partMap.hour}:${partMap.minute}`
   };
+}
+
+function getBuenosAiresTodayDateString() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Buenos_Aires",
+    year: "numeric"
+  }).formatToParts(new Date());
+  const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${partMap.year}-${partMap.month}-${partMap.day}`;
 }

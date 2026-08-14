@@ -3,20 +3,13 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  List,
-  RotateCcw,
-  Search,
-  X
+  RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  calendarViewLabels,
-  type CalendarEventType,
-  type CalendarView
-} from "./constants";
+import { type CalendarEventType, type CalendarView } from "./constants";
 import { CalendarEventFilter } from "./event-filter";
+import { CalendarViewSwitch } from "./view-switch";
 
 export function CalendarToolbar({
   actions,
@@ -24,10 +17,8 @@ export function CalendarToolbar({
   monthLabel,
   onGoToday,
   onNavigate,
-  onSearch,
   onToggleType,
   onViewChange,
-  searchQuery,
   view,
   visibleTypes
 }: {
@@ -36,10 +27,8 @@ export function CalendarToolbar({
   monthLabel: string;
   onGoToday: () => void;
   onNavigate: (direction: -1 | 1) => void;
-  onSearch: (value: string) => void;
   onToggleType: (type: CalendarEventType, checked: boolean) => void;
   onViewChange: (view: CalendarView) => void;
-  searchQuery: string;
   view: CalendarView;
   visibleTypes: CalendarEventType[];
 }) {
@@ -93,68 +82,6 @@ export function CalendarToolbar({
           </Button>
         </nav>
       </section>
-      <section className="relative" aria-label="Buscar eventos del calendario">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          className="h-9 rounded-xl border-border/50 bg-card pl-9 pr-9 text-sm"
-          onChange={(event) => onSearch(event.target.value)}
-          placeholder="Buscar gastos o audiencias..."
-          value={searchQuery}
-        />
-        {searchQuery ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 rounded-lg p-0"
-            onClick={() => onSearch("")}
-            aria-label="Limpiar busqueda"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        ) : null}
-      </section>
     </header>
-  );
-}
-
-function CalendarViewSwitch({
-  onViewChange,
-  view
-}: {
-  onViewChange: (view: CalendarView) => void;
-  view: CalendarView;
-}) {
-  const viewIcons = {
-    list: List,
-    month: CalendarDays
-  };
-
-  return (
-    <section
-      className="hidden rounded-xl border border-border/50 bg-card p-0.5 sm:flex"
-      aria-label="Vista del calendario"
-    >
-      {Object.entries(calendarViewLabels).map(([value, label]) => {
-        const Icon = viewIcons[value as CalendarView];
-
-        return (
-          <button
-            type="button"
-            className={cn(
-              "flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground",
-              view === value && "bg-secondary text-foreground"
-            )}
-            key={value}
-            onClick={() => onViewChange(value as CalendarView)}
-          >
-            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-            {label}
-          </button>
-        );
-      })}
-    </section>
   );
 }

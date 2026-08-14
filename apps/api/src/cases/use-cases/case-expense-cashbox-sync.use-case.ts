@@ -202,7 +202,8 @@ export class CaseExpenseCashboxSyncUseCase implements OnModuleInit, OnModuleDest
         concept: true,
         currencyCode: true,
         paymentDate: true,
-        status: true
+        status: true,
+        updatedAt: true
       }
     });
 
@@ -230,7 +231,7 @@ export class CaseExpenseCashboxSyncUseCase implements OnModuleInit, OnModuleDest
         amount: expense.amount,
         currencyCode: expense.currencyCode,
         description: toCashboxDescription(expense.concept),
-        occurredAt: toCashboxOccurredAt(expense.paymentDate),
+        occurredAt: expense.updatedAt,
         tenantId: job.tenantId,
         type: CashboxMovementType.expense
       },
@@ -240,7 +241,7 @@ export class CaseExpenseCashboxSyncUseCase implements OnModuleInit, OnModuleDest
         createdByUserId: job.actorUserId,
         currencyCode: expense.currencyCode,
         description: toCashboxDescription(expense.concept),
-        occurredAt: toCashboxOccurredAt(expense.paymentDate),
+        occurredAt: expense.updatedAt,
         tenantId: job.tenantId,
         type: CashboxMovementType.expense
       }
@@ -259,10 +260,6 @@ export class CaseExpenseCashboxSyncUseCase implements OnModuleInit, OnModuleDest
 
 function toCashboxDescription(concept: string) {
   return `Gasto de expediente: ${concept}`.slice(0, 240);
-}
-
-function toCashboxOccurredAt(paymentDate: Date) {
-  return new Date(`${paymentDate.toISOString().slice(0, 10)}T12:00:00.000Z`);
 }
 
 function addMinutes(date: Date, minutes: number) {

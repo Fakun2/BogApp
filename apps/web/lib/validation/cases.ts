@@ -106,6 +106,14 @@ export const caseExpenseFormSchema = z
     taskId: optionalUuid
   })
   .superRefine((input, context) => {
+    if (input.status === "paid" && input.paymentDate !== getBuenosAiresTodayDateString()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La fecha de pago debe ser hoy para marcar el gasto como pagado.",
+        path: ["paymentDate"]
+      });
+    }
+
     if (!input.alertEnabled) {
       return;
     }
@@ -154,3 +162,15 @@ export type CaseFormValues = z.infer<typeof caseFormSchema>;
 export type CaseTaskFormValues = z.infer<typeof caseTaskFormSchema>;
 export type CaseExpenseFormValues = z.infer<typeof caseExpenseFormSchema>;
 export type CaseHearingFormValues = z.infer<typeof caseHearingFormSchema>;
+
+function getBuenosAiresTodayDateString() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Buenos_Aires",
+    year: "numeric"
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+}
