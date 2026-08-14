@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, Optional } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 import type {
@@ -8,10 +8,14 @@ import type {
   UpdateCaseExpenseInput
 } from "../cases.schemas";
 import { toCaseExpenseAttachmentDto } from "./case-expense-attachments.use-case";
+import { CaseExpenseCashboxSyncUseCase } from "./case-expense-cashbox-sync.use-case";
 
 @Injectable()
 export class CaseExpensesUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly cashboxSync?: CaseExpenseCashboxSyncUseCase
+  ) {}
 
   async list(tenantId: string, caseId: string, query: ListCaseExpensesQuery) {
     const cursor = decodeExpensesCursor(query.cursor);
@@ -127,7 +131,6 @@ export class CaseExpensesUseCase {
         canReadTaskEvents,
         caseId,
         endDate,
-        search: query.search,
         startDate,
         tenantId
       });
@@ -144,7 +147,6 @@ export class CaseExpensesUseCase {
       cursor,
       endDate,
       limit: query.limit + 1,
-      search: query.search,
       startDate,
       tenantId
     });
@@ -174,7 +176,6 @@ export class CaseExpensesUseCase {
     canReadTaskEvents,
     caseId,
     endDate,
-    search,
     startDate,
     tenantId
   }: {
@@ -183,7 +184,6 @@ export class CaseExpensesUseCase {
     canReadTaskEvents: boolean;
     caseId: string;
     endDate: Date;
-    search?: string;
     startDate: Date;
     tenantId: string;
   }) {
@@ -194,6 +194,7 @@ export class CaseExpensesUseCase {
             select: {
               amount: true,
               concept: true,
+              currencyCode: true,
               id: true,
               paymentDate: true,
               status: true
@@ -205,8 +206,7 @@ export class CaseExpensesUseCase {
                 gte: startDate,
                 lt: endDate
               },
-              status: { in: ["pending", "overdue"] },
-              ...(search ? { concept: { contains: search, mode: "insensitive" as const } } : {})
+              status: { in: ["pending", "overdue"] }
             }
           })
         : Promise.resolve([]),
@@ -238,8 +238,7 @@ export class CaseExpensesUseCase {
                     lt: endDate
                   }
                 }
-              ],
-              ...(search ? { name: { contains: search, mode: "insensitive" as const } } : {})
+              ]
             }
           })
         : Promise.resolve([]),
@@ -259,10 +258,7 @@ export class CaseExpensesUseCase {
               date: {
                 gte: startDate,
                 lt: endDate
-              },
-              ...(search
-                ? { description: { contains: search, mode: Prisma.QueryMode.insensitive } }
-                : {})
+              }
             }
           })
         : Promise.resolve([])
@@ -283,7 +279,6 @@ export class CaseExpensesUseCase {
     cursor,
     endDate,
     limit,
-    search,
     startDate,
     tenantId
   }: {
@@ -294,12 +289,10 @@ export class CaseExpensesUseCase {
     cursor: CalendarCursor | null;
     endDate: Date;
     limit: number;
-    search?: string;
     startDate: Date;
     tenantId: string;
   }) {
     const eventQueries: Prisma.Sql[] = [];
-    const searchPattern = search ? toIlikeContainsPattern(search) : null;
 
     if (canReadPaymentEvents) {
       eventQueries.push(Prisma.sql`
@@ -310,6 +303,7 @@ export class CaseExpensesUseCase {
           case_expenses.payment_date::date AS event_date,
           case_expenses.status::text AS status,
           case_expenses.amount AS amount,
+          case_expenses.currency_code::text AS currency_code,
           NULL::text AS hearing_type,
           NULL::text AS time
         FROM case_expenses
@@ -318,7 +312,6 @@ export class CaseExpensesUseCase {
           AND case_expenses.payment_date >= ${startDate}::date
           AND case_expenses.payment_date < ${endDate}::date
           AND case_expenses.status IN ('pending', 'overdue')
-          ${searchPattern ? Prisma.sql`AND case_expenses.concept ILIKE ${searchPattern} ESCAPE '\'` : Prisma.empty}
       `);
     }
 
@@ -331,6 +324,7 @@ export class CaseExpensesUseCase {
           COALESCE(case_tasks.end_date, case_tasks.start_date)::date AS event_date,
           case_tasks.status::text AS status,
           NULL::numeric AS amount,
+          NULL::text AS currency_code,
           NULL::text AS hearing_type,
           NULL::text AS time
         FROM case_tasks
@@ -339,7 +333,6 @@ export class CaseExpensesUseCase {
           AND case_tasks.status IN ('pending', 'in_progress')
           AND COALESCE(case_tasks.end_date, case_tasks.start_date) >= ${startDate}::date
           AND COALESCE(case_tasks.end_date, case_tasks.start_date) < ${endDate}::date
-          ${searchPattern ? Prisma.sql`AND case_tasks.name ILIKE ${searchPattern} ESCAPE '\'` : Prisma.empty}
       `);
     }
 
@@ -352,6 +345,7 @@ export class CaseExpensesUseCase {
           case_hearings.date::date AS event_date,
           NULL::text AS status,
           NULL::numeric AS amount,
+          NULL::text AS currency_code,
           case_hearings.type::text AS hearing_type,
           case_hearings.time::text AS time
         FROM case_hearings
@@ -359,12 +353,11 @@ export class CaseExpensesUseCase {
           AND case_hearings.case_id = ${caseId}::uuid
           AND case_hearings.date >= ${startDate}::date
           AND case_hearings.date < ${endDate}::date
-          ${searchPattern ? Prisma.sql`AND case_hearings.description ILIKE ${searchPattern} ESCAPE '\'` : Prisma.empty}
       `);
     }
 
     const rows = await this.prisma.$queryRaw<CalendarListEventRow[]>(Prisma.sql`
-      SELECT event_type, id, title, event_date, status, amount, hearing_type, time
+      SELECT event_type, id, title, event_date, status, amount, currency_code, hearing_type, time
       FROM (${joinSql(eventQueries, Prisma.sql`UNION ALL`)}) AS calendar_events
       ${
         cursor
@@ -378,17 +371,29 @@ export class CaseExpensesUseCase {
     return rows.map(toCalendarEventFromRow);
   }
 
-  async create(tenantId: string, caseId: string, input: CreateCaseExpenseInput) {
+  async create(
+    tenantId: string,
+    caseId: string,
+    actorUserId: string,
+    input: CreateCaseExpenseInput
+  ) {
     await this.assertRelations(tenantId, caseId, input);
     const createdExpense = await this.prisma.caseExpense.create({
       data: toCaseExpenseCreateData(tenantId, caseId, input),
       select: caseExpenseSelect
     });
+    await this.enqueueCashboxSyncForExpense(tenantId, actorUserId, createdExpense);
 
     return toCaseExpenseDto(createdExpense);
   }
 
-  async update(tenantId: string, caseId: string, expenseId: string, input: UpdateCaseExpenseInput) {
+  async update(
+    tenantId: string,
+    caseId: string,
+    expenseId: string,
+    actorUserId: string,
+    input: UpdateCaseExpenseInput
+  ) {
     await this.findTenantExpenseOrThrow(tenantId, caseId, expenseId);
     await this.assertRelations(tenantId, caseId, input);
     const updatedExpense = await this.prisma.caseExpense.update({
@@ -396,12 +401,14 @@ export class CaseExpensesUseCase {
       data: toCaseExpenseUpdateData(input),
       select: caseExpenseSelect
     });
+    await this.enqueueCashboxSyncForExpense(tenantId, actorUserId, updatedExpense);
 
     return toCaseExpenseDto(updatedExpense);
   }
 
   async delete(tenantId: string, caseId: string, expenseId: string) {
     await this.findTenantExpenseOrThrow(tenantId, caseId, expenseId);
+    await this.cashboxSync?.enqueueDelete({ caseExpenseId: expenseId, caseId, tenantId });
     await this.prisma.caseExpense.delete({ where: { id: expenseId } });
 
     return { status: "ok" as const };
@@ -417,6 +424,9 @@ export class CaseExpensesUseCase {
     if (input.taskId) {
       await this.findTenantTaskOrThrow(tenantId, caseId, input.taskId);
     }
+
+    await this.findActiveTenantCurrencyOrThrow(tenantId, input.currencyCode);
+    assertPaidExpensePaymentDateIsToday(input);
   }
 
   private async findTenantCaseOrThrow(tenantId: string, caseId: string) {
@@ -457,6 +467,43 @@ export class CaseExpensesUseCase {
 
     return expense;
   }
+
+  private async findActiveTenantCurrencyOrThrow(tenantId: string, currencyCode: string) {
+    const tenantCurrency = await this.prisma.tenantCurrency.findFirst({
+      where: { active: true, currencyCode, tenantId },
+      select: { id: true }
+    });
+
+    if (!tenantCurrency) {
+      throw new BadRequestException("La moneda del gasto no esta activa en este estudio.");
+    }
+  }
+
+  private async enqueueCashboxSyncForExpense(
+    tenantId: string,
+    actorUserId: string,
+    expense: CaseExpenseWithSelect
+  ) {
+    if (!this.cashboxSync) {
+      return;
+    }
+
+    if (expense.status === "paid") {
+      await this.cashboxSync.enqueueUpsert({
+        actorUserId,
+        caseExpenseId: expense.id,
+        caseId: expense.caseId,
+        tenantId
+      });
+      return;
+    }
+
+    await this.cashboxSync.enqueueDelete({
+      caseExpenseId: expense.id,
+      caseId: expense.caseId,
+      tenantId
+    });
+  }
 }
 
 type CalendarEventType = "payment_due" | "hearing" | "task_due";
@@ -473,6 +520,7 @@ type CalendarEvent =
 
 type CalendarListEventRow = {
   amount: Prisma.Decimal | null;
+  currency_code: string | null;
   event_date: Date | string;
   event_type: CalendarEventType;
   hearing_type: HearingType | null;
@@ -538,6 +586,7 @@ function toCalendarResponse({
 function toPaymentDueCalendarEvent(expense: {
   amount: Prisma.Decimal;
   concept: string;
+  currencyCode: string;
   id: string;
   paymentDate: Date;
   status: "pending" | "overdue" | "paid" | "cancelled";
@@ -548,6 +597,7 @@ function toPaymentDueCalendarEvent(expense: {
     title: `Pago: ${expense.concept}`,
     date: expense.paymentDate.toISOString().slice(0, 10),
     amount: Number(expense.amount),
+    currencyCode: expense.currencyCode,
     status: expense.status
   };
 }
@@ -597,6 +647,7 @@ function toCalendarEventFromRow(row: CalendarListEventRow): CalendarEvent {
       title: row.title,
       date,
       amount: Number(row.amount ?? 0),
+      currencyCode: row.currency_code ?? "ARS",
       status: row.status === "overdue" ? "overdue" : "pending"
     };
   }
@@ -633,10 +684,6 @@ function joinSql(parts: Prisma.Sql[], separator: Prisma.Sql) {
 
 function toCalendarDateString(date: Date | string) {
   return date instanceof Date ? date.toISOString().slice(0, 10) : date.slice(0, 10);
-}
-
-function toIlikeContainsPattern(search: string) {
-  return `%${search.replace(/[\\%_]/g, "\\$&")}%`;
 }
 
 function encodeCalendarCursor(cursor: CalendarCursor) {
@@ -678,6 +725,7 @@ const caseExpenseSelect = {
   amount: true,
   caseId: true,
   concept: true,
+  currencyCode: true,
   createdAt: true,
   expenseDate: true,
   id: true,
@@ -733,12 +781,27 @@ function toCaseExpenseWriteData(input: CreateCaseExpenseInput | UpdateCaseExpens
     alertEnabled: input.alertEnabled,
     amount: input.amount,
     concept: input.concept,
+    currencyCode: input.currencyCode,
     expenseDate: new Date(`${input.expenseDate}T00:00:00.000Z`),
     notes: input.notes ?? null,
     paymentDate: new Date(`${input.paymentDate}T00:00:00.000Z`),
     status: normalizeExpenseStatus(input.status, input.expenseDate, input.paymentDate),
     taskId: input.taskId ?? null
   };
+}
+
+function assertPaidExpensePaymentDateIsToday(
+  input: CreateCaseExpenseInput | UpdateCaseExpenseInput
+) {
+  if (input.status !== "paid") {
+    return;
+  }
+
+  const today = getBuenosAiresTodayDateString();
+
+  if (input.paymentDate !== today) {
+    throw new BadRequestException("La fecha de pago de un gasto pagado debe ser la fecha de hoy.");
+  }
 }
 
 function toCaseExpenseDto(item: CaseExpenseWithSelect) {
@@ -752,6 +815,7 @@ function toCaseExpenseDto(item: CaseExpenseWithSelect) {
     attachments: item.attachments.map(toCaseExpenseAttachmentDto),
     concept: item.concept,
     amount: Number(item.amount),
+    currencyCode: item.currencyCode,
     expenseDate: item.expenseDate.toISOString().slice(0, 10),
     paymentDate: item.paymentDate.toISOString().slice(0, 10),
     status: item.status,
@@ -779,6 +843,10 @@ function normalizeExpenseStatus(
 }
 
 function getBuenosAiresTodayDate() {
+  return new Date(`${getBuenosAiresTodayDateString()}T00:00:00.000Z`);
+}
+
+function getBuenosAiresTodayDateString() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
     month: "2-digit",
@@ -787,7 +855,7 @@ function getBuenosAiresTodayDate() {
   }).formatToParts(new Date());
   const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
 
-  return new Date(`${dateParts.year}-${dateParts.month}-${dateParts.day}T00:00:00.000Z`);
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 }
 
 function getBuenosAiresMonth() {

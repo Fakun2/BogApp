@@ -22,7 +22,6 @@ export function useCalendarCard({
 }) {
   const [month, setMonth] = useState(() => getCurrentMonthKey());
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [view, setView] = useState<CalendarView>("month");
   const [visibleEventTypes, setVisibleEventTypes] = useState<CalendarEventType[]>([
     ...defaultCalendarEventTypes
@@ -36,7 +35,6 @@ export function useCalendarCard({
     caseId,
     enabled: view === "list",
     month,
-    search: searchQuery,
     visibleTypes: visibleEventTypes
   });
   const selectedExpenseQuery = useCasesQuery(
@@ -47,8 +45,8 @@ export function useCalendarCard({
     })
   );
   const visibleMonthEvents = useMemo(
-    () => filterCalendarEvents(calendarQuery.data?.events ?? [], visibleEventTypes, searchQuery),
-    [calendarQuery.data?.events, searchQuery, visibleEventTypes]
+    () => filterCalendarEvents(calendarQuery.data?.events ?? [], visibleEventTypes),
+    [calendarQuery.data?.events, visibleEventTypes]
   );
   const visibleListEvents = calendarEventsQuery.data?.events ?? [];
   const visibleEventsCount = view === "list" ? visibleListEvents.length : visibleMonthEvents.length;
@@ -85,11 +83,9 @@ export function useCalendarCard({
     goToToday,
     month,
     navigateMonth,
-    searchQuery,
     selectCalendarEvent,
     selectedExpenseId,
     selectedExpenseQuery,
-    setSearchQuery,
     setSelectedExpenseId,
     setView,
     toggleEventType,

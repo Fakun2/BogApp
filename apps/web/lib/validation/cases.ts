@@ -20,6 +20,11 @@ const optionalPhoneSchema = z.preprocess(
     .regex(/^\d{0,15}$/, "El telefono debe tener solo numeros y maximo 15 digitos.")
     .optional()
 );
+const currencyCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z]{3}$/, "Selecciona una moneda.")
+  .transform((value) => value.toUpperCase());
 
 const optionalUuid = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -90,6 +95,7 @@ export const caseExpenseFormSchema = z
   .object({
     concept: z.string().trim().min(3, "Minimo 3 caracteres.").max(160, "Maximo 160 caracteres."),
     amount: z.coerce.number().min(0.01, "Ingresa un monto mayor a cero."),
+    currencyCode: currencyCodeSchema,
     expenseDate: requiredDateString,
     paymentDate: requiredDateString,
     status: z.enum(["pending", "paid", "cancelled"]),
@@ -100,6 +106,14 @@ export const caseExpenseFormSchema = z
     taskId: optionalUuid
   })
   .superRefine((input, context) => {
+    if (input.status === "paid" && input.paymentDate !== getBuenosAiresTodayDateString()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La fecha de pago debe ser hoy para marcar el gasto como pagado.",
+        path: ["paymentDate"]
+      });
+    }
+
     if (!input.alertEnabled) {
       return;
     }
@@ -148,3 +162,15 @@ export type CaseFormValues = z.infer<typeof caseFormSchema>;
 export type CaseTaskFormValues = z.infer<typeof caseTaskFormSchema>;
 export type CaseExpenseFormValues = z.infer<typeof caseExpenseFormSchema>;
 export type CaseHearingFormValues = z.infer<typeof caseHearingFormSchema>;
+
+function getBuenosAiresTodayDateString() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Buenos_Aires",
+    year: "numeric"
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+}

@@ -247,6 +247,15 @@ export class CashboxMovementDto {
   @ApiProperty({ required: false, example: "1000.00000000" })
   exchangeRate?: string;
 
+  @ApiProperty({ required: false })
+  source?: {
+    caseId: string;
+    expenseId: string;
+    href: string;
+    label: string;
+    type: "case_expense";
+  };
+
   @ApiProperty({ example: "Mateo" })
   createdByName!: string;
 }

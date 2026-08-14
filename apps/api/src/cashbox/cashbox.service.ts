@@ -76,9 +76,10 @@ export class CashboxService {
     const hasNextPage = items.length > query.limit;
     const pageItems = hasNextPage ? items.slice(0, query.limit) : items;
     const categoryNames = await this.getCategoryNames(tenantId, pageItems);
+    const sources = await this.getCaseExpenseSources(tenantId, pageItems);
 
     return {
-      items: pageItems.map((movement) => toCashboxMovementDto(movement, categoryNames)),
+      items: pageItems.map((movement) => toCashboxMovementDto(movement, categoryNames, sources)),
       pageInfo: {
         hasNextPage,
         limit: query.limit,
@@ -110,7 +111,7 @@ export class CashboxService {
     });
     const categoryNames = await this.getCategoryNames(tenantId, [movement]);
 
-    return toCashboxMovementDto(movement, categoryNames);
+    return toCashboxMovementDto(movement, categoryNames, new Map());
   }
 
   async createConversion(
@@ -131,47 +132,55 @@ export class CashboxService {
     const occurredAt = input.occurredAt ?? new Date();
     const fromAmount = parseLocalDecimal(input.fromAmount);
     const exchangeRate = getEffectiveExchangeRate(input);
-    const currentBalance = await this.getCurrentBalance(tenantId, input.fromCurrencyCode, new Date());
-
-    if (fromAmount.gt(currentBalance)) {
-      throw new BadRequestException("El monto a convertir supera el saldo disponible de la moneda origen.");
-    }
-
     const toAmount = fromAmount.mul(exchangeRate).toDecimalPlaces(2);
 
-    const items = await this.prisma.$transaction([
-      this.prisma.cashboxMovement.create({
-        data: {
-          amount: fromAmount,
-          conversionGroupId,
-          createdByUserId: userId,
-          currencyCode: input.fromCurrencyCode,
-          description: input.description,
-          exchangeRate,
-          occurredAt,
-          tenantId,
-          type: CashboxMovementType.conversion_out
-        },
-        select: cashboxMovementSelect
-      }),
-      this.prisma.cashboxMovement.create({
-        data: {
-          amount: toAmount,
-          conversionGroupId,
-          createdByUserId: userId,
-          currencyCode: input.toCurrencyCode,
-          description: input.description,
-          exchangeRate,
-          occurredAt,
-          tenantId,
-          type: CashboxMovementType.conversion_in
-        },
-        select: cashboxMovementSelect
-      })
-    ]);
+    const items = await this.prisma.$transaction(async (tx) => {
+      await this.lockCashboxCurrency(tx, tenantId, input.fromCurrencyCode);
+      const currentBalance = await this.getCurrentBalance(
+        tenantId,
+        input.fromCurrencyCode,
+        new Date(),
+        tx
+      );
+
+      if (fromAmount.gt(currentBalance)) {
+        throw new BadRequestException("El monto a convertir supera el saldo disponible de la moneda origen.");
+      }
+
+      return Promise.all([
+        tx.cashboxMovement.create({
+          data: {
+            amount: fromAmount,
+            conversionGroupId,
+            createdByUserId: userId,
+            currencyCode: input.fromCurrencyCode,
+            description: input.description,
+            exchangeRate,
+            occurredAt,
+            tenantId,
+            type: CashboxMovementType.conversion_out
+          },
+          select: cashboxMovementSelect
+        }),
+        tx.cashboxMovement.create({
+          data: {
+            amount: toAmount,
+            conversionGroupId,
+            createdByUserId: userId,
+            currencyCode: input.toCurrencyCode,
+            description: input.description,
+            exchangeRate,
+            occurredAt,
+            tenantId,
+            type: CashboxMovementType.conversion_in
+          },
+          select: cashboxMovementSelect
+        })
+      ]);
+    });
 
     return {
-      items: items.map((movement) => toCashboxMovementDto(movement, new Map()))
+      items: items.map((movement) => toCashboxMovementDto(movement, new Map(), new Map()))
     };
   }
 
@@ -200,9 +209,12 @@ export class CashboxService {
       },
       select: cashboxMovementSelect
     });
-    const categoryNames = await this.getCategoryNames(tenantId, [movement]);
+    const [categoryNames, sources] = await Promise.all([
+      this.getCategoryNames(tenantId, [movement]),
+      this.getCaseExpenseSources(tenantId, [movement])
+    ]);
 
-    return toCashboxMovementDto(movement, categoryNames);
+    return toCashboxMovementDto(movement, categoryNames, sources);
   }
 
   async deleteMovement(tenantId: string, movementId: string) {
@@ -294,6 +306,7 @@ export class CashboxService {
     const movement = await this.prisma.cashboxMovement.findFirst({
       where: { id: movementId, tenantId },
       select: {
+        caseExpenseId: true,
         id: true,
         type: true
       }
@@ -344,13 +357,52 @@ export class CashboxService {
     ]);
   }
 
+  private async getCaseExpenseSources(
+    tenantId: string,
+    movements: Array<CashboxMovementWithSelect>
+  ) {
+    const caseExpenseIds = movements
+      .map((movement) => movement.caseExpenseId)
+      .filter((caseExpenseId): caseExpenseId is string => Boolean(caseExpenseId));
+
+    if (caseExpenseIds.length === 0) {
+      return new Map<string, CashboxMovementSource>();
+    }
+
+    const expenses = await this.prisma.caseExpense.findMany({
+      where: {
+        id: { in: caseExpenseIds },
+        tenantId
+      },
+      select: {
+        caseId: true,
+        concept: true,
+        id: true
+      }
+    });
+
+    return new Map(
+      expenses.map((expense) => [
+        expense.id,
+        {
+          caseId: expense.caseId,
+          expenseId: expense.id,
+          href: `/admin/cases/${expense.caseId}`,
+          label: `Expediente - ${expense.concept}`,
+          type: "case_expense" as const
+        }
+      ])
+    );
+  }
+
   private async sumMovements(
     tenantId: string,
     currencyCode: string,
     types: CashboxMovementType[],
-    occurredAt: Prisma.DateTimeFilter
+    occurredAt: Prisma.DateTimeFilter,
+    prisma: CashboxPrismaClient = this.prisma
   ) {
-    const result = await this.prisma.cashboxMovement.aggregate({
+    const result = await prisma.cashboxMovement.aggregate({
       _sum: { amount: true },
       where: {
         currencyCode,
@@ -363,23 +415,40 @@ export class CashboxService {
     return result._sum.amount ?? new Prisma.Decimal(0);
   }
 
-  private async getCurrentBalance(tenantId: string, currencyCode: string, now: Date) {
+  private async getCurrentBalance(
+    tenantId: string,
+    currencyCode: string,
+    now: Date,
+    prisma: CashboxPrismaClient = this.prisma
+  ) {
     const [positiveBalance, negativeBalance] = await Promise.all([
       this.sumMovements(
         tenantId,
         currencyCode,
         [CashboxMovementType.income, CashboxMovementType.conversion_in],
-        { lte: now }
+        { lte: now },
+        prisma
       ),
       this.sumMovements(
         tenantId,
         currencyCode,
         [CashboxMovementType.expense, CashboxMovementType.conversion_out],
-        { lte: now }
+        { lte: now },
+        prisma
       )
     ]);
 
     return positiveBalance.minus(negativeBalance);
+  }
+
+  private async lockCashboxCurrency(
+    prisma: CashboxPrismaClient,
+    tenantId: string,
+    currencyCode: string
+  ) {
+    await prisma.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtextextended(${`${tenantId}:${currencyCode}`}, 0))
+    `;
   }
 
   private async getHourlySummary(
@@ -429,6 +498,8 @@ export class CashboxService {
   }
 }
 
+type CashboxPrismaClient = PrismaService | Prisma.TransactionClient;
+
 const activeTenantCurrencySelect = {
   currency: {
     select: {
@@ -443,6 +514,7 @@ const cashboxMovementSelect = {
   amount: true,
   categoryId: true,
   categoryOrigin: true,
+  caseExpenseId: true,
   conversionGroupId: true,
   createdByUser: {
     select: { fullName: true }
@@ -462,6 +534,14 @@ type CashboxMovementWithSelect = Prisma.CashboxMovementGetPayload<{
   select: typeof cashboxMovementSelect;
 }>;
 
+type CashboxMovementSource = {
+  caseId: string;
+  expenseId: string;
+  href: string;
+  label: string;
+  type: "case_expense";
+};
+
 type CashboxCursor = {
   id: string;
   occurredAt: string;
@@ -469,7 +549,8 @@ type CashboxCursor = {
 
 function toCashboxMovementDto(
   movement: CashboxMovementWithSelect,
-  categoryNames: Map<string, string>
+  categoryNames: Map<string, string>,
+  sources: Map<string, CashboxMovementSource>
 ) {
   const categoryKey =
     movement.categoryOrigin && movement.categoryId
@@ -489,6 +570,7 @@ function toCashboxMovementDto(
     exchangeRate: movement.exchangeRate ? decimalToString(movement.exchangeRate, 8) : undefined,
     id: movement.id,
     occurredAt: movement.occurredAt,
+    source: movement.caseExpenseId ? sources.get(movement.caseExpenseId) : undefined,
     type: movement.type
   };
 }

@@ -22,6 +22,11 @@ const optionalPhoneSchema = z.preprocess(
     .regex(/^\d{0,15}$/)
     .optional()
 );
+const currencyCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z]{3}$/)
+  .transform((value) => value.toUpperCase());
 
 const optionalUuid = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -122,6 +127,7 @@ const caseExpenseInputSchema = z
   .object({
     concept: z.string().trim().min(3).max(160),
     amount: z.coerce.number().min(0.01).max(9999999999.99),
+    currencyCode: currencyCodeSchema,
     expenseDate: requiredDateString,
     paymentDate: requiredDateString,
     status: caseExpenseEditableStatusSchema,
@@ -209,7 +215,6 @@ export const caseCalendarQuerySchema = z.object({
   mode: z.enum(["month", "list"]).default("month"),
   limit: z.coerce.number().int().min(1).max(8).default(5),
   cursor: optionalTrimmedString,
-  search: optionalTrimmedString,
   types: optionalTrimmedString
 });
 
@@ -456,6 +461,9 @@ export class CaseExpenseDto {
   @ApiProperty({ example: 15000 })
   amount!: number;
 
+  @ApiProperty({ example: "ARS" })
+  currencyCode!: string;
+
   @ApiProperty({ type: String, format: "date" })
   expenseDate!: string;
 
@@ -635,6 +643,9 @@ export class CaseCalendarEventDto {
 
   @ApiPropertyOptional({ example: 120000 })
   amount?: number;
+
+  @ApiPropertyOptional({ example: "ARS" })
+  currencyCode?: string;
 
   @ApiPropertyOptional({ example: "pending" })
   status?: string;

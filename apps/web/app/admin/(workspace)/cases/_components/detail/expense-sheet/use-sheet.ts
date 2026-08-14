@@ -16,6 +16,7 @@ import type { CaseExpenseFieldErrors } from "./types";
 
 export function useCaseExpenseSheet({
   caseId,
+  defaultCurrencyCode,
   defaultDate,
   defaultTaskId,
   expense,
@@ -24,6 +25,7 @@ export function useCaseExpenseSheet({
   open: controlledOpen
 }: {
   caseId: string;
+  defaultCurrencyCode?: string;
   defaultDate?: string;
   defaultTaskId?: string;
   expense?: CaseExpenseDto;
@@ -54,6 +56,7 @@ export function useCaseExpenseSheet({
       ? mapExpenseToDraft(expense)
         : {
           ...emptyCaseExpenseDraft,
+          currencyCode: defaultCurrencyCode ?? emptyCaseExpenseDraft.currencyCode,
           expenseDate: defaultDate ?? emptyCaseExpenseDraft.expenseDate,
           paymentDate: defaultDate ?? emptyCaseExpenseDraft.paymentDate,
           taskId: defaultTaskId ?? ""
@@ -61,13 +64,24 @@ export function useCaseExpenseSheet({
 
     setDraft(nextDraft);
     setAmountText(nextDraft.amount > 0 ? formatCaseExpenseAmountForInput(nextDraft.amount) : "");
-  }, [defaultDate, defaultTaskId, expense, open]);
+  }, [defaultCurrencyCode, defaultDate, defaultTaskId, expense, open]);
 
   function updateDraft<K extends keyof CaseExpenseFormValues>(
     key: K,
     value: CaseExpenseFormValues[K]
   ) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateStatus(status: CaseExpenseFormValues["status"]) {
+    setDraft((current) => ({
+      ...current,
+      paymentDate:
+        status === "paid" && current.status !== "paid"
+          ? getBuenosAiresTodayDateString()
+          : current.paymentDate,
+      status
+    }));
   }
 
   function updateAmount(value: string) {
@@ -113,7 +127,8 @@ export function useCaseExpenseSheet({
     open,
     setOpen,
     updateAmount,
-    updateDraft
+    updateDraft,
+    updateStatus
   };
 }
 
@@ -126,6 +141,7 @@ function mapExpenseToDraft(expense: CaseExpenseDto): CaseExpenseFormValues {
     alertTime: alertParts.time,
     amount: expense.amount,
     concept: expense.concept,
+    currencyCode: expense.currencyCode,
     expenseDate: expense.expenseDate,
     notes: expense.notes ?? "",
     paymentDate: expense.paymentDate,
@@ -154,4 +170,16 @@ function getAlertParts(alertAt: string | null) {
     date: `${partMap.year}-${partMap.month}-${partMap.day}`,
     time: `${partMap.hour}:${partMap.minute}`
   };
+}
+
+function getBuenosAiresTodayDateString() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Buenos_Aires",
+    year: "numeric"
+  }).formatToParts(new Date());
+  const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${partMap.year}-${partMap.month}-${partMap.day}`;
 }

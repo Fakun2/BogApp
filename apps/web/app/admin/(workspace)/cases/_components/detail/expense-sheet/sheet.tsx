@@ -20,6 +20,7 @@ import {
   caseSelectTriggerClassName,
   caseTextareaClassName
 } from "../../../_constants/cases.constants";
+import { useTenantCurrenciesQuery } from "../../../../currencies/_hooks/use-currencies-query";
 import { CaseActionSheet } from "../case-action-sheet";
 import { CaseDateInput } from "../../sheet/case-date-input";
 import { CaseField } from "../../sheet/case-field";
@@ -40,6 +41,12 @@ export function CaseExpenseSheet({
   trigger
 }: CaseExpenseSheetProps) {
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const currenciesQuery = useTenantCurrenciesQuery({
+    limit: 50,
+    sort: "name:asc",
+    status: "active"
+  });
+  const currencies = currenciesQuery.data?.items ?? [];
   const {
     amountText,
     draft,
@@ -49,9 +56,11 @@ export function CaseExpenseSheet({
     open,
     setOpen,
     updateAmount,
-    updateDraft
+    updateDraft,
+    updateStatus
   } = useCaseExpenseSheet({
     caseId,
+    defaultCurrencyCode: currencies[0]?.code,
     defaultDate,
     defaultTaskId,
     expense,
@@ -120,6 +129,26 @@ export function CaseExpenseSheet({
               onChange={(event) => updateAmount(event.target.value)}
             />
           </CaseField>
+          <CaseField error={errors.currencyCode} label="Moneda" required>
+            <Select
+              value={draft.currencyCode}
+              onValueChange={(value) => updateDraft("currencyCode", value)}
+            >
+              <SelectTrigger className={caseSelectTriggerClassName}>
+                <SelectValue placeholder="Moneda" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.code} · {currency.symbol}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CaseField>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
           <CaseField error={errors.expenseDate} label="Fecha de emision" required>
             <CaseDateInput
               autoComplete="off"
@@ -141,7 +170,7 @@ export function CaseExpenseSheet({
             <Select
               value={draft.status}
               onValueChange={(value) =>
-                updateDraft("status", value as CaseExpenseFormValues["status"])
+                updateStatus(value as CaseExpenseFormValues["status"])
               }
             >
               <SelectTrigger className={caseSelectTriggerClassName}>

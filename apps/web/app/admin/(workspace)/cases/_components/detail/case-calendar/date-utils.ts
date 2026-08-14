@@ -75,24 +75,9 @@ export function groupEventsByDate(events: CaseCalendarEventDto[]) {
 
 export function filterCalendarEvents(
   events: CaseCalendarEventDto[],
-  visibleTypes: CalendarEventType[],
-  searchQuery = ""
+  visibleTypes: CalendarEventType[]
 ) {
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-
   return events
     .filter((event) => visibleTypes.includes(event.type))
-    .filter((event) => {
-      if (!normalizedQuery) {
-        return true;
-      }
-
-      return [
-        event.title,
-        event.date,
-        event.status ?? "",
-        event.type
-      ].some((value) => value.toLowerCase().includes(normalizedQuery));
-    })
     .sort((firstEvent, secondEvent) => firstEvent.date.localeCompare(secondEvent.date));
 }

@@ -1,5 +1,16 @@
-import { Banknote, Plus } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Banknote, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -11,27 +22,44 @@ import {
 import { AdminTableHeader } from "../../../_components/admin-table-header";
 import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
 import { adminSurfaceClassName } from "../../../_constants/dashboard";
+import { casesQueries } from "../../_api/cases.query-controller";
 import { caseExpenseStatusLabels } from "../../_constants/cases.constants";
-import type { CaseExpenseDto, CaseTaskDto } from "../../_types/cases.types";
+import { useCaseExpensesQuery } from "../../_hooks/use-case-expenses-query";
+import { useCasesQuery } from "../../_hooks/use-cases-query";
+import type { CaseExpenseDto, CaseExpenseStatus, CaseTaskDto } from "../../_types/cases.types";
 import { formatCaseDate, formatCaseMoney, getExpenseStatusClassName } from "./case-detail-format";
 import { CaseExpenseRowActions } from "./case-expense-row-actions";
 import { CaseExpenseSheet } from "./expense-sheet";
 
+const caseExpenseStatusFilterOptions = (
+  Object.keys(caseExpenseStatusLabels) as CaseExpenseStatus[]
+).map((value) => ({
+  label: caseExpenseStatusLabels[value],
+  value
+}));
+
 export function CaseExpensesTable({
   canCreate,
   canDelete,
+  canRead,
   canUpdate,
-  caseId,
-  expenses,
-  tasks
+  caseId
 }: {
   canCreate: boolean;
   canDelete: boolean;
+  canRead: boolean;
   canUpdate: boolean;
   caseId: string;
-  expenses: CaseExpenseDto[];
-  tasks: CaseTaskDto[];
 }) {
+  const [statusFilter, setStatusFilter] = useState<CaseExpenseStatus | "all">("all");
+  const expensesQuery = useCaseExpensesQuery({
+    caseId,
+    status: statusFilter === "all" ? undefined : statusFilter
+  });
+  const tasksQuery = useCasesQuery(casesQueries.tasks({ caseId, limit: 50 }));
+  const expenses = expensesQuery.data?.items ?? [];
+  const tasks = tasksQuery.data?.items ?? [];
+  const hasNextPage = Boolean(expensesQuery.data?.pageInfo.hasNextPage);
   const hasActions = canDelete || canUpdate;
   const columnCount = hasActions ? 8 : 7;
 
@@ -42,17 +70,42 @@ export function CaseExpensesTable({
     >
       <AdminTableHeader
         actions={
-          canCreate ? (
-            <CaseExpenseSheet
-              caseId={caseId}
-              tasks={tasks}
-              trigger={
-                <AdminTableHeaderActionButton icon={Plus} label="Nuevo gasto" tone="primary" />
-              }
-            />
-          ) : null
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value as CaseExpenseStatus | "all")}
+            >
+              <SelectTrigger
+                className="h-9 w-[150px] rounded-md border-border/50 bg-background/70 text-sm"
+                aria-label="Filtrar gastos por estado"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {caseExpenseStatusFilterOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {canCreate ? (
+              <CaseExpenseSheet
+                caseId={caseId}
+                tasks={tasks}
+                trigger={
+                  <AdminTableHeaderActionButton icon={Plus} label="Nuevo gasto" tone="primary" />
+                }
+              />
+            ) : null}
+          </div>
         }
-        description="Gastos propios del expediente, asociados opcionalmente a una tarea."
+        description={
+          statusFilter === "all"
+            ? "Gastos propios del expediente, asociados opcionalmente a una tarea."
+            : `Gastos del expediente con estado ${caseExpenseStatusLabels[statusFilter].toLowerCase()}.`
+        }
         icon={Banknote}
         title="Gastos del expediente"
       />
@@ -89,75 +142,218 @@ export function CaseExpensesTable({
                 ) : null}
               </TableRow>
             </TableHeader>
-            <TableBody className="[&_tr:last-child]:border-0">
-              {expenses.length ? (
-                expenses.map((expense) => (
-                  <TableRow
-                    className="h-16 border-border/40 hover:bg-secondary/30"
-                    key={expense.id}
-                  >
-                    <TableCell className="px-3 py-3">
-                      <span className="font-medium text-foreground">{expense.concept}</span>
-                    </TableCell>
-                    <TableCell className="px-3 py-3 text-sm font-medium text-foreground">
-                      {formatCaseMoney(expense.amount)}
-                    </TableCell>
-                    <TableCell className="px-3 py-3 text-sm text-muted-foreground">
-                      {formatCaseDate(expense.expenseDate)}
-                    </TableCell>
-                    <TableCell className="px-3 py-3 text-sm text-muted-foreground">
-                      {formatCaseDate(expense.paymentDate)}
-                    </TableCell>
-                    <TableCell className="px-3 py-3">
-                      <span
-                        className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${getExpenseStatusClassName(
-                          expense.status
-                        )}`}
-                      >
-                        {caseExpenseStatusLabels[expense.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell className="max-w-[220px] px-3 py-3">
-                      <span className="block truncate text-sm text-muted-foreground">
-                        {expense.task?.name || "Sin tarea"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="max-w-[260px] px-3 py-3">
-                      <span className="block truncate text-sm text-muted-foreground">
-                        {expense.alertEnabled
-                          ? `Alerta: ${formatCaseDate(expense.alertAt)}`
-                          : expense.notes || "Sin observaciones"}
-                      </span>
-                    </TableCell>
-                    {hasActions ? (
-                      <TableCell className="px-3 py-3 text-right">
-                        <div className="flex justify-end">
-                          <CaseExpenseRowActions
-                            canDelete={canDelete}
-                            canUpdate={canUpdate}
-                            caseId={caseId}
-                            expense={expense}
-                            tasks={tasks}
-                          />
-                        </div>
-                      </TableCell>
-                    ) : null}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow className="h-[220px] hover:bg-transparent">
-                  <TableCell
-                    className="px-3 py-10 text-center text-sm text-muted-foreground"
-                    colSpan={columnCount}
-                  >
-                    Todavia no hay gastos cargados para este expediente.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+            <CaseExpensesTableBody
+              canDelete={canDelete}
+              canRead={canRead}
+              canUpdate={canUpdate}
+              caseId={caseId}
+              columnCount={columnCount}
+              errorMessage={expensesQuery.error?.message}
+              expenses={expenses}
+              hasActions={hasActions}
+              isLoading={expensesQuery.isLoading}
+              permissionDenied={!expensesQuery.hasPermission}
+              tasks={tasks}
+            />
           </Table>
+        </div>
+        <div className="flex items-center justify-between gap-3 px-1 py-3 text-sm text-muted-foreground">
+          <span>
+            Pagina {expensesQuery.pageIndex + 1} - {expenses.length} gastos
+          </span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 w-8 border-border/50 p-0"
+              disabled={!expensesQuery.canGoBack}
+              onClick={expensesQuery.goBack}
+              aria-label="Pagina anterior"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 w-8 border-border/50 p-0"
+              disabled={!hasNextPage}
+              onClick={expensesQuery.goForward}
+              aria-label="Pagina siguiente"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+function CaseExpensesTableBody({
+  canDelete,
+  canRead,
+  canUpdate,
+  caseId,
+  columnCount,
+  errorMessage,
+  expenses,
+  hasActions,
+  isLoading,
+  permissionDenied,
+  tasks
+}: {
+  canDelete: boolean;
+  canRead: boolean;
+  canUpdate: boolean;
+  caseId: string;
+  columnCount: number;
+  errorMessage?: string;
+  expenses: CaseExpenseDto[];
+  hasActions: boolean;
+  isLoading: boolean;
+  permissionDenied: boolean;
+  tasks: CaseTaskDto[];
+}) {
+  if (isLoading) {
+    return (
+      <TableBody className="[&_tr:last-child]:border-0">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <TableRow className="h-16 border-border/40" key={index}>
+            {Array.from({ length: columnCount }).map((__, cellIndex) => (
+              <TableCell className="px-3 py-3" key={cellIndex}>
+                <div className="h-4 rounded bg-muted/60" />
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <CaseExpensesMessageBody
+        className="font-medium text-destructive"
+        columnCount={columnCount}
+        message={errorMessage}
+      />
+    );
+  }
+
+  if (!canRead || permissionDenied) {
+    return (
+      <CaseExpensesMessageBody
+        columnCount={columnCount}
+        message="No tenes permisos para ver los gastos de este expediente."
+      />
+    );
+  }
+
+  if (!expenses.length) {
+    return (
+      <CaseExpensesMessageBody
+        columnCount={columnCount}
+        message="Todavia no hay gastos cargados para este expediente."
+      />
+    );
+  }
+
+  return (
+    <TableBody className="[&_tr:last-child]:border-0">
+      {expenses.map((expense) => (
+        <TableRow className="h-16 border-border/40 hover:bg-secondary/30" key={expense.id}>
+          <TableCell className="px-3 py-3">
+            <span className="font-medium text-foreground">{expense.concept}</span>
+          </TableCell>
+          <TableCell className="px-3 py-3 text-sm font-medium text-foreground">
+            {formatCaseMoney(expense.amount, expense.currencyCode)}
+          </TableCell>
+          <TableCell className="px-3 py-3 text-sm text-muted-foreground">
+            {formatCaseDate(expense.expenseDate)}
+          </TableCell>
+          <TableCell className="px-3 py-3 text-sm text-muted-foreground">
+            {formatCaseDate(expense.paymentDate)}
+          </TableCell>
+          <TableCell className="px-3 py-3">
+            <span
+              className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${getExpenseStatusClassName(
+                expense.status
+              )}`}
+            >
+              {caseExpenseStatusLabels[expense.status]}
+            </span>
+          </TableCell>
+          <TableCell className="max-w-[220px] px-3 py-3">
+            <span className="block truncate text-sm text-muted-foreground">
+              {expense.task?.name || "Sin tarea"}
+            </span>
+          </TableCell>
+          <TableCell className="max-w-[260px] px-3 py-3">
+            <span className="block truncate text-sm text-muted-foreground">
+              {expense.alertEnabled
+                ? `Alerta: ${formatCaseDate(expense.alertAt)}`
+                : expense.notes || "Sin observaciones"}
+            </span>
+          </TableCell>
+          {hasActions ? (
+            <TableCell className="px-3 py-3 text-right">
+              <div className="flex justify-end">
+                <CaseExpenseRowActions
+                  canDelete={canDelete}
+                  canUpdate={canUpdate}
+                  caseId={caseId}
+                  expense={expense}
+                  tasks={getTaskOptionsForExpense(tasks, expense)}
+                />
+              </div>
+            </TableCell>
+          ) : null}
+        </TableRow>
+      ))}
+    </TableBody>
+  );
+}
+
+function CaseExpensesMessageBody({
+  className = "text-muted-foreground",
+  columnCount,
+  message
+}: {
+  className?: string;
+  columnCount: number;
+  message: string;
+}) {
+  return (
+    <TableBody className="[&_tr:last-child]:border-0">
+      <TableRow className="h-[220px] hover:bg-transparent">
+        <TableCell className={`px-3 py-10 text-center text-sm ${className}`} colSpan={columnCount}>
+          {message}
+        </TableCell>
+      </TableRow>
+    </TableBody>
+  );
+}
+
+function getTaskOptionsForExpense(tasks: CaseTaskDto[], expense: CaseExpenseDto): CaseTaskDto[] {
+  if (!expense.task || tasks.some((task) => task.id === expense.task?.id)) {
+    return tasks;
+  }
+
+  return [
+    ...tasks,
+    {
+      assignedMembershipId: null,
+      assignedTo: null,
+      caseId: expense.caseId,
+      createdAt: expense.createdAt,
+      endDate: null,
+      id: expense.task.id,
+      lastSeenAt: null,
+      name: expense.task.name,
+      notes: null,
+      startDate: null,
+      status: "pending",
+      updatedAt: expense.updatedAt
+    }
+  ];
 }

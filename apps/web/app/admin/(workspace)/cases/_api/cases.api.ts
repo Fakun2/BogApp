@@ -50,7 +50,6 @@ export const caseKeys = {
       limit?: number;
       mode?: "month" | "list";
       month: string;
-      search?: string;
       types?: string;
     }
   ) =>
@@ -250,7 +249,6 @@ export async function getCaseCalendar({
   limit,
   mode,
   month,
-  search,
   types
 }: {
   caseId: string;
@@ -258,11 +256,10 @@ export async function getCaseCalendar({
   limit?: number;
   mode?: "month" | "list";
   month: string;
-  search?: string;
   types?: string;
 }): Promise<CaseCalendarResponseDto> {
   return dashboardHttpClient.request<CaseCalendarResponseDto>({
-    params: { cursor, limit, mode, month, search, types },
+    params: { cursor, limit, mode, month, types },
     path: `/cases/${caseId}/calendar`
   });
 }

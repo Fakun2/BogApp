@@ -112,6 +112,7 @@ export type CaseExpenseDto = {
   attachments: CaseExpenseAttachmentDto[];
   concept: string;
   amount: number;
+  currencyCode: string;
   expenseDate: string;
   paymentDate: string;
   status: CaseExpenseStatus;
@@ -206,6 +207,7 @@ export type CaseExpensesSummaryDto = {
 
 export type CaseCalendarEventDto = {
   amount?: number;
+  currencyCode?: string;
   date: string;
   id: string;
   status?: CaseExpenseStatus | string;

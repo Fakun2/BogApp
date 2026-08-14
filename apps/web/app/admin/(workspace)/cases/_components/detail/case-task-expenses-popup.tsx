@@ -180,7 +180,7 @@ export function CaseTaskExpensesPopup({
                           </span>
                         </TableCell>
                         <TableCell className="px-3 py-3 text-sm font-medium text-foreground">
-                          {formatCaseMoney(expense.amount)}
+                          {formatCaseMoney(expense.amount, expense.currencyCode)}
                         </TableCell>
                         <TableCell className="px-3 py-3">
                           <span

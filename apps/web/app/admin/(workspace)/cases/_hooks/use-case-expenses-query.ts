@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { casesQueries } from "../_api/cases.query-controller";
 import type { CaseExpensesListResponse, CaseExpenseStatus } from "../_types/cases.types";
 import { useCasesQuery } from "./use-cases-query";
@@ -21,6 +21,10 @@ export function useCaseExpensesQuery({
   const query = useCasesQuery<CaseExpensesListResponse>(
     casesQueries.expenses({ caseId, cursor, limit: caseExpensesPageSize, status, taskId })
   );
+
+  useEffect(() => {
+    setCursorStack([""]);
+  }, [caseId, status, taskId]);
 
   return {
     ...query,

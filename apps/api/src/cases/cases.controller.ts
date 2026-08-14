@@ -266,9 +266,15 @@ export class CasesController {
   createExpense(
     @ActiveTenant() tenantId: string,
     @Param("caseId") caseId: string,
-    @Body() input: CreateCaseExpenseDto
+    @Body() input: CreateCaseExpenseDto,
+    @Req() request: AuthenticatedRequest
   ) {
-    return this.casesService.createExpense(tenantId, caseId, input);
+    return this.casesService.createExpense(
+      tenantId,
+      caseId,
+      request.user?.sub ?? missingAuthenticatedUser(),
+      input
+    );
   }
 
   @Patch(":caseId/expenses/:expenseId")
@@ -278,9 +284,16 @@ export class CasesController {
     @ActiveTenant() tenantId: string,
     @Param("caseId") caseId: string,
     @Param("expenseId") expenseId: string,
-    @Body() input: UpdateCaseExpenseDto
+    @Body() input: UpdateCaseExpenseDto,
+    @Req() request: AuthenticatedRequest
   ) {
-    return this.casesService.updateExpense(tenantId, caseId, expenseId, input);
+    return this.casesService.updateExpense(
+      tenantId,
+      caseId,
+      expenseId,
+      request.user?.sub ?? missingAuthenticatedUser(),
+      input
+    );
   }
 
   @Delete(":caseId/expenses/:expenseId")

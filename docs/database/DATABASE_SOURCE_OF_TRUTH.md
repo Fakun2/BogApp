@@ -41,6 +41,7 @@ los modelos MVP esten completos.
 - `CaseTask` -> `case_tasks`
 - `CaseExpense` -> `case_expenses`
 - `CaseExpenseAttachment` -> `case_expense_attachments`
+- `CaseExpenseCashboxSyncJob` -> `case_expense_cashbox_sync_jobs`
 - `Currency` -> `currencies`
 - `GlobalFinanceCategory` -> `global_finance_categories`
 - `TenantFinanceCategory` -> `tenant_finance_categories`
@@ -89,11 +90,17 @@ Post-MVP o despues del core legal:
 - `case_tasks` representa tareas operativas tenant-scoped asociadas a un
   expediente; no almacena costos contables.
 - `case_expenses` representa gastos tenant-scoped del expediente. Puede
-  asociarse opcionalmente a una tarea mediante `task_id`; las metricas de gastos
-  del expediente se calculan desde esta tabla, excluyendo gastos cancelados.
+  asociarse opcionalmente a una tarea mediante `task_id`; guarda `currency_code`
+  como moneda activa del estudio y las metricas de gastos del expediente se
+  calculan desde esta tabla, excluyendo gastos cancelados.
 - `case_expense_attachments` representa comprobantes privados asociados a gastos.
   Guarda metadata tenant-scoped y el `object_key` del storage S3-compatible; el
   acceso al archivo se resuelve desde API, no exponiendo bucket/key al frontend.
+- `case_expense_cashbox_sync_jobs` es un outbox persistente tenant-scoped para
+  sincronizar gastos pagados con caja. Cada gasto tiene como maximo un job activo
+  por `case_expense_id`; los fallos guardan `last_error`, incrementan
+  `attempts` y quedan disponibles para reintento sin bloquear la edicion del
+  gasto.
 - `ai_chat_runs` registra auditoria minima tenant-scoped de ejecuciones IA.
   Guarda metadata operativa, modelo, herramienta, tokens, estado y error
   normalizado; no guarda prompts ni respuestas completas.
@@ -122,7 +129,9 @@ Post-MVP o despues del core legal:
 - `cashbox_movements` representa los movimientos tenant-scoped de caja
   multimoneda. Ingresos y egresos pueden referenciar categorias globales o del
   estudio mediante validacion de aplicacion; conversiones se guardan como dos
-  movimientos vinculados por `conversion_group_id`.
+  movimientos vinculados por `conversion_group_id`. Los movimientos creados por
+  gastos de expediente guardan `case_expense_id`, se administran desde
+  expedientes y exponen un link de lectura hacia `/admin/cases/[uuid]`.
 - En conversiones, el operador ingresa una cotizacion manual legible, por
   ejemplo `1 USD = 1500 ARS`. La aplicacion calcula la tasa efectiva
   origen-destino y la guarda como snapshot en `cashbox_movements.exchange_rate`;

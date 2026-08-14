@@ -14,6 +14,7 @@ export const emptyCaseExpenseDraft: CaseExpenseFormValues = {
   alertTime: "",
   amount: 0,
   concept: "",
+  currencyCode: "",
   expenseDate: "",
   notes: "",
   paymentDate: "",

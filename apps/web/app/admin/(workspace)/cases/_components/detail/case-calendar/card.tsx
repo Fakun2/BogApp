@@ -38,10 +38,8 @@ export function CaseCalendarCard({
         monthLabel={getMonthLabel(calendar.month)}
         onGoToday={calendar.goToToday}
         onNavigate={calendar.navigateMonth}
-        onSearch={calendar.setSearchQuery}
         onToggleType={calendar.toggleEventType}
         onViewChange={calendar.setView}
-        searchQuery={calendar.searchQuery}
         view={calendar.view}
         visibleTypes={calendar.visibleEventTypes}
       />
