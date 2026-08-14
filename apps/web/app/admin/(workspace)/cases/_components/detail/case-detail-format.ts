@@ -19,9 +19,9 @@ export function formatCaseDateTime(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
-export function formatCaseMoney(value: number) {
+export function formatCaseMoney(value: number, currency = "ARS") {
   return new Intl.NumberFormat("es-AR", {
-    currency: "ARS",
+    currency,
     maximumFractionDigits: 2,
     style: "currency"
   }).format(value);

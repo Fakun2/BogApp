@@ -44,7 +44,7 @@ export function CalendarDayTooltip({
             {event.type === "payment_due" ? (
               <span className="grid justify-items-end gap-0.5 text-right">
                 <span className="text-sm font-semibold text-popover-foreground">
-                  {event.amount ? formatCaseMoney(event.amount) : "Sin monto"}
+                  {event.amount ? formatCaseMoney(event.amount, event.currencyCode) : "Sin monto"}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {event.status === "overdue" ? "Vencido" : "Pendiente"}

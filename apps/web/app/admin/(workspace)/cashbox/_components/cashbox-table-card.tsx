@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Banknote, ChevronLeft, ChevronRight, Columns3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -207,7 +208,20 @@ function renderMovementCell(movement: CashboxMovementDto, column: CashboxColumn)
       <span className="text-muted-foreground">Sin categoria</span>
     ),
     description: (
-      <span className="line-clamp-1 text-muted-foreground">{movement.description ?? "Sin descripcion"}</span>
+      <span className="line-clamp-1 text-muted-foreground">
+        {movement.description ?? "Sin descripcion"}
+        {movement.source ? (
+          <>
+            {" · "}
+            <Link
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+              href={movement.source.href}
+            >
+              Ver expediente
+            </Link>
+          </>
+        ) : null}
+      </span>
     ),
     occurredAt: <span>{new Date(movement.occurredAt).toLocaleString("es-AR")}</span>,
     type: <MovementTypeBadge type={movement.type} />,

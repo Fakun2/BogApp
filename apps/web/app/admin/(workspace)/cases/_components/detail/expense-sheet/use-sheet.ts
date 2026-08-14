@@ -16,6 +16,7 @@ import type { CaseExpenseFieldErrors } from "./types";
 
 export function useCaseExpenseSheet({
   caseId,
+  defaultCurrencyCode,
   defaultDate,
   defaultTaskId,
   expense,
@@ -24,6 +25,7 @@ export function useCaseExpenseSheet({
   open: controlledOpen
 }: {
   caseId: string;
+  defaultCurrencyCode?: string;
   defaultDate?: string;
   defaultTaskId?: string;
   expense?: CaseExpenseDto;
@@ -54,6 +56,7 @@ export function useCaseExpenseSheet({
       ? mapExpenseToDraft(expense)
         : {
           ...emptyCaseExpenseDraft,
+          currencyCode: defaultCurrencyCode ?? emptyCaseExpenseDraft.currencyCode,
           expenseDate: defaultDate ?? emptyCaseExpenseDraft.expenseDate,
           paymentDate: defaultDate ?? emptyCaseExpenseDraft.paymentDate,
           taskId: defaultTaskId ?? ""
@@ -61,7 +64,7 @@ export function useCaseExpenseSheet({
 
     setDraft(nextDraft);
     setAmountText(nextDraft.amount > 0 ? formatCaseExpenseAmountForInput(nextDraft.amount) : "");
-  }, [defaultDate, defaultTaskId, expense, open]);
+  }, [defaultCurrencyCode, defaultDate, defaultTaskId, expense, open]);
 
   function updateDraft<K extends keyof CaseExpenseFormValues>(
     key: K,
@@ -126,6 +129,7 @@ function mapExpenseToDraft(expense: CaseExpenseDto): CaseExpenseFormValues {
     alertTime: alertParts.time,
     amount: expense.amount,
     concept: expense.concept,
+    currencyCode: expense.currencyCode,
     expenseDate: expense.expenseDate,
     notes: expense.notes ?? "",
     paymentDate: expense.paymentDate,

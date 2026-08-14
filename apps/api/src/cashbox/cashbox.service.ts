@@ -76,9 +76,10 @@ export class CashboxService {
     const hasNextPage = items.length > query.limit;
     const pageItems = hasNextPage ? items.slice(0, query.limit) : items;
     const categoryNames = await this.getCategoryNames(tenantId, pageItems);
+    const sources = await this.getCaseExpenseSources(tenantId, pageItems);
 
     return {
-      items: pageItems.map((movement) => toCashboxMovementDto(movement, categoryNames)),
+      items: pageItems.map((movement) => toCashboxMovementDto(movement, categoryNames, sources)),
       pageInfo: {
         hasNextPage,
         limit: query.limit,
@@ -110,7 +111,7 @@ export class CashboxService {
     });
     const categoryNames = await this.getCategoryNames(tenantId, [movement]);
 
-    return toCashboxMovementDto(movement, categoryNames);
+    return toCashboxMovementDto(movement, categoryNames, new Map());
   }
 
   async createConversion(
@@ -171,7 +172,7 @@ export class CashboxService {
     ]);
 
     return {
-      items: items.map((movement) => toCashboxMovementDto(movement, new Map()))
+      items: items.map((movement) => toCashboxMovementDto(movement, new Map(), new Map()))
     };
   }
 
@@ -202,7 +203,7 @@ export class CashboxService {
     });
     const categoryNames = await this.getCategoryNames(tenantId, [movement]);
 
-    return toCashboxMovementDto(movement, categoryNames);
+    return toCashboxMovementDto(movement, categoryNames, new Map());
   }
 
   async deleteMovement(tenantId: string, movementId: string) {
@@ -294,6 +295,7 @@ export class CashboxService {
     const movement = await this.prisma.cashboxMovement.findFirst({
       where: { id: movementId, tenantId },
       select: {
+        caseExpenseId: true,
         id: true,
         type: true
       }
@@ -308,6 +310,10 @@ export class CashboxService {
       movement.type === CashboxMovementType.conversion_out
     ) {
       throw new BadRequestException("Las conversiones no se editan desde acciones de movimiento.");
+    }
+
+    if (movement.caseExpenseId) {
+      throw new BadRequestException("Los movimientos originados en gastos de expediente no se editan desde caja.");
     }
 
     return movement as { id: string; type: "income" | "expense" };
@@ -342,6 +348,44 @@ export class CashboxService {
       ...globalCategories.map((category) => [`global:${category.id}`, category.name] as const),
       ...tenantCategories.map((category) => [`tenant:${category.id}`, category.name] as const)
     ]);
+  }
+
+  private async getCaseExpenseSources(
+    tenantId: string,
+    movements: Array<CashboxMovementWithSelect>
+  ) {
+    const caseExpenseIds = movements
+      .map((movement) => movement.caseExpenseId)
+      .filter((caseExpenseId): caseExpenseId is string => Boolean(caseExpenseId));
+
+    if (caseExpenseIds.length === 0) {
+      return new Map<string, CashboxMovementSource>();
+    }
+
+    const expenses = await this.prisma.caseExpense.findMany({
+      where: {
+        id: { in: caseExpenseIds },
+        tenantId
+      },
+      select: {
+        caseId: true,
+        concept: true,
+        id: true
+      }
+    });
+
+    return new Map(
+      expenses.map((expense) => [
+        expense.id,
+        {
+          caseId: expense.caseId,
+          expenseId: expense.id,
+          href: `/admin/cases/${expense.caseId}`,
+          label: `Expediente - ${expense.concept}`,
+          type: "case_expense" as const
+        }
+      ])
+    );
   }
 
   private async sumMovements(
@@ -443,6 +487,7 @@ const cashboxMovementSelect = {
   amount: true,
   categoryId: true,
   categoryOrigin: true,
+  caseExpenseId: true,
   conversionGroupId: true,
   createdByUser: {
     select: { fullName: true }
@@ -462,6 +507,14 @@ type CashboxMovementWithSelect = Prisma.CashboxMovementGetPayload<{
   select: typeof cashboxMovementSelect;
 }>;
 
+type CashboxMovementSource = {
+  caseId: string;
+  expenseId: string;
+  href: string;
+  label: string;
+  type: "case_expense";
+};
+
 type CashboxCursor = {
   id: string;
   occurredAt: string;
@@ -469,7 +522,8 @@ type CashboxCursor = {
 
 function toCashboxMovementDto(
   movement: CashboxMovementWithSelect,
-  categoryNames: Map<string, string>
+  categoryNames: Map<string, string>,
+  sources: Map<string, CashboxMovementSource>
 ) {
   const categoryKey =
     movement.categoryOrigin && movement.categoryId
@@ -489,6 +543,7 @@ function toCashboxMovementDto(
     exchangeRate: movement.exchangeRate ? decimalToString(movement.exchangeRate, 8) : undefined,
     id: movement.id,
     occurredAt: movement.occurredAt,
+    source: movement.caseExpenseId ? sources.get(movement.caseExpenseId) : undefined,
     type: movement.type
   };
 }

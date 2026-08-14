@@ -546,6 +546,7 @@ export interface CaseCalendarEventDto {
   title: string;
   date: string;
   amount?: number;
+  currencyCode?: string;
   status?: string;
 }
 
@@ -605,6 +606,7 @@ export interface CaseExpenseDto {
   task: CaseExpenseDtoTask;
   concept: string;
   amount: number;
+  currencyCode: string;
   expenseDate: string;
   paymentDate: string;
   status: CaseExpenseDtoStatus;

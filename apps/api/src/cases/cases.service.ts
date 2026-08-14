@@ -254,17 +254,23 @@ export class CasesService {
     return this.caseHearingsUseCase.delete(tenantId, caseId, hearingId);
   }
 
-  async createExpense(tenantId: string, caseId: string, input: CreateCaseExpenseInput) {
-    return this.caseExpensesUseCase.create(tenantId, caseId, input);
+  async createExpense(
+    tenantId: string,
+    caseId: string,
+    actorUserId: string,
+    input: CreateCaseExpenseInput
+  ) {
+    return this.caseExpensesUseCase.create(tenantId, caseId, actorUserId, input);
   }
 
   async updateExpense(
     tenantId: string,
     caseId: string,
     expenseId: string,
+    actorUserId: string,
     input: UpdateCaseExpenseInput
   ) {
-    return this.caseExpensesUseCase.update(tenantId, caseId, expenseId, input);
+    return this.caseExpensesUseCase.update(tenantId, caseId, expenseId, actorUserId, input);
   }
 
   async deleteExpense(tenantId: string, caseId: string, expenseId: string) {

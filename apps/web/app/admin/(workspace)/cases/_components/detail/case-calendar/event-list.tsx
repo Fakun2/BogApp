@@ -154,7 +154,7 @@ function EventListMeta({ event }: { event: CaseCalendarEventDto }) {
   return (
     <span className="flex items-center gap-2 sm:justify-end">
       <span className="text-sm font-semibold text-foreground">
-        {event.amount ? formatCaseMoney(event.amount) : "Sin monto"}
+        {event.amount ? formatCaseMoney(event.amount, event.currencyCode) : "Sin monto"}
       </span>
       <span
         className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${getExpenseStatusClassName(

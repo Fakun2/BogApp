@@ -20,6 +20,11 @@ const optionalPhoneSchema = z.preprocess(
     .regex(/^\d{0,15}$/, "El telefono debe tener solo numeros y maximo 15 digitos.")
     .optional()
 );
+const currencyCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z]{3}$/, "Selecciona una moneda.")
+  .transform((value) => value.toUpperCase());
 
 const optionalUuid = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -90,6 +95,7 @@ export const caseExpenseFormSchema = z
   .object({
     concept: z.string().trim().min(3, "Minimo 3 caracteres.").max(160, "Maximo 160 caracteres."),
     amount: z.coerce.number().min(0.01, "Ingresa un monto mayor a cero."),
+    currencyCode: currencyCodeSchema,
     expenseDate: requiredDateString,
     paymentDate: requiredDateString,
     status: z.enum(["pending", "paid", "cancelled"]),

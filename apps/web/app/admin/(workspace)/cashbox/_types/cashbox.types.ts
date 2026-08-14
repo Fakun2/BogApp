@@ -37,6 +37,13 @@ export type CashboxMovementDto = {
   exchangeRate?: string;
   id: string;
   occurredAt: string;
+  source?: {
+    caseId: string;
+    expenseId: string;
+    href: string;
+    label: string;
+    type: "case_expense";
+  };
   type: CashboxMovementType;
 };
 
