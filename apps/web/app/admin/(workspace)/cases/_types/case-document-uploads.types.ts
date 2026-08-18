@@ -1,6 +1,6 @@
 import type { CaseDocumentDto, DocumentCategoryDto } from "./cases.types";
 
-export type CaseDocumentUploadStatus = "idle" | "uploading" | "done" | "error";
+export type CaseDocumentUploadStatus = "queued" | "uploading" | "done" | "error";
 
 export type PendingCaseDocumentUpload = {
   categoryId?: string;

@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { AuthenticatedRequest } from "../../auth/auth.types";
+import { getPositiveIntegerConfig } from "./upload-rate-limit-config";
 
 type UploadRateLimitEntry = {
   count: number;
@@ -56,12 +57,18 @@ export class CaseExpenseAttachmentUploadRateLimitGuard implements CanActivate {
   }
 
   private getLimit() {
-    return Number(this.config.get<string>("ATTACHMENT_UPLOAD_RATE_LIMIT_MAX") ?? defaultUploadLimit);
+    return getPositiveIntegerConfig(
+      this.config,
+      "ATTACHMENT_UPLOAD_RATE_LIMIT_MAX",
+      defaultUploadLimit
+    );
   }
 
   private getWindowMs() {
-    return Number(
-      this.config.get<string>("ATTACHMENT_UPLOAD_RATE_LIMIT_WINDOW_MS") ?? defaultUploadWindowMs
+    return getPositiveIntegerConfig(
+      this.config,
+      "ATTACHMENT_UPLOAD_RATE_LIMIT_WINDOW_MS",
+      defaultUploadWindowMs
     );
   }
 }

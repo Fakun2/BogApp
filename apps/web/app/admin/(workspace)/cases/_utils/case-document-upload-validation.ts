@@ -19,8 +19,8 @@ export function createPendingDocumentUpload({
   file: File;
   notes?: string;
 }): PendingCaseDocumentUpload {
-  const errorMessage = getClientUploadError(file);
-  const status: CaseDocumentUploadStatus = errorMessage ? "error" : "idle";
+  const errorMessage = getDocumentUploadValidationError(file);
+  const status: CaseDocumentUploadStatus = errorMessage ? "error" : "queued";
 
   return {
     categoryId,
@@ -40,17 +40,11 @@ export function createPendingDocumentUpload({
 }
 
 export function isUploadableDocumentFile(file: File) {
-  return acceptedMimeTypeSet.has(file.type);
+  return !getDocumentUploadValidationError(file);
 }
 
-export function revokeUploadPreviewUrl(upload: Pick<PendingCaseDocumentUpload, "previewUrl">) {
-  if (upload.previewUrl) {
-    URL.revokeObjectURL(upload.previewUrl);
-  }
-}
-
-function getClientUploadError(file: File) {
-  if (!isUploadableDocumentFile(file)) {
+export function getDocumentUploadValidationError(file: File) {
+  if (!acceptedMimeTypeSet.has(file.type)) {
     return "El documento debe ser PDF, imagen, Word, Excel o TXT.";
   }
 
@@ -59,6 +53,12 @@ function getClientUploadError(file: File) {
   }
 
   return undefined;
+}
+
+export function revokeUploadPreviewUrl(upload: Pick<PendingCaseDocumentUpload, "previewUrl">) {
+  if (upload.previewUrl) {
+    URL.revokeObjectURL(upload.previewUrl);
+  }
 }
 
 function createUploadId() {

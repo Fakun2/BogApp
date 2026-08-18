@@ -11,6 +11,7 @@ const tenantB = "22222222-2222-4222-8222-222222222222";
 const caseA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const categoryA = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const userId = "99999999-9999-4999-8999-999999999999";
+const userWithoutMembershipId = "88888888-8888-4888-8888-888888888888";
 
 describe("CaseDocumentsUseCase", () => {
   it("uploads a tenant-scoped document and stores private object metadata", async () => {
@@ -86,6 +87,22 @@ describe("CaseDocumentsUseCase", () => {
     assert.equal(prisma.createdDocuments.length, 1);
   });
 
+  it("rejects uploads from users without active tenant membership before writing storage", async () => {
+    const prisma = makePrisma();
+    const storage = makeStorage();
+    const useCase = new CaseDocumentsUseCase(
+      prisma as unknown as PrismaService,
+      storage as unknown as ObjectStorageService
+    );
+
+    await assert.rejects(
+      () => useCase.create(tenantA, caseA, userWithoutMembershipId, {}, makeFile()),
+      BadRequestException
+    );
+    assert.equal(storage.puts.length, 0);
+    assert.equal(prisma.createdDocuments.length, 0);
+  });
+
   it("allows reuploading an exact duplicate after the previous document is deleted", async () => {
     const prisma = makePrisma();
     const storage = makeStorage();
@@ -135,6 +152,7 @@ describe("CaseDocumentsUseCase", () => {
     assert.deepEqual(result, { status: "ok" });
     assert.equal(prisma.documents[0].deletedAt instanceof Date, true);
     assert.equal(storage.deletes.length, 1);
+    assert.equal(prisma.cleanupJobs[0].status, "completed");
   });
 
   it("removes the uploaded object when metadata creation fails", async () => {
@@ -148,6 +166,43 @@ describe("CaseDocumentsUseCase", () => {
     await assert.rejects(() => useCase.create(tenantA, caseA, userId, {}, makeFile()));
     assert.equal(storage.puts.length, 1);
     assert.equal(storage.deletes.length, 1);
+    assert.equal(prisma.cleanupJobs.length, 0);
+  });
+
+  it("keeps a retryable cleanup job when deleting the stored object fails", async () => {
+    const prisma = makePrisma();
+    const storage = makeStorage({ failDelete: true });
+    const useCase = new CaseDocumentsUseCase(
+      prisma as unknown as PrismaService,
+      storage as unknown as ObjectStorageService
+    );
+
+    const document = await useCase.create(tenantA, caseA, userId, {}, makeFile());
+    await useCase.delete(tenantA, caseA, document.id);
+
+    assert.equal(prisma.documents[0].deletedAt instanceof Date, true);
+    assert.equal(prisma.cleanupJobs.length, 1);
+    assert.equal(prisma.cleanupJobs[0].status, "pending");
+    assert.equal(prisma.cleanupJobs[0].attempts, 1);
+    assert.equal(prisma.cleanupJobs[0].reason, "document_deleted");
+  });
+
+  it("keeps a retryable cleanup job when metadata creation and uploaded object cleanup fail", async () => {
+    const prisma = makePrisma({ failCreate: true });
+    const storage = makeStorage({ failDelete: true });
+    const useCase = new CaseDocumentsUseCase(
+      prisma as unknown as PrismaService,
+      storage as unknown as ObjectStorageService
+    );
+
+    await assert.rejects(() => useCase.create(tenantA, caseA, userId, {}, makeFile()));
+
+    assert.equal(storage.puts.length, 1);
+    assert.equal(storage.deletes.length, 1);
+    assert.equal(prisma.cleanupJobs.length, 1);
+    assert.equal(prisma.cleanupJobs[0].status, "pending");
+    assert.equal(prisma.cleanupJobs[0].attempts, 1);
+    assert.equal(prisma.cleanupJobs[0].reason, "metadata_create_failed");
   });
 });
 
@@ -167,16 +222,21 @@ function makePrisma({ failCreate = false }: { failCreate?: boolean } = {}) {
         tenantId: tenantA
       }
     ],
+    memberships: [{ status: "active", tenantId: tenantA, userId }],
+    cleanupJobs: [] as CleanupJobRecord[],
     createdDocuments: [] as DocumentWriteData[],
     documents: [] as DocumentRecord[]
   };
 
-  return {
+  const client = {
     get createdDocuments() {
       return state.createdDocuments;
     },
     get documents() {
       return state.documents;
+    },
+    get cleanupJobs() {
+      return state.cleanupJobs;
     },
     case: {
       findFirst: async ({ where }: { where: { id: string; tenantId: string } }) =>
@@ -193,6 +253,19 @@ function makePrisma({ failCreate = false }: { failCreate?: boolean } = {}) {
             category.tenantId === where.tenantId
         ) ?? null,
       findMany: async () => state.categories
+    },
+    tenantMembership: {
+      findFirst: async ({
+        where
+      }: {
+        where: { status: "active"; tenantId: string; userId: string };
+      }) =>
+        state.memberships.find(
+          (membership) =>
+            membership.status === where.status &&
+            membership.tenantId === where.tenantId &&
+            membership.userId === where.userId
+        ) ?? null
     },
     document: {
       create: async ({ data }: { data: DocumentWriteData }) => {
@@ -225,11 +298,89 @@ function makePrisma({ failCreate = false }: { failCreate?: boolean } = {}) {
         document.deletedAt = data.deletedAt;
         return document;
       }
+    },
+    documentStorageCleanupJob: {
+      findMany: async ({
+        take,
+        where
+      }: {
+        take: number;
+        where: { nextRunAt: { lte: Date }; status: { in: CleanupJobStatus[] } };
+      }) =>
+        state.cleanupJobs
+          .filter(
+            (job) => job.nextRunAt <= where.nextRunAt.lte && where.status.in.includes(job.status)
+          )
+          .slice(0, take),
+      findUnique: async ({ where }: { where: { id: string } }) =>
+        state.cleanupJobs.find((job) => job.id === where.id) ?? null,
+      update: async ({
+        data,
+        where
+      }: {
+        data: Partial<CleanupJobRecord>;
+        where: { id: string };
+      }) => {
+        const job = state.cleanupJobs.find((item) => item.id === where.id);
+        if (!job) {
+          throw new Error("cleanup job not found");
+        }
+
+        Object.assign(job, data);
+        return job;
+      },
+      upsert: async ({
+        create,
+        update,
+        where
+      }: {
+        create: CleanupJobWriteData;
+        update: Partial<CleanupJobRecord>;
+        where: {
+          storageProvider_bucket_objectKey: {
+            bucket: string;
+            objectKey: string;
+            storageProvider: string;
+          };
+        };
+      }) => {
+        const existingJob = state.cleanupJobs.find(
+          (job) =>
+            job.bucket === where.storageProvider_bucket_objectKey.bucket &&
+            job.objectKey === where.storageProvider_bucket_objectKey.objectKey &&
+            job.storageProvider === where.storageProvider_bucket_objectKey.storageProvider
+        );
+
+        if (existingJob) {
+          Object.assign(existingJob, update);
+          return existingJob;
+        }
+
+        const job: CleanupJobRecord = {
+          attempts: 0,
+          completedAt: null,
+          createdAt: new Date("2026-08-18T12:00:00.000Z"),
+          id: `cleanup-${state.cleanupJobs.length + 1}`,
+          lastError: null,
+          nextRunAt: new Date("2026-08-18T12:00:00.000Z"),
+          status: "pending",
+          updatedAt: new Date("2026-08-18T12:00:00.000Z"),
+          ...create
+        };
+        state.cleanupJobs.push(job);
+        return job;
+      }
     }
   };
+  const transactionalClient = client as typeof client & {
+    $transaction: <T>(callback: (tx: typeof client) => Promise<T>) => Promise<T>;
+  };
+  transactionalClient.$transaction = async (callback) => callback(client);
+
+  return transactionalClient;
 }
 
-function makeStorage() {
+function makeStorage({ failDelete = false }: { failDelete?: boolean } = {}) {
   const state = {
     deletes: [] as string[],
     puts: [] as Array<{ key: string }>
@@ -240,6 +391,9 @@ function makeStorage() {
     puts: state.puts,
     deleteObject: async (key: string) => {
       state.deletes.push(key);
+      if (failDelete) {
+        throw new Error("storage delete failed");
+      }
       return undefined;
     },
     getBucket: () => "bogaap-test",
@@ -285,6 +439,29 @@ type DocumentRecord = DocumentWriteData & {
   category: { description: string | null; id: string; name: string } | null;
   createdAt: Date;
   deletedAt: Date | null;
+};
+
+type CleanupJobStatus = "pending" | "processing" | "completed" | "failed";
+
+type CleanupJobWriteData = {
+  bucket: string;
+  documentId?: string;
+  lastError?: string | null;
+  objectKey: string;
+  reason: "document_deleted" | "metadata_create_failed";
+  storageProvider: string;
+  tenantId: string;
+};
+
+type CleanupJobRecord = CleanupJobWriteData & {
+  attempts: number;
+  completedAt: Date | null;
+  createdAt: Date;
+  id: string;
+  lastError: string | null;
+  nextRunAt: Date;
+  status: CleanupJobStatus;
+  updatedAt: Date;
 };
 
 type DocumentWhere = {

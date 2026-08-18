@@ -25,7 +25,7 @@ export function CaseDocumentUploadItem({
   return (
     <Attachment
       className="w-[280px] rounded-md border-border/50 bg-background"
-      state={upload.status}
+      state={upload.status === "queued" ? "idle" : upload.status}
       size="sm"
     >
       <AttachmentMedia variant={upload.previewUrl ? "image" : "icon"}>
@@ -73,7 +73,7 @@ function uploadStatusLabel(upload: PendingCaseDocumentUpload) {
   const kind = getDocumentKindLabel(upload.mimeType);
   const size = formatDocumentSize(upload.sizeBytes);
 
-  if (upload.status === "idle") {
+  if (upload.status === "queued") {
     return `En cola - ${kind} - ${size}`;
   }
 

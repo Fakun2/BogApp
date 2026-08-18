@@ -67,20 +67,36 @@ export async function uploadCaseDocumentWithProgress({
   categoryId,
   file,
   notes,
-  onProgress
+  onProgress,
+  signal
 }: {
   caseId: string;
   categoryId?: string;
   file: File;
   notes?: string;
   onProgress: (progress: number) => void;
+  signal?: AbortSignal;
 }): Promise<CaseDocumentDto> {
   const body = createCaseDocumentFormData({ categoryId, file, notes });
 
   return new Promise<CaseDocumentDto>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(createAbortError());
+      return;
+    }
+
     const request = new XMLHttpRequest();
     request.open("POST", `/api/cases/${caseId}/documents`);
     request.responseType = "json";
+
+    const removeAbortListener = () => {
+      signal?.removeEventListener("abort", abortRequest);
+    };
+    const abortRequest = () => {
+      request.abort();
+    };
+
+    signal?.addEventListener("abort", abortRequest, { once: true });
 
     request.upload.onprogress = (event) => {
       if (!event.lengthComputable || event.total <= 0) {
@@ -91,6 +107,8 @@ export async function uploadCaseDocumentWithProgress({
     };
 
     request.onload = () => {
+      removeAbortListener();
+
       if (request.status >= 200 && request.status < 300) {
         onProgress(100);
         resolve(request.response as CaseDocumentDto);
@@ -103,11 +121,13 @@ export async function uploadCaseDocumentWithProgress({
     };
 
     request.onerror = () => {
+      removeAbortListener();
       reject(new Error("No se pudo subir el documento."));
     };
 
     request.onabort = () => {
-      reject(new Error("La subida del documento fue cancelada."));
+      removeAbortListener();
+      reject(createAbortError());
     };
 
     request.send(body);
@@ -185,4 +205,10 @@ function getUploadErrorMessageFromBody(body: unknown, status: number, label = "c
   }
 
   return `No se pudo subir el ${label} (${status}).`;
+}
+
+function createAbortError() {
+  const error = new Error("La subida del documento fue cancelada.");
+  error.name = "AbortError";
+  return error;
 }

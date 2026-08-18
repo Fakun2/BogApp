@@ -3,9 +3,11 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException
 } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { DocumentStorageCleanupJobStatus, Prisma } from "@prisma/client";
+import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../../database/prisma.service";
 import { ObjectStorageService } from "../../storage/object-storage.service";
 import type { ListCaseDocumentsQuery, ListDocumentCategoriesQuery } from "../cases.schemas";
@@ -43,15 +45,32 @@ const previewableDocumentMimeTypes = new Set([
 
 const duplicateDocumentMessage = "Este archivo ya fue cargado en el expediente.";
 const activeDocumentChecksumIndexName = "documents_tenant_case_checksum_active_key";
+const cleanupIntervalMs = 30_000;
+const maxCleanupAttempts = 5;
 
 export const maxCaseDocumentSizeBytes = 25 * 1024 * 1024;
 
 @Injectable()
-export class CaseDocumentsUseCase {
+export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(CaseDocumentsUseCase.name);
+  private isCleanupRunning = false;
+  private cleanupTimer: NodeJS.Timeout | null = null;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: ObjectStorageService
   ) {}
+
+  onModuleInit() {
+    this.scheduleNextCleanupRun(1_000);
+  }
+
+  onModuleDestroy() {
+    if (this.cleanupTimer) {
+      clearTimeout(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+  }
 
   async list(tenantId: string, caseId: string, query: ListCaseDocumentsQuery) {
     await this.findTenantCaseOrThrow(tenantId, caseId);
@@ -134,7 +153,12 @@ export class CaseDocumentsUseCase {
     }
 
     validateDocumentFile(file);
-    const normalizedMetadata = await this.validateMetadata(tenantId, caseId, metadata);
+    const normalizedMetadata = await this.validateUploadContext(
+      tenantId,
+      caseId,
+      uploadedByUserId,
+      metadata
+    );
     const documentId = randomUUID();
     const objectKey = buildDocumentObjectKey({
       caseId,
@@ -181,7 +205,13 @@ export class CaseDocumentsUseCase {
 
       return toCaseDocumentDto(document);
     } catch (error) {
-      await this.storage.deleteObject(objectKey).catch(() => undefined);
+      await this.deleteUploadedObjectOrEnqueueCleanup({
+        bucket: this.storage.getBucket(),
+        objectKey,
+        reason: "metadata_create_failed",
+        storageProvider: this.storage.getProvider(),
+        tenantId
+      });
       if (isUniqueDocumentChecksumError(error)) {
         throw new ConflictException(duplicateDocumentMessage);
       }
@@ -202,22 +232,60 @@ export class CaseDocumentsUseCase {
   async delete(tenantId: string, caseId: string, documentId: string) {
     const document = await this.findTenantDocumentOrThrow(tenantId, caseId, documentId);
 
-    await this.prisma.document.update({
-      where: { id: document.id },
-      data: { deletedAt: new Date() }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.document.update({
+        where: { id: document.id },
+        data: { deletedAt: new Date() }
+      });
+      await enqueueDocumentStorageCleanupJob(tx, {
+        bucket: document.bucket,
+        documentId: document.id,
+        objectKey: document.objectKey,
+        reason: "document_deleted",
+        storageProvider: document.storageProvider,
+        tenantId
+      });
     });
-    await this.storage.deleteObject(document.objectKey).catch(() => undefined);
+    await this.processDueCleanupJobs(1);
 
     return { status: "ok" as const };
   }
 
-  private async validateMetadata(
+  async processDueCleanupJobs(limit = 10) {
+    if (this.isCleanupRunning) {
+      return { processed: 0 };
+    }
+
+    this.isCleanupRunning = true;
+
+    try {
+      const jobs = await this.prisma.documentStorageCleanupJob.findMany({
+        where: {
+          nextRunAt: { lte: new Date() },
+          status: {
+            in: [DocumentStorageCleanupJobStatus.pending, DocumentStorageCleanupJobStatus.failed]
+          }
+        },
+        orderBy: [{ nextRunAt: "asc" }, { createdAt: "asc" }],
+        take: limit
+      });
+
+      for (const job of jobs) {
+        await this.processCleanupJob(job.id);
+      }
+
+      return { processed: jobs.length };
+    } finally {
+      this.isCleanupRunning = false;
+    }
+  }
+
+  private async validateUploadContext(
     tenantId: string,
     caseId: string,
+    uploadedByUserId: string,
     metadata: CreateCaseDocumentMetadata
   ) {
-    await this.findTenantCaseOrThrow(tenantId, caseId);
-
     const categoryId = normalizeOptionalUuid(
       metadata.categoryId,
       "La categoria seleccionada no es valida."
@@ -228,16 +296,36 @@ export class CaseDocumentsUseCase {
       "Las notas no pueden superar 500 caracteres."
     );
 
-    if (categoryId) {
-      const category = await this.prisma.documentCategory.findFirst({
-        where: { active: true, id: categoryId, tenantId },
-        select: { id: true }
-      });
+    await this.prisma.$transaction(async (tx) => {
+      const [caseItem, membership, category] = await Promise.all([
+        tx.case.findFirst({
+          where: { id: caseId, tenantId },
+          select: { id: true }
+        }),
+        tx.tenantMembership.findFirst({
+          where: { status: "active", tenantId, userId: uploadedByUserId },
+          select: { id: true }
+        }),
+        categoryId
+          ? tx.documentCategory.findFirst({
+              where: { active: true, id: categoryId, tenantId },
+              select: { id: true }
+            })
+          : Promise.resolve(null)
+      ]);
 
-      if (!category) {
+      if (!caseItem) {
+        throw new NotFoundException("El expediente no existe en el estudio activo.");
+      }
+
+      if (!membership) {
+        throw new BadRequestException("El usuario no tiene una membresia activa en el estudio.");
+      }
+
+      if (categoryId && !category) {
         throw new BadRequestException("La categoria seleccionada no pertenece al estudio activo.");
       }
-    }
+    });
 
     return { categoryId, notes };
   }
@@ -267,6 +355,87 @@ export class CaseDocumentsUseCase {
 
     return document;
   }
+
+  private scheduleNextCleanupRun(delayMs = cleanupIntervalMs) {
+    this.cleanupTimer = setTimeout(() => {
+      void this.runCleanupSoon();
+    }, delayMs);
+    this.cleanupTimer.unref?.();
+  }
+
+  private async runCleanupSoon() {
+    if (this.cleanupTimer) {
+      clearTimeout(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+
+    try {
+      await this.processDueCleanupJobs();
+    } catch (error) {
+      this.logger.error("Document storage cleanup failed.", error);
+    } finally {
+      this.scheduleNextCleanupRun();
+    }
+  }
+
+  private async processCleanupJob(jobId: string) {
+    const job = await this.prisma.documentStorageCleanupJob.findUnique({
+      where: { id: jobId }
+    });
+
+    if (
+      !job ||
+      (job.status !== DocumentStorageCleanupJobStatus.pending &&
+        job.status !== DocumentStorageCleanupJobStatus.failed)
+    ) {
+      return;
+    }
+
+    await this.prisma.documentStorageCleanupJob.update({
+      where: { id: job.id },
+      data: { status: DocumentStorageCleanupJobStatus.processing }
+    });
+
+    try {
+      await this.storage.deleteObject(job.objectKey);
+      await this.prisma.documentStorageCleanupJob.update({
+        where: { id: job.id },
+        data: {
+          completedAt: new Date(),
+          lastError: null,
+          status: DocumentStorageCleanupJobStatus.completed
+        }
+      });
+    } catch (error) {
+      const attempts = job.attempts + 1;
+      const retryDelayMinutes = Math.min(60, 2 ** attempts);
+
+      await this.prisma.documentStorageCleanupJob.update({
+        where: { id: job.id },
+        data: {
+          attempts,
+          lastError: getStorageCleanupErrorMessage(error),
+          nextRunAt: addMinutes(new Date(), retryDelayMinutes),
+          status:
+            attempts >= maxCleanupAttempts
+              ? DocumentStorageCleanupJobStatus.failed
+              : DocumentStorageCleanupJobStatus.pending
+        }
+      });
+    }
+  }
+
+  private async deleteUploadedObjectOrEnqueueCleanup(input: DocumentStorageCleanupJobInput) {
+    try {
+      await this.storage.deleteObject(input.objectKey);
+    } catch (error) {
+      await enqueueDocumentStorageCleanupJob(this.prisma, {
+        ...input,
+        lastError: getStorageCleanupErrorMessage(error)
+      });
+      await this.processDueCleanupJobs(1);
+    }
+  }
 }
 
 const documentCategorySelect = {
@@ -295,8 +464,63 @@ const caseDocumentSelect = {
 
 const caseDocumentWithObjectKeySelect = {
   ...caseDocumentSelect,
-  objectKey: true
+  bucket: true,
+  objectKey: true,
+  storageProvider: true
 } satisfies Prisma.DocumentSelect;
+
+type DocumentStorageCleanupJobInput = {
+  bucket: string;
+  documentId?: string;
+  lastError?: string;
+  objectKey: string;
+  reason: "document_deleted" | "metadata_create_failed";
+  storageProvider: string;
+  tenantId: string;
+};
+
+async function enqueueDocumentStorageCleanupJob(
+  prisma: PrismaService | Prisma.TransactionClient,
+  input: DocumentStorageCleanupJobInput
+) {
+  await prisma.documentStorageCleanupJob.upsert({
+    where: {
+      storageProvider_bucket_objectKey: {
+        bucket: input.bucket,
+        objectKey: input.objectKey,
+        storageProvider: input.storageProvider
+      }
+    },
+    update: {
+      attempts: 0,
+      completedAt: null,
+      documentId: input.documentId,
+      lastError: input.lastError ?? null,
+      nextRunAt: new Date(),
+      reason: input.reason,
+      status: DocumentStorageCleanupJobStatus.pending,
+      tenantId: input.tenantId
+    },
+    create: {
+      bucket: input.bucket,
+      documentId: input.documentId,
+      lastError: input.lastError,
+      objectKey: input.objectKey,
+      reason: input.reason,
+      storageProvider: input.storageProvider,
+      tenantId: input.tenantId
+    }
+  });
+}
+
+function getStorageCleanupErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "Error desconocido";
+  return message.slice(0, 500);
+}
+
+function addMinutes(date: Date, minutes: number) {
+  return new Date(date.getTime() + minutes * 60_000);
+}
 
 type CaseDocumentWithSelect = Prisma.DocumentGetPayload<{
   select: typeof caseDocumentSelect;

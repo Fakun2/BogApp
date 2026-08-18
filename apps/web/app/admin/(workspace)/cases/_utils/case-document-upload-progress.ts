@@ -44,6 +44,33 @@ export function startAvailabilityProgress({
   };
 }
 
-export function delay(durationMs: number) {
-  return new Promise((resolve) => setTimeout(resolve, durationMs));
+export function delay(durationMs: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(createAbortError());
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      signal?.removeEventListener("abort", abortDelay);
+      resolve();
+    }, durationMs);
+
+    const abortDelay = () => {
+      clearTimeout(timeoutId);
+      reject(createAbortError());
+    };
+
+    signal?.addEventListener("abort", abortDelay, { once: true });
+  });
+}
+
+export function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+function createAbortError() {
+  const error = new Error("La subida del documento fue cancelada.");
+  error.name = "AbortError";
+  return error;
 }
