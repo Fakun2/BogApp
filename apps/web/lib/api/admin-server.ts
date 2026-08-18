@@ -1,4 +1,5 @@
 import { getServerAuthSession, toApiUrl } from "@/lib/api/server";
+import { getActiveTenantAccess } from "@/lib/auth/permissions";
 
 export async function requestAdminApiServer<TResponse>(path: string): Promise<TResponse> {
   const session = await getServerAuthSession();
@@ -6,7 +7,7 @@ export async function requestAdminApiServer<TResponse>(path: string): Promise<TR
     throw new Error("No hay sesion activa.");
   }
 
-  const tenantId = session.tenantAccess[0]?.tenantId;
+  const tenantId = getActiveTenantAccess(session)?.tenantId;
   if (!tenantId) {
     throw new Error("No hay un workspace activo para consultar el panel.");
   }

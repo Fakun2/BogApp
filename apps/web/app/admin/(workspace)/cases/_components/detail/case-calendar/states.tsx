@@ -2,16 +2,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function CalendarSkeleton() {
   return (
-    <ul
-      className="grid grid-cols-7 overflow-hidden rounded-xl border-b border-l border-border/35"
-      aria-label="Cargando calendario"
-    >
-      {Array.from({ length: 42 }).map((_, index) => (
-        <li className="h-12 border-r border-t border-border/35 p-1.5" key={index}>
-          <Skeleton className="h-full w-full rounded-lg" />
-        </li>
-      ))}
-    </ul>
+    <div role="status" aria-live="polite">
+      <span className="sr-only">Cargando calendario</span>
+      <ul
+        className="grid grid-cols-7 overflow-hidden rounded-xl border-b border-l border-border/35"
+        aria-hidden="true"
+      >
+        {Array.from({ length: 42 }).map((_, index) => (
+          <li className="h-12 border-r border-t border-border/35 p-1.5" key={index}>
+            <Skeleton className="h-full w-full rounded-lg" />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

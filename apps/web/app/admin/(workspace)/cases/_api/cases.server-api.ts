@@ -1,4 +1,5 @@
 import { getServerAuthSession, toApiUrl } from "@/lib/api/server";
+import { getActiveTenantAccess } from "@/lib/auth/permissions";
 import type { BogaapSession } from "@/lib/auth/session";
 import type {
   CaseDetailDto,
@@ -88,7 +89,7 @@ async function requestCasesServer<TResponse>(path: string): Promise<TResponse> {
     throw new Error("No hay sesion activa.");
   }
 
-  const tenantId = session.tenantAccess[0]?.tenantId;
+  const tenantId = getActiveTenantAccess(session)?.tenantId;
   if (!tenantId) {
     throw new Error("No hay un workspace activo para consultar expedientes.");
   }

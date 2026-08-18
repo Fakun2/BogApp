@@ -23,7 +23,12 @@ export function AdminMetricSkeleton() {
 
 export function AdminMetricsSkeletonGrid({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid shrink-0 grid-cols-2 gap-2 sm:gap-6 lg:grid-cols-4 lg:gap-8">
+    <div
+      className="grid shrink-0 grid-cols-2 gap-2 sm:gap-6 lg:grid-cols-4 lg:gap-8"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="sr-only">Cargando metricas</span>
       {Array.from({ length: count }).map((_, index) => (
         <AdminMetricSkeleton key={index} />
       ))}
@@ -35,8 +40,10 @@ export function AdminListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
       className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-      aria-label="Cargando lista"
+      role="status"
+      aria-live="polite"
     >
+      <span className="sr-only">Cargando lista</span>
       {Array.from({ length: count }).map((_, index) => (
         <Card key={index} className="border-border/40 bg-card">
           <CardContent className="grid gap-4 p-4">
@@ -85,7 +92,12 @@ export function AdminTableBodySkeleton({
   rowCount?: number;
 }) {
   return (
-    <TableBody className="[&_tr:last-child]:border-0">
+    <TableBody
+      className="[&_tr:last-child]:border-0"
+      aria-busy="true"
+      aria-label="Cargando tabla"
+      aria-live="polite"
+    >
       <AdminTableRowsSkeleton columnCount={columnCount} rowCount={rowCount} />
     </TableBody>
   );
