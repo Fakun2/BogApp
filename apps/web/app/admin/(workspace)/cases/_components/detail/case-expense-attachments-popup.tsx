@@ -14,6 +14,7 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCaseExpenseAttachmentDownloadUrl } from "../../_api/cases.api";
 import { casesMutations } from "../../_api/cases.mutation-controller";
 import { adminPrimaryActionButtonClassName } from "../../../_constants/dashboard";
@@ -164,7 +165,7 @@ export function CaseExpenseAttachmentsPopup({
           {attachmentsQuery.isLoading ? (
             <div className="grid gap-2">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div className="h-14 rounded-2xl bg-muted/60" key={index} />
+                <Skeleton className="h-14 rounded-2xl" key={index} />
               ))}
             </div>
           ) : attachmentsQuery.error ? (

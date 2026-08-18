@@ -6,6 +6,7 @@ import { Bar, BarChart, Tooltip, XAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -84,6 +85,7 @@ function CashboxBalanceCard({
   const [visible, setVisible] = useState(true);
   const selectedCode = currencyCode ?? summary?.currency.code ?? "";
   const balance = formatCanonicalMoney(summary?.balance, summary?.currency.symbol);
+  const showSkeleton = loading && !summary;
 
   return (
     <Card
@@ -98,9 +100,13 @@ function CashboxBalanceCard({
               Balance total disponible
             </p>
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2.5">
-              <p className="text-3xl font-semibold leading-none text-foreground md:text-4xl">
-                {loading ? "$ ..." : visible ? balance : "$ ****"}
-              </p>
+              {showSkeleton ? (
+                <Skeleton className="h-9 w-44 md:h-10 md:w-56" />
+              ) : (
+                <p className="text-3xl font-semibold leading-none text-foreground md:text-4xl">
+                  {visible ? balance : "$ ****"}
+                </p>
+              )}
               <Button
                 type="button"
                 variant="secondary"
@@ -127,7 +133,13 @@ function CashboxBalanceCard({
           </Select>
         </div>
         <div className="text-sm text-muted-foreground">
-          {summary?.currency.code ? `Caja en ${summary.currency.code}` : "Selecciona una moneda"}
+          {showSkeleton ? (
+            <Skeleton className="h-4 w-28" />
+          ) : summary?.currency.code ? (
+            `Caja en ${summary.currency.code}`
+          ) : (
+            "Selecciona una moneda"
+          )}
         </div>
       </CardContent>
     </Card>
@@ -151,11 +163,10 @@ function CashboxFlowMetricCard({
 }) {
   const Icon = tone === "income" ? ArrowUpRight : ArrowDownLeft;
   const accentClassName =
-    tone === "income"
-      ? "bg-primary text-primary-foreground"
-      : "bg-destructive text-white";
+    tone === "income" ? "bg-primary text-primary-foreground" : "bg-destructive text-white";
   const strokeColor = tone === "income" ? "var(--primary)" : "var(--destructive)";
   const chartData = useMemo(() => buildCashboxMetricChartData(hourly, tone), [hourly, tone]);
+  const showSkeleton = loading && !amount;
 
   return (
     <Card
@@ -165,37 +176,47 @@ function CashboxFlowMetricCard({
       <CardContent className="grid h-full grid-cols-[1fr_auto] gap-x-3 gap-y-1.5 p-4">
         <div className="min-w-0">
           <p className="text-sm font-medium text-muted-foreground md:text-base">{title}</p>
-          <p className="mt-1 text-xl font-semibold text-foreground">
-            {loading ? "$ ..." : formatCanonicalMoney(amount, symbol)}
-          </p>
+          {showSkeleton ? (
+            <Skeleton className="mt-2 h-6 w-28" />
+          ) : (
+            <p className="mt-1 text-xl font-semibold text-foreground">
+              {formatCanonicalMoney(amount, symbol)}
+            </p>
+          )}
         </div>
-        <div className={`flex h-9 w-9 items-center justify-center rounded-[8px] ${accentClassName}`}>
+        <div
+          className={`flex h-9 w-9 items-center justify-center rounded-[8px] ${accentClassName}`}
+        >
           <Icon className="h-5 w-5" />
         </div>
         <div className="col-span-2 h-14">
-          <ChartContainer config={cashboxMetricChartConfig} className="h-full w-full">
-            <BarChart data={chartData} margin={{ bottom: 0, left: 0, right: 0, top: 3 }}>
-              <XAxis
-                axisLine={false}
-                dataKey="hour"
-                interval={3}
-                tickLine={false}
-                tickMargin={3}
-                tick={{ fill: "currentColor", fontSize: 10 }}
-                className="text-muted-foreground"
-              />
-              <Tooltip
-                content={<CashboxMetricTooltip symbol={symbol} title={title} />}
-                cursor={{ fill: "color-mix(in oklab, var(--muted) 45%, transparent)" }}
-              />
-              <Bar
-                dataKey="value"
-                fill={strokeColor}
-                isAnimationActive={false}
-                radius={[3, 3, 0, 0]}
-              />
-            </BarChart>
-          </ChartContainer>
+          {showSkeleton ? (
+            <Skeleton className="h-full w-full" />
+          ) : (
+            <ChartContainer config={cashboxMetricChartConfig} className="h-full w-full">
+              <BarChart data={chartData} margin={{ bottom: 0, left: 0, right: 0, top: 3 }}>
+                <XAxis
+                  axisLine={false}
+                  dataKey="hour"
+                  interval={3}
+                  tickLine={false}
+                  tickMargin={3}
+                  tick={{ fill: "currentColor", fontSize: 10 }}
+                  className="text-muted-foreground"
+                />
+                <Tooltip
+                  content={<CashboxMetricTooltip symbol={symbol} title={title} />}
+                  cursor={{ fill: "color-mix(in oklab, var(--muted) 45%, transparent)" }}
+                />
+                <Bar
+                  dataKey="value"
+                  fill={strokeColor}
+                  isAnimationActive={false}
+                  radius={[3, 3, 0, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -223,7 +244,9 @@ function CashboxMetricTooltip({
     <div className="rounded-[8px] border border-border/40 bg-popover px-3 py-2 text-xs shadow-[var(--admin-card-shadow)]">
       <p className="font-medium text-foreground">{title}</p>
       <p className="mt-1 text-muted-foreground">{item.hour}:00 hs</p>
-      <p className="mt-1 font-semibold text-foreground">{formatCanonicalMoney(item.amount, symbol)}</p>
+      <p className="mt-1 font-semibold text-foreground">
+        {formatCanonicalMoney(item.amount, symbol)}
+      </p>
     </div>
   );
 }

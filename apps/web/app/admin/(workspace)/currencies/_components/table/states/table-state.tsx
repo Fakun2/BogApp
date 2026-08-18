@@ -1,4 +1,5 @@
 import type { CurrencyDto } from "../../../_types/currencies.types";
+import { AdminTableRowsSkeleton } from "../../../../_components/admin-skeletons";
 import { StateRow } from "./state-row";
 
 export function CurrencyTableState({
@@ -13,7 +14,7 @@ export function CurrencyTableState({
   loading: boolean;
 }) {
   if (loading && currencies.length === 0) {
-    return <StateRow columnCount={columnCount} fill message="Cargando monedas..." />;
+    return <AdminTableRowsSkeleton columnCount={columnCount} rowCount={8} />;
   }
 
   if (error) {

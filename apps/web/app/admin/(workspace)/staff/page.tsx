@@ -3,6 +3,7 @@
 import { RestrictedStaff } from "./_components/access/restricted-staff";
 import { StaffMetrics } from "./_components/metrics/staff-metrics";
 import { StaffTableCard } from "./_components/table/staff-table-card";
+import { AdminMetricsSkeletonGrid } from "../_components/admin-skeletons";
 import { useStaffPageState } from "./_hooks/use-staff-page-state";
 import { useStaffQuery } from "./_hooks/use-staff-query";
 import { staffTablePageSize } from "./_constants/staff.constants";
@@ -26,7 +27,11 @@ export default function StaffPage() {
   return (
     <RequirePermission permissions={["staff:read"]} fallback={<RestrictedStaff />}>
       <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-3 overflow-hidden md:h-[calc(100svh-112px)] md:gap-4">
-        <StaffMetrics staffData={staffQuery.data} />
+        {staffQuery.isLoading && !staffQuery.data ? (
+          <AdminMetricsSkeletonGrid />
+        ) : (
+          <StaffMetrics staffData={staffQuery.data} />
+        )}
 
         <StaffTableCard
           canManageStaff={staffQuery.canCreateStaff}

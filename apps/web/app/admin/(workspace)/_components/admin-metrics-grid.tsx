@@ -2,9 +2,16 @@ import type { LucideIcon } from "lucide-react";
 import { AdminMetricCard } from "./admin-metric-card";
 
 export type AdminMetricItem = {
+  badge?: string;
+  detail?: string;
   icon: LucideIcon;
   label: string;
-  value: number | string;
+  loading?: boolean;
+  tooltipItems?: Array<{
+    label: string;
+    value: number | string;
+  }>;
+  value?: number | string;
 };
 
 export function AdminMetricsGrid({ metrics }: { metrics: AdminMetricItem[] }) {
@@ -14,7 +21,11 @@ export function AdminMetricsGrid({ metrics }: { metrics: AdminMetricItem[] }) {
         <AdminMetricCard
           icon={metric.icon}
           key={metric.label}
+          badge={metric.badge}
+          detail={metric.detail}
           label={metric.label}
+          loading={metric.loading}
+          tooltipItems={metric.tooltipItems}
           value={metric.value}
         />
       ))}

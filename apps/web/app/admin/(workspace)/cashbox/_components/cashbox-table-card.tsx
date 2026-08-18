@@ -15,9 +15,17 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import { AdminTableHeader } from "../../_components/admin-table-header";
 import { AdminTableHeaderActionButton } from "../../_components/admin-table-header-action-button";
+import { AdminTableRowsSkeleton } from "../../_components/admin-skeletons";
 import { Can } from "../../_components/auth";
 import { adminSurfaceClassName } from "../../_constants/dashboard";
 import type { CurrencyDto } from "../../currencies/_types/currencies.types";
@@ -95,7 +103,11 @@ export function CashboxTableCard({
               className="cashbox-date-input h-9 w-[150px] border-border/40 bg-card"
             />
             <Can permissions={["finance:create"]}>
-              <CashboxMovementDialog currencyCode={currencyCode} mode="income" onSuccess={onMutationSuccess} />
+              <CashboxMovementDialog
+                currencyCode={currencyCode}
+                mode="income"
+                onSuccess={onMutationSuccess}
+              />
               <CashboxMovementDialog
                 currencyCode={currencyCode}
                 currentBalance={selectedBalance}
@@ -155,8 +167,10 @@ function CashboxTable({
   const hasState = loading || Boolean(error) || movements.length === 0;
 
   return (
-    <div className={`min-h-0 flex-1 ${hasState ? "overflow-hidden" : "overflow-auto"} [scrollbar-gutter:stable]`}>
-      <Table className={`${loading ? "h-full" : ""} min-w-full text-xs`}>
+    <div
+      className={`min-h-0 flex-1 ${hasState ? "overflow-hidden" : "overflow-auto"} [scrollbar-gutter:stable]`}
+    >
+      <Table className="min-w-full text-xs">
         <TableHeader className="sticky top-0 z-10 bg-[color-mix(in_oklab,var(--muted)_28%,transparent)]">
           <TableRow className="border-border/40 hover:bg-transparent">
             {visibleColumns.map((column) => (
@@ -166,12 +180,14 @@ function CashboxTable({
             ))}
           </TableRow>
         </TableHeader>
-        <TableBody className={loading ? "h-full" : ""}>
-          {hasState ? (
-            <TableRow className={`${loading ? "block h-full" : ""} hover:bg-transparent`}>
-              <TableCell colSpan={visibleColumns.length} className={`${loading ? "block h-full" : ""} p-0`}>
+        <TableBody>
+          {loading ? (
+            <AdminTableRowsSkeleton columnCount={visibleColumns.length} rowCount={6} />
+          ) : hasState ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={visibleColumns.length} className="p-0">
                 <div className="flex h-full min-h-44 items-center justify-center px-6 text-center text-sm text-muted-foreground">
-                  {loading ? "Cargando caja..." : error ? error.message : "Todavia no hay movimientos para esta moneda y dia."}
+                  {error ? error.message : "Todavia no hay movimientos para esta moneda y dia."}
                 </div>
               </TableCell>
             </TableRow>
@@ -307,10 +323,18 @@ function CashboxPagination({
         {pageRowsLength === 0 ? "0 resultados" : `${pageRowsLength} resultados en esta pagina`}
       </p>
       <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" className="h-8 border-border/50 px-2.5" disabled={pageIndex === 0} onClick={onPreviousPage}>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-8 border-border/50 px-2.5"
+          disabled={pageIndex === 0}
+          onClick={onPreviousPage}
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <span className="min-w-16 text-center text-xs text-muted-foreground">Pagina {pageIndex + 1}</span>
+        <span className="min-w-16 text-center text-xs text-muted-foreground">
+          Pagina {pageIndex + 1}
+        </span>
         <Button
           type="button"
           variant="outline"

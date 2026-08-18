@@ -2,20 +2,21 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminMetricsGrid } from "./_components/admin-metrics-grid";
+import { AdminDashboardMetrics } from "./_components/admin-dashboard-metrics";
+import { getAdminDashboardMetricsServer } from "./_api/dashboard.server-api";
 import {
-  adminMetrics,
   adminQuickLinks,
   adminSurfaceClassName,
   adminSurfacePrimaryClassName,
   adminWorkspaceStatus
 } from "./_constants/dashboard";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const initialMetrics = await getInitialDashboardMetrics();
+
   return (
     <div className="grid gap-6">
-
-      <AdminMetricsGrid metrics={adminMetrics} />
+      <AdminDashboardMetrics initialMetrics={initialMetrics} />
       <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
         <Card
           data-admin-surface
@@ -34,15 +35,20 @@ export default function AdminPage() {
                 <span>
                   <span className={`block font-medium ${adminSurfacePrimaryClassName}`}>
                     {link.label}
+                    {link.status === "soon" ? (
+                      <Badge
+                        variant="secondary"
+                        className="ml-2 align-middle text-[10px] uppercase"
+                      >
+                        Soon
+                      </Badge>
+                    ) : null}
                   </span>
                   <span className="mt-1 block text-xs text-muted-foreground">
                     {link.description}
                   </span>
                 </span>
-                <ArrowRight
-                  className="h-4 w-4 text-muted-foreground"
-                  aria-hidden="true"
-                />
+                <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </Link>
             ))}
           </CardContent>
@@ -67,4 +73,12 @@ export default function AdminPage() {
       </section>
     </div>
   );
+}
+
+async function getInitialDashboardMetrics() {
+  try {
+    return await getAdminDashboardMetricsServer();
+  } catch {
+    return null;
+  }
 }

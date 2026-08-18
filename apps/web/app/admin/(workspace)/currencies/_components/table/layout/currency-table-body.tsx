@@ -7,11 +7,10 @@ import { CurrencyTableState } from "../states/table-state";
 export function CurrencyTableBody() {
   const { currencies, error, hasState, loading, pageRows, table } = useCurrencyTableContext();
   const columnCount = table.getVisibleFlatColumns().length;
-  const shouldFillState = loading && currencies.length === 0;
 
   return (
-    <Table className={`${shouldFillState ? "block" : ""} h-full min-w-full text-xs`}>
-      <TableBody className={`${shouldFillState ? "block" : ""} h-full [&_tr:last-child]:border-0`}>
+    <Table className="h-full min-w-full text-xs">
+      <TableBody className="h-full [&_tr:last-child]:border-0">
         <CurrencyTableState
           columnCount={columnCount}
           currencies={currencies}

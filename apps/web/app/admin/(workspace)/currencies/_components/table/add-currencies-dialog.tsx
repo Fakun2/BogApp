@@ -13,8 +13,16 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
+import { AdminTableRowsSkeleton } from "../../../_components/admin-skeletons";
 import { availableCurrenciesLimit } from "../../_constants/currency.constants";
 import {
   useAddTenantCurrenciesMutation,
@@ -35,7 +43,8 @@ export function AddCurrenciesDialog({ onSuccess }: { onSuccess: () => void }) {
   const currencies = availableQuery.data?.items ?? [];
   const selectedCount = selectedCodes.length;
   const selectedCodesSet = useMemo(() => new Set(selectedCodes), [selectedCodes]);
-  const allSelected = currencies.length > 0 && currencies.every((currency) => selectedCodesSet.has(currency.code));
+  const allSelected =
+    currencies.length > 0 && currencies.every((currency) => selectedCodesSet.has(currency.code));
   const someSelected = currencies.some((currency) => selectedCodesSet.has(currency.code));
 
   function toggleCurrency(code: string) {
@@ -167,10 +176,13 @@ function AvailableCurrenciesTable({
 }) {
   if (loading) {
     return (
-      <StateBox
-        icon={<Loader2 className="h-4 w-4 animate-spin" />}
-        text="Cargando monedas..."
-      />
+      <div className="h-full max-h-[46svh] overflow-hidden">
+        <Table>
+          <TableBody>
+            <AdminTableRowsSkeleton columnCount={4} rowCount={availableCurrenciesLimit} />
+          </TableBody>
+        </Table>
+      </div>
     );
   }
 
