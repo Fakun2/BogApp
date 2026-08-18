@@ -12,8 +12,10 @@ import type {
   CreateCaseInput,
   CreateCaseTaskInput,
   CaseCalendarQuery,
+  ListCaseDocumentsQuery,
   ListCaseExpenseAttachmentsQuery,
   ListCaseExpensesQuery,
+  ListDocumentCategoriesQuery,
   ListCaseHearingsQuery,
   ListCaseTasksQuery,
   ListCasesQuery,
@@ -26,6 +28,11 @@ import {
   CaseExpenseAttachmentsUseCase,
   type UploadedCaseExpenseAttachmentFile
 } from "./use-cases/case-expense-attachments.use-case";
+import {
+  CaseDocumentsUseCase,
+  type CreateCaseDocumentMetadata,
+  type UploadedCaseDocumentFile
+} from "./use-cases/case-documents.use-case";
 import { CaseExpensesUseCase } from "./use-cases/case-expenses.use-case";
 import { CaseHearingsUseCase } from "./use-cases/case-hearings.use-case";
 import { CaseTasksUseCase } from "./use-cases/case-tasks.use-case";
@@ -36,6 +43,7 @@ export class CasesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly caseExpenseAttachmentsUseCase: CaseExpenseAttachmentsUseCase,
+    private readonly caseDocumentsUseCase: CaseDocumentsUseCase,
     private readonly caseExpensesUseCase: CaseExpensesUseCase,
     private readonly expenseOverdueUseCase: ExpenseOverdueUseCase,
     private readonly caseHearingsUseCase: CaseHearingsUseCase,
@@ -231,6 +239,32 @@ export class CasesService {
     permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
   ) {
     return this.caseExpensesUseCase.calendar(tenantId, caseId, query, permissions);
+  }
+
+  async listDocumentCategories(tenantId: string, query: ListDocumentCategoriesQuery) {
+    return this.caseDocumentsUseCase.listCategories(tenantId, query);
+  }
+
+  async listDocuments(tenantId: string, caseId: string, query: ListCaseDocumentsQuery) {
+    return this.caseDocumentsUseCase.list(tenantId, caseId, query);
+  }
+
+  async createDocument(
+    tenantId: string,
+    caseId: string,
+    uploadedByUserId: string,
+    metadata: CreateCaseDocumentMetadata,
+    file?: UploadedCaseDocumentFile
+  ) {
+    return this.caseDocumentsUseCase.create(tenantId, caseId, uploadedByUserId, metadata, file);
+  }
+
+  async readDocumentObject(tenantId: string, caseId: string, documentId: string) {
+    return this.caseDocumentsUseCase.readObject(tenantId, caseId, documentId);
+  }
+
+  async deleteDocument(tenantId: string, caseId: string, documentId: string) {
+    return this.caseDocumentsUseCase.delete(tenantId, caseId, documentId);
   }
 
   async listHearings(tenantId: string, caseId: string, query: ListCaseHearingsQuery) {

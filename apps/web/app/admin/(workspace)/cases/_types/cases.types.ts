@@ -129,6 +129,23 @@ export type CaseExpenseAttachmentDto = {
   createdAt: string;
 };
 
+export type DocumentCategoryDto = {
+  id: string;
+  name: string;
+  description: string | null;
+};
+
+export type CaseDocumentDto = {
+  id: string;
+  caseId: string;
+  category: DocumentCategoryDto | null;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  notes: string | null;
+  createdAt: string;
+};
+
 export type CaseHearingDto = {
   id: string;
   caseId: string;
@@ -231,6 +248,28 @@ export type CaseCalendarResponseDto = {
 
 export type CaseExpenseAttachmentsListResponse = {
   items: CaseExpenseAttachmentDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
+export type CaseDocumentsListResponse = {
+  items: CaseDocumentDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
+export type DocumentCategoriesListResponse = {
+  items: DocumentCategoryDto[];
   pageInfo: {
     hasNextPage: boolean;
     limit: number;

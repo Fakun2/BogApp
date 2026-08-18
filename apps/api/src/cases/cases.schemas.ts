@@ -210,6 +210,18 @@ export const listCaseExpenseAttachmentsQuerySchema = z.object({
   cursor: optionalTrimmedString
 });
 
+export const listCaseDocumentsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(8).default(8),
+  cursor: optionalTrimmedString,
+  categoryId: optionalUuid
+});
+
+export const listDocumentCategoriesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(50),
+  cursor: optionalTrimmedString,
+  active: z.coerce.boolean().optional()
+});
+
 export const caseCalendarQuerySchema = z.object({
   month: monthStringSchema,
   mode: z.enum(["month", "list"]).default("month"),
@@ -224,6 +236,10 @@ export class ListCaseHearingsQueryDto extends createZodDto(listCaseHearingsQuery
 export class ListCaseTasksQueryDto extends createZodDto(listCaseTasksQuerySchema) {}
 export class ListCaseExpenseAttachmentsQueryDto extends createZodDto(
   listCaseExpenseAttachmentsQuerySchema
+) {}
+export class ListCaseDocumentsQueryDto extends createZodDto(listCaseDocumentsQuerySchema) {}
+export class ListDocumentCategoriesQueryDto extends createZodDto(
+  listDocumentCategoriesQuerySchema
 ) {}
 export class CaseCalendarQueryDto extends createZodDto(caseCalendarQuerySchema) {}
 export class CreateCaseDto extends createZodDto(createCaseSchema) {}
@@ -440,6 +456,54 @@ export class CaseExpenseAttachmentDto {
 
   @ApiProperty({ format: "date-time" })
   createdAt!: string;
+}
+
+export class DocumentCategoryDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ example: "Escritos" })
+  name!: string;
+
+  @ApiProperty({ nullable: true, type: String })
+  description!: string | null;
+}
+
+export class CaseDocumentDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ format: "uuid" })
+  caseId!: string;
+
+  @ApiProperty({ nullable: true, type: DocumentCategoryDto })
+  category!: DocumentCategoryDto | null;
+
+  @ApiProperty({ example: "demanda.pdf" })
+  originalName!: string;
+
+  @ApiProperty({ example: "application/pdf" })
+  mimeType!: string;
+
+  @ApiProperty({ example: 245760 })
+  sizeBytes!: number;
+
+  @ApiProperty({ nullable: true, type: String })
+  notes!: string | null;
+
+  @ApiProperty({ format: "date-time" })
+  createdAt!: string;
+}
+
+export class CreateCaseDocumentBodyDto {
+  @ApiProperty({ type: "string", format: "binary" })
+  file!: unknown;
+
+  @ApiPropertyOptional({ format: "uuid" })
+  categoryId?: string;
+
+  @ApiPropertyOptional()
+  notes?: string;
 }
 
 export class CaseExpenseDto {
@@ -676,6 +740,22 @@ export class CaseExpenseAttachmentsListResponseDto {
   pageInfo!: CasesPageInfoDto;
 }
 
+export class CaseDocumentsListResponseDto {
+  @ApiProperty({ type: [CaseDocumentDto] })
+  items!: CaseDocumentDto[];
+
+  @ApiProperty({ type: CasesPageInfoDto })
+  pageInfo!: CasesPageInfoDto;
+}
+
+export class DocumentCategoriesListResponseDto {
+  @ApiProperty({ type: [DocumentCategoryDto] })
+  items!: DocumentCategoryDto[];
+
+  @ApiProperty({ type: CasesPageInfoDto })
+  pageInfo!: CasesPageInfoDto;
+}
+
 export class CasesListResponseDto {
   @ApiProperty({ type: [CaseDto] })
   items!: CaseDto[];
@@ -694,6 +774,8 @@ export type ListCaseExpensesQuery = z.infer<typeof listCaseExpensesQuerySchema>;
 export type ListCaseHearingsQuery = z.infer<typeof listCaseHearingsQuerySchema>;
 export type ListCaseTasksQuery = z.infer<typeof listCaseTasksQuerySchema>;
 export type ListCaseExpenseAttachmentsQuery = z.infer<typeof listCaseExpenseAttachmentsQuerySchema>;
+export type ListCaseDocumentsQuery = z.infer<typeof listCaseDocumentsQuerySchema>;
+export type ListDocumentCategoriesQuery = z.infer<typeof listDocumentCategoriesQuerySchema>;
 export type CaseCalendarQuery = z.infer<typeof caseCalendarQuerySchema>;
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;
 export type UpdateCaseInput = z.infer<typeof updateCaseSchema>;

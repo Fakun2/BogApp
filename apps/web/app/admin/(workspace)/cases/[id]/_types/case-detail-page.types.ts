@@ -8,9 +8,11 @@ export type CaseDetailPermissions = {
   canDeleteHearing: boolean;
   canDeleteTask: boolean;
   canReadExpense: boolean;
+  canReadDocument: boolean;
   canReadHearing: boolean;
   canReadCase: boolean;
   canUseCaseAi: boolean;
+  canWriteDocument: boolean;
   canUpdateExpense: boolean;
   canUpdateHearing: boolean;
   canUpdateTask: boolean;

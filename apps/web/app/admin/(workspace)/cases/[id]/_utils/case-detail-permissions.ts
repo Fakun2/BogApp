@@ -10,9 +10,11 @@ export function getCaseDetailPermissions(session: CaseDetailSession): CaseDetail
     canDeleteHearing: hasPermission(session, "hearings:delete"),
     canDeleteTask: hasPermission(session, "tasks:delete"),
     canReadCase: hasPermission(session, "cases:read"),
+    canReadDocument: hasPermission(session, "documents:read"),
     canReadExpense: hasPermission(session, "expenses:read"),
     canReadHearing: hasPermission(session, "hearings:read"),
     canUseCaseAi: hasPermission(session, "ai:case_chat"),
+    canWriteDocument: hasPermission(session, "documents:write"),
     canUpdateExpense: hasPermission(session, "expenses:update"),
     canUpdateHearing: hasPermission(session, "hearings:update"),
     canUpdateTask: hasPermission(session, "tasks:update")

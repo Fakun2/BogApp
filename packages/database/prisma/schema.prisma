@@ -184,6 +184,8 @@ model Tenant {
   caseExpenseCashboxSyncJobs CaseExpenseCashboxSyncJob[]
   caseHearings               CaseHearing[]
   expenseAttachments         CaseExpenseAttachment[]
+  documentCategories         DocumentCategory[]
+  documents                  Document[]
   aiChatRuns                 AiChatRun[]
   aiLegalDocuments           AiLegalDocument[]
   aiLegalVersions            AiLegalDocumentVersion[]
@@ -212,6 +214,7 @@ model User {
   status                     UserStatus                  @default(active)
   memberships                TenantMembership[]
   expenseAttachments         CaseExpenseAttachment[]
+  documents                  Document[]
   cashboxMovements           CashboxMovement[]
   aiChatRuns                 AiChatRun[]
   createdAt                  DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -443,6 +446,7 @@ model Case {
   expenses              CaseExpense[]
   hearings              CaseHearing[]
   expenseAttachments    CaseExpenseAttachment[]
+  documents             Document[]
   aiChatRuns            AiChatRun[]
 
   @@unique([tenantId, caseNumber])
@@ -457,6 +461,58 @@ model Case {
   @@index([practiceAreaId])
   @@index([responsibleMembershipId])
   @@map("cases")
+}
+
+model DocumentCategory {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  name         String
+  description  String?
+  active       Boolean   @default(true)
+  displayOrder Int       @default(0) @map("display_order")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents Document[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, active, displayOrder])
+  @@map("document_categories")
+}
+
+model Document {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  caseId           String    @map("case_id") @db.Uuid
+  categoryId       String?   @map("category_id") @db.Uuid
+  uploadedByUserId String    @map("uploaded_by_user_id") @db.Uuid
+  storageProvider  String    @map("storage_provider")
+  bucket           String
+  objectKey        String    @map("object_key")
+  originalName     String    @map("original_name")
+  mimeType         String    @map("mime_type")
+  sizeBytes        Int       @map("size_bytes")
+  checksum         String?
+  notes            String?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case           Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  category       DocumentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  uploadedByUser User              @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([categoryId])
+  @@index([uploadedByUserId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, caseId, createdAt])
+  @@index([tenantId, categoryId])
+  @@index([tenantId, deletedAt])
+  @@map("documents")
 }
 
 model AiChatRun {

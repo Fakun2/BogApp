@@ -1,6 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
 import type {
   CaseCalendarResponseDto,
+  CaseDocumentsListResponse,
   CaseExpenseAttachmentsListResponse,
   CaseExpenseDto,
   CaseExpenseStatus,
@@ -11,6 +12,7 @@ import type {
   CasesListResponse,
   CasesQueryParams,
   CatalogResponse,
+  DocumentCategoriesListResponse,
   TaskAssigneeOption
 } from "../_types/cases.types";
 import {
@@ -26,6 +28,7 @@ import {
   listCatalogOptions,
   listTaskAssignees
 } from "./cases.api";
+import { listCaseDocuments, listDocumentCategories } from "./case-documents.api";
 
 export type CasesQuerySpec<TData> = {
   enabled?: boolean;
@@ -174,6 +177,42 @@ export const casesQueries = {
       permission: "cases:read",
       queryKey: caseKeys.calendar(caseId, params),
       queryFn: () => getCaseCalendar({ caseId, ...params })
+    };
+  },
+
+  documentCategories({
+    enabled = true
+  }: { enabled?: boolean } = {}): CasesQuerySpec<DocumentCategoriesListResponse> {
+    const params = { active: true, limit: 50 };
+
+    return {
+      enabled,
+      permission: "documents:read",
+      queryKey: caseKeys.documentCategories(params),
+      queryFn: () => listDocumentCategories(params)
+    };
+  },
+
+  documents({
+    caseId,
+    categoryId,
+    cursor,
+    enabled = true,
+    limit
+  }: {
+    caseId: string;
+    categoryId?: string;
+    cursor?: string;
+    enabled?: boolean;
+    limit: number;
+  }): CasesQuerySpec<CaseDocumentsListResponse> {
+    const params = { categoryId, cursor, limit };
+
+    return {
+      enabled,
+      permission: "documents:read",
+      queryKey: caseKeys.documents(caseId, params),
+      queryFn: () => listCaseDocuments({ caseId, ...params })
     };
   },
 

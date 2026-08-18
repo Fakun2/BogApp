@@ -36,8 +36,7 @@ export const caseKeys = {
   expenses: (
     caseId: string,
     params?: { cursor?: string; limit?: number; status?: CaseExpenseStatus; taskId?: string }
-  ) =>
-    [...caseKeys.detail(caseId), "expenses", params ?? {}] as const,
+  ) => [...caseKeys.detail(caseId), "expenses", params ?? {}] as const,
   expense: (caseId: string, expenseId: string) =>
     [...caseKeys.detail(caseId), "expenses", expenseId] as const,
   hearings: (caseId: string, params?: { cursor?: string; limit?: number }) =>
@@ -52,8 +51,11 @@ export const caseKeys = {
       month: string;
       types?: string;
     }
-  ) =>
-    [...caseKeys.detail(caseId), "calendar", params] as const,
+  ) => [...caseKeys.detail(caseId), "calendar", params] as const,
+  documents: (caseId: string, params?: { categoryId?: string; cursor?: string; limit?: number }) =>
+    [...caseKeys.detail(caseId), "documents", params ?? {}] as const,
+  documentCategories: (params?: { active?: boolean; cursor?: string; limit?: number }) =>
+    ["document-categories", params ?? {}] as const,
   expenseAttachments: (
     caseId: string,
     expenseId: string,
@@ -408,7 +410,7 @@ export function getCaseExpenseAttachmentDownloadUrl({
   return `/api/cases/${caseId}/expenses/${expenseId}/attachments/${attachmentId}/download`;
 }
 
-async function getUploadErrorMessage(response: Response) {
+async function getUploadErrorMessage(response: Response, label = "comprobante") {
   const body = (await response.json().catch(() => null)) as { message?: unknown } | null;
   if (typeof body?.message === "string") {
     return body.message;
@@ -418,5 +420,5 @@ async function getUploadErrorMessage(response: Response) {
     return body.message.join(" ");
   }
 
-  return `No se pudo subir el comprobante (${response.status}).`;
+  return `No se pudo subir el ${label} (${response.status}).`;
 }

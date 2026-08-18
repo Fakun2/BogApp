@@ -13,8 +13,8 @@ import {
   Res,
   StreamableFile,
   UploadedFile,
-  UseInterceptors,
-  UseGuards
+  UseGuards,
+  UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -32,12 +32,15 @@ import { Permissions } from "../auth/permissions.decorator";
 import { PermissionsGuard } from "../auth/permissions.guard";
 import { ActiveTenant } from "../tenancy/active-tenant.decorator";
 import { TenantGuard } from "../tenancy/tenant.guard";
+import { CaseDocumentUploadRateLimitGuard } from "./guards/case-document-upload-rate-limit.guard";
 import { CaseExpenseAttachmentUploadRateLimitGuard } from "./guards/case-expense-attachment-upload-rate-limit.guard";
 import {
-  CaseDetailDto,
-  CaseDeleteResponseDto,
   CaseCalendarQueryDto,
   CaseCalendarResponseDto,
+  CaseDetailDto,
+  CaseDeleteResponseDto,
+  CaseDocumentDto,
+  CaseDocumentsListResponseDto,
   CaseDto,
   CaseExpenseAttachmentDto,
   CaseExpenseAttachmentsListResponseDto,
@@ -52,10 +55,12 @@ import {
   CaseTasksListResponseDto,
   CasesListResponseDto,
   CreateCaseDto,
+  CreateCaseDocumentBodyDto,
   CreateCaseExpenseDto,
   CreateCaseHearingDto,
   CreateCaseTaskDto,
   ListCaseExpenseAttachmentsQueryDto,
+  ListCaseDocumentsQueryDto,
   ListCaseExpensesQueryDto,
   ListCaseHearingsQueryDto,
   ListCaseTasksQueryDto,
@@ -66,6 +71,10 @@ import {
   UpdateCaseTaskDto
 } from "./cases.schemas";
 import { CasesService } from "./cases.service";
+import {
+  isPreviewableDocumentMimeType,
+  maxCaseDocumentSizeBytes
+} from "./use-cases/case-documents.use-case";
 import { maxCaseExpenseAttachmentSizeBytes } from "./use-cases/case-expense-attachments.use-case";
 
 @ApiTags("cases")
@@ -176,6 +185,113 @@ export class CasesController {
       canReadHearings: tenantPermissions.has("hearings:read"),
       canReadTasks: tenantPermissions.has("tasks:read")
     });
+  }
+
+  @Get(":caseId/documents")
+  @Permissions("cases:read", "documents:read")
+  @ApiOkResponse({ type: CaseDocumentsListResponseDto })
+  listDocuments(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Query() query: ListCaseDocumentsQueryDto
+  ) {
+    return this.casesService.listDocuments(tenantId, caseId, query);
+  }
+
+  @Post(":caseId/documents")
+  @Permissions("cases:read", "documents:write")
+  @UseGuards(CaseDocumentUploadRateLimitGuard)
+  @UseInterceptors(
+    FileInterceptor("file", {
+      limits: { fileSize: maxCaseDocumentSizeBytes }
+    })
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({ type: CreateCaseDocumentBodyDto })
+  @ApiCreatedResponse({ type: CaseDocumentDto })
+  createDocument(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Req() request: AuthenticatedRequest,
+    @Body() body: { categoryId?: string; notes?: string },
+    @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string; size: number }
+  ) {
+    return this.casesService.createDocument(
+      tenantId,
+      caseId,
+      request.user?.sub ?? missingAuthenticatedUser(),
+      body,
+      file
+    );
+  }
+
+  @Get(":caseId/documents/:documentId/preview")
+  @Permissions("cases:read", "documents:read")
+  async previewDocument(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("documentId") documentId: string,
+    @Res({ passthrough: true })
+    response: {
+      setHeader: (name: string, value: string | number) => void;
+    }
+  ) {
+    const { document, object } = await this.casesService.readDocumentObject(
+      tenantId,
+      caseId,
+      documentId
+    );
+
+    response.setHeader("Content-Type", object.contentType ?? document.mimeType);
+    if (object.contentLength !== undefined) {
+      response.setHeader("Content-Length", object.contentLength);
+    }
+    response.setHeader(
+      "Content-Disposition",
+      `${isPreviewableDocumentMimeType(document.mimeType) ? "inline" : "attachment"}; filename="${toDownloadFilename(document.originalName)}"`
+    );
+
+    return new StreamableFile(object.body);
+  }
+
+  @Get(":caseId/documents/:documentId/download")
+  @Permissions("cases:read", "documents:read")
+  async downloadDocument(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("documentId") documentId: string,
+    @Res({ passthrough: true })
+    response: {
+      setHeader: (name: string, value: string | number) => void;
+    }
+  ) {
+    const { document, object } = await this.casesService.readDocumentObject(
+      tenantId,
+      caseId,
+      documentId
+    );
+
+    response.setHeader("Content-Type", object.contentType ?? document.mimeType);
+    if (object.contentLength !== undefined) {
+      response.setHeader("Content-Length", object.contentLength);
+    }
+    response.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${toDownloadFilename(document.originalName)}"`
+    );
+
+    return new StreamableFile(object.body);
+  }
+
+  @Delete(":caseId/documents/:documentId")
+  @Permissions("cases:read", "documents:write")
+  @ApiOkResponse({ type: CaseDeleteResponseDto })
+  deleteDocument(
+    @ActiveTenant() tenantId: string,
+    @Param("caseId") caseId: string,
+    @Param("documentId") documentId: string
+  ) {
+    return this.casesService.deleteDocument(tenantId, caseId, documentId);
   }
 
   @Get(":caseId/hearings")
