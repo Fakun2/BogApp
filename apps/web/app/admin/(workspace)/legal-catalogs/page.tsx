@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Gavel,
-  Loader2,
   MapPinned,
   XCircle
 } from "lucide-react";
@@ -21,7 +20,9 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { UnauthorizedState } from "@/components/ui/not-found";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AdminMetricsGrid } from "../_components/admin-metrics-grid";
+import { AdminMetricsSkeletonGrid } from "../_components/admin-skeletons";
 import { AdminTableHeader } from "../_components/admin-table-header";
 import { AdminTableHeaderActionButton } from "../_components/admin-table-header-action-button";
 import { RequirePermission } from "../_components/auth";
@@ -84,25 +85,30 @@ export default function LegalCatalogsPage() {
       fallback={<RestrictedLegalCatalogs />}
     >
       <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-2 overflow-hidden md:h-[calc(100svh-112px)] md:gap-3">
-        <AdminMetricsGrid
-          metrics={[
-            {
-              icon: Gavel,
-              label: "Fueros encontrados",
-              value: forumsQuery.data?.pageInfo.total ?? 0
-            },
-            {
-              icon: MapPinned,
-              label: "Provincias activas",
-              value: provincesQuery.data?.pageInfo.total ?? 0
-            },
-            {
-              icon: Building2,
-              label: "Items por pagina",
-              value: currentPageInfo?.limit ?? catalogPageSize
-            }
-          ]}
-        />
+        {(forumsQuery.isLoading && !forumsQuery.data) ||
+        (provincesQuery.isLoading && !provincesQuery.data) ? (
+          <AdminMetricsSkeletonGrid count={3} />
+        ) : (
+          <AdminMetricsGrid
+            metrics={[
+              {
+                icon: Gavel,
+                label: "Fueros encontrados",
+                value: forumsQuery.data?.pageInfo.total ?? 0
+              },
+              {
+                icon: MapPinned,
+                label: "Provincias activas",
+                value: provincesQuery.data?.pageInfo.total ?? 0
+              },
+              {
+                icon: Building2,
+                label: "Items por pagina",
+                value: currentPageInfo?.limit ?? catalogPageSize
+              }
+            ]}
+          />
+        )}
 
         <Card
           data-admin-surface
@@ -285,13 +291,9 @@ function CatalogFilters({
             <DropdownMenuContent align="end" className="max-h-72 w-64">
               <DropdownMenuRadioGroup
                 value={provinceId || "__all__"}
-                onValueChange={(value) =>
-                  onProvinceChange(value === "__all__" ? "" : value)
-                }
+                onValueChange={(value) => onProvinceChange(value === "__all__" ? "" : value)}
               >
-                <DropdownMenuRadioItem value="__all__">
-                  Todas las provincias
-                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="__all__">Todas las provincias</DropdownMenuRadioItem>
                 {provinceOptions.map((province) => (
                   <DropdownMenuRadioItem key={province.id} value={province.id}>
                     {province.name}
@@ -330,10 +332,7 @@ function CatalogTable({
       </div>
       <div className="h-full min-h-0 overflow-hidden">
         {loading ? (
-          <StateBox
-            icon={<Loader2 className="h-4 w-4 animate-spin" />}
-            text="Cargando catalogo..."
-          />
+          <CatalogRowsSkeleton />
         ) : error ? (
           <StateBox icon={<XCircle className="h-4 w-4" />} text={error.message} tone="error" />
         ) : rows.length === 0 ? (
@@ -352,14 +351,12 @@ function CatalogTable({
                 ))}
               </div>
             ))}
-            {Array.from({ length: Math.max(0, catalogPageSize - rows.length) }).map(
-              (_, index) => (
-                <div
-                  key={`filler-${index}`}
-                  className="min-h-12 border-b border-border/10 last:border-b-0"
-                />
-              )
-            )}
+            {Array.from({ length: Math.max(0, catalogPageSize - rows.length) }).map((_, index) => (
+              <div
+                key={`filler-${index}`}
+                className="min-h-12 border-b border-border/10 last:border-b-0"
+              />
+            ))}
           </div>
         )}
       </div>
@@ -471,5 +468,24 @@ function RestrictedLegalCatalogs() {
       title="Catalogos restringidos"
       description="Necesitas permisos adicionales para acceder al area de catalogos legales."
     />
+  );
+}
+
+function CatalogRowsSkeleton() {
+  return (
+    <div className="h-full overflow-hidden" aria-label="Cargando catalogo">
+      {Array.from({ length: catalogPageSize }).map((_, rowIndex) => (
+        <div
+          key={rowIndex}
+          className="grid min-h-12 grid-cols-4 items-center border-b border-border/20 text-sm last:border-b-0"
+        >
+          {Array.from({ length: 4 }).map((__, cellIndex) => (
+            <div key={cellIndex} className="min-w-0 px-2 py-2 md:px-3">
+              <Skeleton className={cellIndex === 0 ? "h-4 w-36" : "h-4 w-24"} />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }

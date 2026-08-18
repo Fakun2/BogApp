@@ -1,4 +1,5 @@
 import type { StaffWorker } from "../../../_types/staff.types";
+import { AdminTableRowsSkeleton } from "../../../../_components/admin-skeletons";
 import { StateRow } from "./state-row";
 
 export function TableState({
@@ -13,7 +14,7 @@ export function TableState({
   workers: StaffWorker[];
 }) {
   if (loading && workers.length === 0) {
-    return <StateRow columnCount={columnCount} message="Cargando trabajadores..." />;
+    return <AdminTableRowsSkeleton columnCount={columnCount} rowCount={8} />;
   }
 
   if (error) {

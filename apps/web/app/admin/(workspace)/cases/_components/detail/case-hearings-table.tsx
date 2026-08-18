@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { AdminTableHeader } from "../../../_components/admin-table-header";
 import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
+import { AdminTableBodySkeleton } from "../../../_components/admin-skeletons";
 import { adminSurfaceClassName } from "../../../_constants/dashboard";
 import { caseHearingTypeLabels } from "../../_constants/cases.constants";
 import { useCaseHearingsQuery } from "../../_hooks/use-case-hearings-query";
@@ -46,11 +47,7 @@ export function CaseHearingsTable({
             <CaseHearingSheet
               caseId={caseId}
               trigger={
-                <AdminTableHeaderActionButton
-                  icon={Plus}
-                  label="Nueva audiencia"
-                  tone="primary"
-                />
+                <AdminTableHeaderActionButton icon={Plus} label="Nueva audiencia" tone="primary" />
               }
             />
           ) : null
@@ -144,7 +141,7 @@ function HearingsTableBody({
   permissionDenied: boolean;
 }) {
   if (isLoading) {
-    return <MessageBody columnCount={columnCount} message="Cargando audiencias..." />;
+    return <AdminTableBodySkeleton columnCount={columnCount} rowCount={4} />;
   }
 
   if (errorMessage) {
@@ -163,9 +160,7 @@ function HearingsTableBody({
   }
 
   if (!hearings.length) {
-    return (
-      <MessageBody columnCount={columnCount} message="Todavia no hay audiencias cargadas." />
-    );
+    return <MessageBody columnCount={columnCount} message="Todavia no hay audiencias cargadas." />;
   }
 
   return (
@@ -178,9 +173,7 @@ function HearingsTableBody({
           <TableCell className="px-3 py-3">
             {formatHearingDate(hearing.date)} · {hearing.time}
           </TableCell>
-          <TableCell className="max-w-[360px] truncate px-3 py-3">
-            {hearing.description}
-          </TableCell>
+          <TableCell className="max-w-[360px] truncate px-3 py-3">{hearing.description}</TableCell>
           <TableCell className="px-3 py-3">
             <Badge variant="outline" className="gap-1 rounded-lg">
               {hearing.notificationsEnabled ? (

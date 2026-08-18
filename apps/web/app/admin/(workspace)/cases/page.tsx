@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { hasPermission } from "@/lib/auth/permissions";
 import { RestrictedCases } from "./_components/access/restricted-cases";
+import { AdminMetricsSkeletonGrid } from "../_components/admin-skeletons";
 import { CaseMetrics } from "./_components/metrics/case-metrics";
 import { CasesTableCard } from "./_components/table/cases-table-card";
 import { CasesTableSkeleton } from "./_components/table/cases-table-skeleton";
@@ -124,30 +125,8 @@ async function loadCasesPage(params: CasesQueryParams) {
 function CasesPageSkeleton() {
   return (
     <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-3 overflow-hidden md:h-[calc(100svh-112px)] md:gap-4">
-      <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricSkeleton />
-        <MetricSkeleton />
-        <MetricSkeleton />
-        <MetricSkeleton />
-      </div>
+      <AdminMetricsSkeletonGrid />
       <CasesTableSkeleton />
-    </div>
-  );
-}
-
-function MetricSkeleton() {
-  return (
-    <div
-      data-admin-surface
-      className="rounded-xl border-0 bg-card p-2 shadow-[var(--admin-card-shadow)] sm:p-4"
-    >
-      <div className="flex min-h-[70px] items-center gap-2 sm:min-h-[72px] sm:gap-4">
-        <div className="size-9 animate-pulse rounded-xl bg-muted sm:size-10 sm:rounded-2xl" />
-        <div className="grid gap-2">
-          <div className="h-3 w-20 animate-pulse rounded-md bg-muted sm:w-28" />
-          <div className="h-5 w-10 animate-pulse rounded-md bg-muted sm:h-6 sm:w-14" />
-        </div>
-      </div>
     </div>
   );
 }

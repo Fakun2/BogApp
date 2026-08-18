@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export function CalendarSkeleton() {
   return (
     <ul
@@ -5,7 +7,9 @@ export function CalendarSkeleton() {
       aria-label="Cargando calendario"
     >
       {Array.from({ length: 42 }).map((_, index) => (
-        <li className="h-12 border-r border-t border-border/35 bg-muted/40" key={index} />
+        <li className="h-12 border-r border-t border-border/35 p-1.5" key={index}>
+          <Skeleton className="h-full w-full rounded-lg" />
+        </li>
       ))}
     </ul>
   );

@@ -1,15 +1,20 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export function PaidExpensesPopupSkeleton() {
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/40" aria-label="Cargando gastos pagados">
-      <div className="h-10 bg-[color-mix(in_oklab,var(--muted)_28%,transparent)]" />
+    <section
+      className="overflow-hidden rounded-2xl border border-border/40"
+      aria-label="Cargando gastos pagados"
+    >
+      <Skeleton className="h-10 rounded-none bg-[color-mix(in_oklab,var(--muted)_28%,transparent)]" />
       {Array.from({ length: 4 }).map((_, index) => (
         <div
           className="grid h-14 grid-cols-3 gap-4 border-t border-border/30 px-4 py-3"
           key={index}
         >
-          <div className="h-4 rounded bg-muted/60" />
-          <div className="h-4 rounded bg-muted/60" />
-          <div className="h-4 rounded-full bg-muted/60" />
+          <Skeleton className="h-4" />
+          <Skeleton className="h-4" />
+          <Skeleton className="h-4 rounded-full" />
         </div>
       ))}
     </section>

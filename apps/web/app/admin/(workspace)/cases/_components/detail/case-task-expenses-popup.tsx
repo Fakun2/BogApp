@@ -13,6 +13,7 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -126,10 +127,10 @@ export function CaseTaskExpensesPopup({
                     className="grid h-14 grid-cols-[1fr_120px_120px_56px] gap-4 border-t border-border/30 px-3 py-3"
                     key={index}
                   >
-                    <div className="h-4 rounded bg-muted/60" />
-                    <div className="h-4 rounded bg-muted/60" />
-                    <div className="h-4 rounded-full bg-muted/60" />
-                    <div className="h-4 rounded bg-muted/60" />
+                    <Skeleton className="h-4" />
+                    <Skeleton className="h-4" />
+                    <Skeleton className="h-4 rounded-full" />
+                    <Skeleton className="h-4" />
                   </div>
                 ))}
               </div>

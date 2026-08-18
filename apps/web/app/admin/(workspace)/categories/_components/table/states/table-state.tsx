@@ -1,4 +1,5 @@
 import type { CategoryDto } from "../../../_types/categories.types";
+import { AdminTableRowsSkeleton } from "../../../../_components/admin-skeletons";
 import { StateRow } from "./state-row";
 
 export function CategoryTableState({
@@ -13,7 +14,7 @@ export function CategoryTableState({
   loading: boolean;
 }) {
   if (loading && categories.length === 0) {
-    return <StateRow columnCount={columnCount} fill message="Cargando categorias..." />;
+    return <AdminTableRowsSkeleton columnCount={columnCount} rowCount={8} />;
   }
 
   if (error) {

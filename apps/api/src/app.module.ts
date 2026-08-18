@@ -8,6 +8,7 @@ import { CashboxModule } from "./cashbox/cashbox.module";
 import { CategoriesModule } from "./categories/categories.module";
 import { CasesModule } from "./cases/cases.module";
 import { CurrenciesModule } from "./currencies/currencies.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 import { DatabaseModule } from "./database/database.module";
 import { HealthModule } from "./health/health.module";
 import { IdentityModule } from "./identity/identity.module";
@@ -41,6 +42,7 @@ import { TenancyModule } from "./tenancy/tenancy.module";
     CategoriesModule,
     CasesModule,
     CurrenciesModule,
+    DashboardModule,
     ForumsModule,
     JudicialCentersModule,
     StaffModule,

@@ -7,11 +7,10 @@ import { CategoryTableState } from "../states/table-state";
 export function CategoryTableBody() {
   const { categories, error, hasState, loading, pageRows, table } = useCategoryTableContext();
   const columnCount = table.getVisibleFlatColumns().length;
-  const shouldFillState = loading && categories.length === 0;
 
   return (
-    <Table className={`${shouldFillState ? "block" : ""} h-full min-w-full text-xs`}>
-      <TableBody className={`${shouldFillState ? "block" : ""} h-full [&_tr:last-child]:border-0`}>
+    <Table className="h-full min-w-full text-xs">
+      <TableBody className="h-full [&_tr:last-child]:border-0">
         <CategoryTableState
           categories={categories}
           columnCount={columnCount}

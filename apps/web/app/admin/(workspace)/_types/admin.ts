@@ -32,16 +32,23 @@ export type AdminHeaderProps = {
 };
 
 export type AdminMetric = {
-  detail: string;
+  badge?: string;
+  detail?: string;
   icon: LucideIcon;
   label: string;
-  value: string;
+  loading?: boolean;
+  tooltipItems?: Array<{
+    label: string;
+    value: number | string;
+  }>;
+  value?: number | string;
 };
 
 export type AdminQuickLink = {
   description: string;
   href: string;
   label: string;
+  status?: "ready" | "soon";
 };
 
 export type AdminCommandItem = {

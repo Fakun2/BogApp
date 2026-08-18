@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -18,13 +19,13 @@ export function CasesTableSkeleton() {
     >
       <CardHeader className="flex shrink-0 flex-col gap-3 border-b border-border/30 px-4 py-3 md:px-4 md:py-3 lg:flex-row lg:items-center lg:justify-between xl:px-5 xl:py-4">
         <div className="grid gap-2">
-          <SkeletonBlock className="h-6 w-36" />
-          <SkeletonBlock className="h-4 w-80 max-w-[70vw]" />
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="h-4 w-80 max-w-[70vw]" />
         </div>
         <div className="flex gap-2">
-          <SkeletonBlock className="h-10 w-56" />
-          <SkeletonBlock className="h-10 w-28" />
-          <SkeletonBlock className="h-10 w-28" />
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-28" />
         </div>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col overflow-visible px-3 md:px-4 lg:overflow-hidden">
@@ -34,7 +35,7 @@ export function CasesTableSkeleton() {
               <TableRow className="hover:bg-transparent">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <TableHead className="h-10 px-3" key={`case-skeleton-head-${index}`}>
-                    <SkeletonBlock className="h-4 w-20" />
+                    <Skeleton className="h-4 w-20" />
                   </TableHead>
                 ))}
               </TableRow>
@@ -43,8 +44,11 @@ export function CasesTableSkeleton() {
               {Array.from({ length: casesPageSize }).map((_, rowIndex) => (
                 <TableRow className="h-16 border-border/40" key={`case-skeleton-row-${rowIndex}`}>
                   {Array.from({ length: 5 }).map((__, cellIndex) => (
-                    <TableCell className="h-16 px-3 py-2" key={`case-skeleton-cell-${rowIndex}-${cellIndex}`}>
-                      <SkeletonBlock className={cellIndex === 1 ? "h-5 w-44" : "h-5 w-24"} />
+                    <TableCell
+                      className="h-16 px-3 py-2"
+                      key={`case-skeleton-cell-${rowIndex}-${cellIndex}`}
+                    >
+                      <Skeleton className={cellIndex === 1 ? "h-5 w-44" : "h-5 w-24"} />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -53,14 +57,10 @@ export function CasesTableSkeleton() {
           </Table>
         </div>
         <div className="flex h-14 shrink-0 items-center justify-between border-t border-border/40 px-1">
-          <SkeletonBlock className="h-4 w-32" />
-          <SkeletonBlock className="h-8 w-36" />
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-8 w-36" />
         </div>
       </CardContent>
     </Card>
   );
-}
-
-function SkeletonBlock({ className }: { className: string }) {
-  return <div className={`animate-pulse rounded-md bg-muted ${className}`} />;
 }

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { AdminTableHeader } from "../../../_components/admin-table-header";
 import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
+import { AdminTableBodySkeleton } from "../../../_components/admin-skeletons";
 import { adminSurfaceClassName } from "../../../_constants/dashboard";
 import { casesQueries } from "../../_api/cases.query-controller";
 import { caseExpenseStatusLabels } from "../../_constants/cases.constants";
@@ -215,19 +216,7 @@ function CaseExpensesTableBody({
   tasks: CaseTaskDto[];
 }) {
   if (isLoading) {
-    return (
-      <TableBody className="[&_tr:last-child]:border-0">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <TableRow className="h-16 border-border/40" key={index}>
-            {Array.from({ length: columnCount }).map((__, cellIndex) => (
-              <TableCell className="px-3 py-3" key={cellIndex}>
-                <div className="h-4 rounded bg-muted/60" />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    );
+    return <AdminTableBodySkeleton columnCount={columnCount} rowCount={4} />;
   }
 
   if (errorMessage) {
