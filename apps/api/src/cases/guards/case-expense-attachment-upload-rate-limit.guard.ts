@@ -7,7 +7,11 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { AuthenticatedRequest } from "../../auth/auth.types";
-import { getPositiveIntegerConfig } from "./upload-rate-limit-config";
+import {
+  formatRateLimitWindow,
+  getPositiveIntegerConfig,
+  getRetryAfterSeconds
+} from "./upload-rate-limit-config";
 
 type UploadRateLimitEntry = {
   count: number;
@@ -43,9 +47,16 @@ export class CaseExpenseAttachmentUploadRateLimitGuard implements CanActivate {
     uploadCounters.set(key, entry);
 
     if (entry.count > limit) {
+      const retryAfterSeconds = getRetryAfterSeconds(entry.resetAt, now);
+      context
+        .switchToHttp()
+        .getResponse<{ setHeader: (name: string, value: number) => void }>()
+        .setHeader("Retry-After", retryAfterSeconds);
+
       throw new HttpException(
         {
-          message: `Puedes subir hasta ${limit} comprobantes por minuto.`,
+          message: `Puedes subir hasta ${limit} comprobantes cada ${formatRateLimitWindow(windowMs)}.`,
+          retryAfterSeconds,
           statusCode: HttpStatus.TOO_MANY_REQUESTS
         },
         HttpStatus.TOO_MANY_REQUESTS

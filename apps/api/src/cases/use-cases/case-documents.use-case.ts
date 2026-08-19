@@ -10,18 +10,17 @@ import { DocumentStorageCleanupJobStatus, Prisma } from "@prisma/client";
 import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../../database/prisma.service";
 import { ObjectStorageService } from "../../storage/object-storage.service";
-import type { ListCaseDocumentsQuery, ListDocumentCategoriesQuery } from "../cases.schemas";
+import type {
+  CreateCaseDocumentInput,
+  ListCaseDocumentsQuery,
+  ListDocumentCategoriesQuery
+} from "../cases.schemas";
 
 export type UploadedCaseDocumentFile = {
   buffer: Buffer;
   mimetype: string;
   originalname: string;
   size: number;
-};
-
-export type CreateCaseDocumentMetadata = {
-  categoryId?: string;
-  notes?: string;
 };
 
 const allowedDocumentMimeTypes = new Set([
@@ -47,6 +46,7 @@ const duplicateDocumentMessage = "Este archivo ya fue cargado en el expediente."
 const activeDocumentChecksumIndexName = "documents_tenant_case_checksum_active_key";
 const cleanupIntervalMs = 30_000;
 const maxCleanupAttempts = 5;
+const cleanupProcessingTimeoutMs = 10 * 60_000;
 
 export const maxCaseDocumentSizeBytes = 25 * 1024 * 1024;
 
@@ -145,7 +145,7 @@ export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
     tenantId: string,
     caseId: string,
     uploadedByUserId: string,
-    metadata: CreateCaseDocumentMetadata,
+    metadata: CreateCaseDocumentInput,
     file?: UploadedCaseDocumentFile
   ) {
     if (!file) {
@@ -251,6 +251,34 @@ export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
     return { status: "ok" as const };
   }
 
+  async enqueueCleanupForCaseDeletion(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    caseId: string
+  ) {
+    const documents = await tx.document.findMany({
+      where: { caseId, tenantId },
+      select: {
+        bucket: true,
+        id: true,
+        objectKey: true,
+        storageProvider: true
+      }
+    });
+
+    for (const document of documents) {
+      await enqueueDocumentStorageCleanupJob(tx, {
+        bucket: document.bucket,
+        objectKey: document.objectKey,
+        reason: "case_deleted",
+        storageProvider: document.storageProvider,
+        tenantId
+      });
+    }
+
+    return { enqueued: documents.length };
+  }
+
   async processDueCleanupJobs(limit = 10) {
     if (this.isCleanupRunning) {
       return { processed: 0 };
@@ -259,6 +287,7 @@ export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
     this.isCleanupRunning = true;
 
     try {
+      await this.recoverStaleCleanupJobs();
       const jobs = await this.prisma.documentStorageCleanupJob.findMany({
         where: {
           nextRunAt: { lte: new Date() },
@@ -284,7 +313,7 @@ export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
     tenantId: string,
     caseId: string,
     uploadedByUserId: string,
-    metadata: CreateCaseDocumentMetadata
+    metadata: CreateCaseDocumentInput
   ) {
     const categoryId = normalizeOptionalUuid(
       metadata.categoryId,
@@ -379,22 +408,29 @@ export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
   }
 
   private async processCleanupJob(jobId: string) {
+    const now = new Date();
+    const claimed = await this.prisma.documentStorageCleanupJob.updateMany({
+      where: {
+        id: jobId,
+        nextRunAt: { lte: now },
+        status: {
+          in: [DocumentStorageCleanupJobStatus.pending, DocumentStorageCleanupJobStatus.failed]
+        }
+      },
+      data: { status: DocumentStorageCleanupJobStatus.processing }
+    });
+
+    if (claimed.count !== 1) {
+      return;
+    }
+
     const job = await this.prisma.documentStorageCleanupJob.findUnique({
       where: { id: jobId }
     });
 
-    if (
-      !job ||
-      (job.status !== DocumentStorageCleanupJobStatus.pending &&
-        job.status !== DocumentStorageCleanupJobStatus.failed)
-    ) {
+    if (!job || job.status !== DocumentStorageCleanupJobStatus.processing) {
       return;
     }
-
-    await this.prisma.documentStorageCleanupJob.update({
-      where: { id: job.id },
-      data: { status: DocumentStorageCleanupJobStatus.processing }
-    });
 
     try {
       await this.storage.deleteObject(job.objectKey);
@@ -423,6 +459,19 @@ export class CaseDocumentsUseCase implements OnModuleInit, OnModuleDestroy {
         }
       });
     }
+  }
+
+  private async recoverStaleCleanupJobs() {
+    await this.prisma.documentStorageCleanupJob.updateMany({
+      where: {
+        status: DocumentStorageCleanupJobStatus.processing,
+        updatedAt: { lt: new Date(Date.now() - cleanupProcessingTimeoutMs) }
+      },
+      data: {
+        nextRunAt: new Date(),
+        status: DocumentStorageCleanupJobStatus.pending
+      }
+    });
   }
 
   private async deleteUploadedObjectOrEnqueueCleanup(input: DocumentStorageCleanupJobInput) {
@@ -474,7 +523,7 @@ type DocumentStorageCleanupJobInput = {
   documentId?: string;
   lastError?: string;
   objectKey: string;
-  reason: "document_deleted" | "metadata_create_failed";
+  reason: "case_deleted" | "document_deleted" | "metadata_create_failed";
   storageProvider: string;
   tenantId: string;
 };

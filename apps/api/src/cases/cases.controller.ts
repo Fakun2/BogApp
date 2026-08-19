@@ -213,7 +213,7 @@ export class CasesController {
     @ActiveTenant() tenantId: string,
     @Param("caseId") caseId: string,
     @Req() request: AuthenticatedRequest,
-    @Body() body: { categoryId?: string; notes?: string },
+    @Body() body: CreateCaseDocumentBodyDto,
     @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string; size: number }
   ) {
     return this.casesService.createDocument(

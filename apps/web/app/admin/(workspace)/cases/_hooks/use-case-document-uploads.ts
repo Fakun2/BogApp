@@ -111,6 +111,7 @@ export function useCaseDocumentUploads(caseId: string) {
           delay(documentUploadMinimumVisibleMs, abortController.signal)
         ]);
         if (canceledUploadIdsRef.current.has(upload.id)) {
+          await deleteUploadedDocumentAfterCancellation(caseId, createdDocument);
           return false;
         }
 

@@ -204,9 +204,80 @@ describe("CaseDocumentsUseCase", () => {
     assert.equal(prisma.cleanupJobs[0].attempts, 1);
     assert.equal(prisma.cleanupJobs[0].reason, "metadata_create_failed");
   });
+
+  it("enqueues cleanup jobs for every case document before case deletion", async () => {
+    const prisma = makePrisma();
+    const storage = makeStorage();
+    const useCase = new CaseDocumentsUseCase(
+      prisma as unknown as PrismaService,
+      storage as unknown as ObjectStorageService
+    );
+
+    const firstDocument = await useCase.create(tenantA, caseA, userId, {}, makeFile());
+    await useCase.create(
+      tenantA,
+      caseA,
+      userId,
+      {},
+      { ...makeFile(), buffer: Buffer.from("second document") }
+    );
+
+    const result = await useCase.enqueueCleanupForCaseDeletion(
+      prisma as unknown as never,
+      tenantA,
+      caseA
+    );
+
+    assert.deepEqual(result, { enqueued: 2 });
+    assert.equal(firstDocument.caseId, caseA);
+    assert.equal(prisma.cleanupJobs.every((job) => job.documentId === undefined), true);
+    assert.equal(
+      prisma.cleanupJobs.every((job) => job.reason === "case_deleted"),
+      true
+    );
+  });
+
+  it("recovers stale processing cleanup jobs before retrying them", async () => {
+    const prisma = makePrisma();
+    const storage = makeStorage();
+    const useCase = new CaseDocumentsUseCase(
+      prisma as unknown as PrismaService,
+      storage as unknown as ObjectStorageService
+    );
+    prisma.cleanupJobs.push(
+      makeCleanupJob({
+        objectKey: "tenants/tenant/cases/case/documents/document/stale.pdf",
+        status: "processing",
+        updatedAt: new Date(Date.now() - 11 * 60_000)
+      })
+    );
+
+    await useCase.processDueCleanupJobs();
+
+    assert.equal(storage.deletes.length, 1);
+    assert.equal(prisma.cleanupJobs[0].status, "completed");
+  });
+
+  it("does not delete storage when another worker already claimed the cleanup job", async () => {
+    const prisma = makePrisma({ skipCleanupClaim: true });
+    const storage = makeStorage();
+    const useCase = new CaseDocumentsUseCase(
+      prisma as unknown as PrismaService,
+      storage as unknown as ObjectStorageService
+    );
+    prisma.cleanupJobs.push(makeCleanupJob());
+
+    await useCase.processDueCleanupJobs();
+
+    assert.equal(storage.deletes.length, 0);
+    assert.equal(prisma.cleanupJobs[0].status, "pending");
+  });
 });
 
-function makePrisma({ failCreate = false }: { failCreate?: boolean } = {}) {
+function makePrisma({
+  failCreate = false,
+  skipCleanupClaim = false
+}: { failCreate?: boolean; skipCleanupClaim?: boolean } = {}) {
   const state = {
     cases: [
       { id: caseA, tenantId: tenantA },
@@ -329,6 +400,34 @@ function makePrisma({ failCreate = false }: { failCreate?: boolean } = {}) {
         Object.assign(job, data);
         return job;
       },
+      updateMany: async ({
+        data,
+        where
+      }: {
+        data: Partial<CleanupJobRecord>;
+        where: CleanupJobUpdateManyWhere;
+      }) => {
+        let count = 0;
+        for (const job of state.cleanupJobs) {
+          if (!matchesCleanupJobUpdateManyWhere(job, where)) {
+            continue;
+          }
+
+          if (
+            skipCleanupClaim &&
+            where.id &&
+            cleanupJobWhereIncludesStatus(where, "pending") &&
+            data.status === "processing"
+          ) {
+            continue;
+          }
+
+          Object.assign(job, data, { updatedAt: new Date() });
+          count += 1;
+        }
+
+        return { count };
+      },
       upsert: async ({
         create,
         update,
@@ -378,6 +477,26 @@ function makePrisma({ failCreate = false }: { failCreate?: boolean } = {}) {
   transactionalClient.$transaction = async (callback) => callback(client);
 
   return transactionalClient;
+}
+
+function makeCleanupJob(input: Partial<CleanupJobRecord> = {}): CleanupJobRecord {
+  return {
+    attempts: 0,
+    bucket: "bogaap-test",
+    completedAt: null,
+    createdAt: new Date("2026-08-18T12:00:00.000Z"),
+    documentId: undefined,
+    id: "cleanup-existing",
+    lastError: null,
+    nextRunAt: new Date("2026-08-18T12:00:00.000Z"),
+    objectKey: "tenants/tenant/cases/case/documents/document/file.pdf",
+    reason: "document_deleted",
+    status: "pending",
+    storageProvider: "minio",
+    tenantId: tenantA,
+    updatedAt: new Date("2026-08-18T12:00:00.000Z"),
+    ...input
+  };
 }
 
 function makeStorage({ failDelete = false }: { failDelete?: boolean } = {}) {
@@ -443,12 +562,14 @@ type DocumentRecord = DocumentWriteData & {
 
 type CleanupJobStatus = "pending" | "processing" | "completed" | "failed";
 
+type CleanupJobReason = "case_deleted" | "document_deleted" | "metadata_create_failed";
+
 type CleanupJobWriteData = {
   bucket: string;
   documentId?: string;
   lastError?: string | null;
   objectKey: string;
-  reason: "document_deleted" | "metadata_create_failed";
+  reason: CleanupJobReason;
   storageProvider: string;
   tenantId: string;
 };
@@ -463,6 +584,41 @@ type CleanupJobRecord = CleanupJobWriteData & {
   status: CleanupJobStatus;
   updatedAt: Date;
 };
+
+type CleanupJobUpdateManyWhere = {
+  id?: string;
+  nextRunAt?: { lte: Date };
+  status?: CleanupJobStatus | { in: CleanupJobStatus[] };
+  updatedAt?: { lt: Date };
+};
+
+function matchesCleanupJobUpdateManyWhere(job: CleanupJobRecord, where: CleanupJobUpdateManyWhere) {
+  if (where.id && job.id !== where.id) {
+    return false;
+  }
+
+  if (where.nextRunAt && job.nextRunAt > where.nextRunAt.lte) {
+    return false;
+  }
+
+  if (where.updatedAt && job.updatedAt >= where.updatedAt.lt) {
+    return false;
+  }
+
+  if (!where.status) {
+    return true;
+  }
+
+  return typeof where.status === "string"
+    ? job.status === where.status
+    : where.status.in.includes(job.status);
+}
+
+function cleanupJobWhereIncludesStatus(where: CleanupJobUpdateManyWhere, status: CleanupJobStatus) {
+  return typeof where.status === "string"
+    ? where.status === status
+    : (where.status?.in.includes(status) ?? false);
+}
 
 type DocumentWhere = {
   caseId: string;

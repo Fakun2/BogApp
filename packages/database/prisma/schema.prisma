@@ -175,6 +175,7 @@ enum DocumentStorageCleanupJobStatus {
 }
 
 enum DocumentStorageCleanupJobReason {
+  case_deleted
   document_deleted
   metadata_create_failed
 }
@@ -520,6 +521,7 @@ model Document {
   uploadedByUser User                        @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
   cleanupJobs    DocumentStorageCleanupJob[]
 
+  @@unique([tenantId, id])
   @@index([tenantId])
   @@index([caseId])
   @@index([categoryId])
@@ -547,13 +549,14 @@ model DocumentStorageCleanupJob {
   createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document Document? @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
 
   @@unique([storageProvider, bucket, objectKey])
   @@index([status, nextRunAt])
   @@index([tenantId, status])
   @@index([documentId])
+  @@index([tenantId, documentId])
   @@map("document_storage_cleanup_jobs")
 }
 

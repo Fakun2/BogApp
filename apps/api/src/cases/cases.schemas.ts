@@ -222,6 +222,11 @@ export const listDocumentCategoriesQuerySchema = z.object({
   active: z.coerce.boolean().optional()
 });
 
+export const createCaseDocumentBodySchema = z.object({
+  categoryId: optionalUuid,
+  notes: optionalTrimmedString.pipe(z.string().max(500).optional())
+});
+
 export const caseCalendarQuerySchema = z.object({
   month: monthStringSchema,
   mode: z.enum(["month", "list"]).default("month"),
@@ -250,6 +255,10 @@ export class CreateCaseExpenseDto extends createZodDto(caseExpenseInputSchema) {
 export class UpdateCaseExpenseDto extends createZodDto(caseExpenseInputSchema) {}
 export class CreateCaseHearingDto extends createZodDto(caseHearingInputSchema) {}
 export class UpdateCaseHearingDto extends createZodDto(caseHearingInputSchema) {}
+export class CreateCaseDocumentBodyDto extends createZodDto(createCaseDocumentBodySchema) {
+  @ApiProperty({ type: "string", format: "binary" })
+  file!: unknown;
+}
 
 export class CaseProvinceDto {
   @ApiProperty({ format: "uuid" })
@@ -493,17 +502,6 @@ export class CaseDocumentDto {
 
   @ApiProperty({ format: "date-time" })
   createdAt!: string;
-}
-
-export class CreateCaseDocumentBodyDto {
-  @ApiProperty({ type: "string", format: "binary" })
-  file!: unknown;
-
-  @ApiPropertyOptional({ format: "uuid" })
-  categoryId?: string;
-
-  @ApiPropertyOptional()
-  notes?: string;
 }
 
 export class CaseExpenseDto {
@@ -776,6 +774,7 @@ export type ListCaseTasksQuery = z.infer<typeof listCaseTasksQuerySchema>;
 export type ListCaseExpenseAttachmentsQuery = z.infer<typeof listCaseExpenseAttachmentsQuerySchema>;
 export type ListCaseDocumentsQuery = z.infer<typeof listCaseDocumentsQuerySchema>;
 export type ListDocumentCategoriesQuery = z.infer<typeof listDocumentCategoriesQuerySchema>;
+export type CreateCaseDocumentInput = z.infer<typeof createCaseDocumentBodySchema>;
 export type CaseCalendarQuery = z.infer<typeof caseCalendarQuerySchema>;
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;
 export type UpdateCaseInput = z.infer<typeof updateCaseSchema>;
