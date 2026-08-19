@@ -25,7 +25,7 @@ export const AdminTableHeaderActionButton = forwardRef<
         type={type}
         variant={tone === "secondary" ? variant ?? "outline" : variant}
         className={cn(
-          "h-10 w-10 border-border/40 p-0 text-base font-semibold shadow-[0_10px_24px_-22px_rgba(15,23,42,0.35)] sm:h-11 sm:w-auto sm:px-4",
+          "h-8 w-8 gap-1.5 border-border/40 p-0 text-sm font-semibold shadow-[0_10px_24px_-22px_rgba(15,23,42,0.35)] sm:h-9 sm:w-auto sm:px-2.5",
           tone === "secondary" && "bg-card text-foreground",
           tone === "primary" && adminPrimaryActionButtonClassName,
           className

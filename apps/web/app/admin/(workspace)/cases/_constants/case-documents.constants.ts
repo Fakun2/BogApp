@@ -3,11 +3,12 @@ export const acceptedDocumentMimeTypes = [
   "image/jpeg",
   "image/png",
   "image/webp",
-  "text/plain",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 ] as const;
 
 export const acceptedDocumentTypes = acceptedDocumentMimeTypes.join(",");

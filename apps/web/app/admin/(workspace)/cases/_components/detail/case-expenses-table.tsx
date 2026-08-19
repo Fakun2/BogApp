@@ -166,7 +166,7 @@ export function CaseExpensesTable({
             <Button
               type="button"
               variant="outline"
-              className="h-8 w-8 border-border/50 p-0"
+              className="h-7 w-7 border-border/50 p-0"
               disabled={!expensesQuery.canGoBack}
               onClick={expensesQuery.goBack}
               aria-label="Pagina anterior"
@@ -176,7 +176,7 @@ export function CaseExpensesTable({
             <Button
               type="button"
               variant="outline"
-              className="h-8 w-8 border-border/50 p-0"
+              className="h-7 w-7 border-border/50 p-0"
               disabled={!hasNextPage}
               onClick={expensesQuery.goForward}
               aria-label="Pagina siguiente"

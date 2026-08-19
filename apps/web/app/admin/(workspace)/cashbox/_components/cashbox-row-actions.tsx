@@ -74,7 +74,7 @@ function MovementActionsMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="ghost" size="icon-sm" aria-label="Acciones de movimiento">
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
@@ -86,7 +86,7 @@ function MovementActionsMenu({
           ) : null}
           {canDelete ? (
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              className="text-foreground focus:text-foreground"
               onClick={() => setDeleteOpen(true)}
             >
               <Trash2 className="h-4 w-4" />

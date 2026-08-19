@@ -34,7 +34,7 @@ export function DisableCurrencyDialog({
         <DialogPrimitive.Overlay className="fixed inset-0 z-[80] bg-foreground/35 backdrop-blur-[3px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-[90] w-[calc(100vw-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/50 bg-card p-6 text-card-foreground shadow-[0_28px_80px_-40px_rgba(15,23,42,0.65)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
           <div className="flex items-start gap-4">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-[var(--dropdown-item-hover)] text-muted-foreground">
               <TriangleAlert className="h-5 w-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -57,7 +57,7 @@ export function DisableCurrencyDialog({
           ) : null}
 
           {error ? (
-            <p className="mt-4 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+            <p className="mt-4 rounded-md border border-[var(--dropdown-border)] bg-[var(--dropdown-item-hover)] px-4 py-3 text-sm font-medium text-muted-foreground">
               {error}
             </p>
           ) : null}
@@ -75,7 +75,7 @@ export function DisableCurrencyDialog({
             </Button>
             <Button
               type="button"
-              className="h-11 bg-destructive px-3 text-destructive-foreground hover:bg-destructive/85 sm:px-4"
+              className="h-11 px-3 sm:px-4"
               disabled={loading}
               onClick={onConfirm}
             >

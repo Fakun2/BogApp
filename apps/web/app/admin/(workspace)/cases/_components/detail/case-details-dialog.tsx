@@ -76,7 +76,7 @@ export function CaseDetailsDialog({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 shrink-0 border-border/50 p-0"
+            className="h-7 w-7 shrink-0 border-border/50 p-0"
             onClick={requestClose}
             aria-label="Cerrar detalles del expediente"
           >

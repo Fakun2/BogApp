@@ -48,8 +48,8 @@ export function CategoryRowActions({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="h-8 w-8 border-border/50 p-0">
-            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+          <Button variant="outline" className="h-7 w-7 border-border/50 p-0">
+            <MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
             <span className="sr-only">Abrir acciones</span>
           </Button>
         </DropdownMenuTrigger>
@@ -69,7 +69,7 @@ export function CategoryRowActions({
           ) : null}
           {canDelete ? (
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              className="text-foreground focus:text-foreground"
               onSelect={() => setConfirmOpen(true)}
             >
               <PowerOff className="h-4 w-4" />

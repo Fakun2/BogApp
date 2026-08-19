@@ -56,7 +56,7 @@ export function CalendarToolbar({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-xl border-border/50 p-0"
+            className="h-7 w-7 rounded-xl border-border/50 p-0"
             onClick={() => onNavigate(-1)}
             aria-label="Mes anterior"
           >
@@ -74,7 +74,7 @@ export function CalendarToolbar({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 rounded-xl border-border/50 p-0"
+            className="h-7 w-7 rounded-xl border-border/50 p-0"
             onClick={() => onNavigate(1)}
             aria-label="Mes siguiente"
           >

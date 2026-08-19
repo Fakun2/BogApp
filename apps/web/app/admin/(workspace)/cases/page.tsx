@@ -70,7 +70,7 @@ async function CasesPageContent({
   const { casesResult, metrics } = await loadCasesPage(queryParams);
 
   return (
-    <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-3 overflow-hidden md:h-[calc(100svh-112px)] md:gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden md:gap-4">
       <CaseMetrics metrics={metrics} />
       <CasesTableCard
         canCreate={hasPermission(session, "cases:create")}
@@ -124,7 +124,7 @@ async function loadCasesPage(params: CasesQueryParams) {
 
 function CasesPageSkeleton() {
   return (
-    <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-3 overflow-hidden md:h-[calc(100svh-112px)] md:gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden md:gap-4">
       <AdminMetricsSkeletonGrid />
       <CasesTableSkeleton />
     </div>

@@ -79,11 +79,11 @@ export function CaseTaskRowActions({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 border-border/50 p-0"
+            className="h-7 w-7 border-border/50 p-0"
             disabled={deleteMutation.isPending}
             aria-label={`Acciones para ${task.name}`}
           >
-            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+            <MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">

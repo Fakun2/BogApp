@@ -45,7 +45,7 @@ export function isUploadableDocumentFile(file: File) {
 
 export function getDocumentUploadValidationError(file: File) {
   if (!acceptedMimeTypeSet.has(file.type)) {
-    return "El documento debe ser PDF, imagen, Word, Excel o TXT.";
+    return "El documento debe ser PDF, imagen, Word, Excel o PowerPoint.";
   }
 
   if (file.size > maxCaseDocumentSizeBytes) {

@@ -91,7 +91,7 @@ export function CashboxTableCard({
   return (
     <Card
       data-admin-surface
-      className={`${adminSurfaceClassName} flex min-h-[420px] flex-none flex-col overflow-hidden border-0 py-0 shadow-[var(--admin-card-shadow)]`}
+      className={`${adminSurfaceClassName} flex min-h-[420px] flex-1 flex-col overflow-hidden border-0 py-0 shadow-[var(--admin-card-shadow)]`}
     >
       <AdminTableHeader
         actions={

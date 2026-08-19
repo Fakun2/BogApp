@@ -81,7 +81,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        "min-h-[100svh] w-full pt-[72px] transition-[margin-left,width] duration-300 ease-in-out lg:ml-[var(--sidebar-width)] lg:w-[calc(100%_-_var(--sidebar-width))]",
+        "min-h-[100svh] w-full pt-[52px] transition-[margin-left,width] duration-300 ease-in-out lg:ml-[var(--sidebar-width)] lg:w-[calc(100%_-_var(--sidebar-width))]",
         className
       )}
       {...props}

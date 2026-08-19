@@ -19,7 +19,7 @@ export function HeaderActionButton({ children, className, label, onClick }: Head
       variant="outline"
       onClick={onClick}
       className={cn(
-        "size-10 rounded-md border-0 bg-card px-0 text-muted-foreground shadow-[var(--admin-header-control-shadow)] hover:bg-secondary/80 hover:text-foreground",
+        "size-7 rounded-md border-0  px-0 text-muted-foreground hover:text-foreground",
         className
       )}
       aria-label={label}

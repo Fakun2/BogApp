@@ -109,7 +109,7 @@ export function CaseTaskExpensesPopup({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 border-border/50 p-0"
+            className="h-7 w-7 border-border/50 p-0"
             onClick={requestClose}
             aria-label="Cerrar gastos"
           >
@@ -218,7 +218,7 @@ export function CaseTaskExpensesPopup({
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-8 w-8 border-border/50 p-0"
+                    className="h-7 w-7 border-border/50 p-0"
                     disabled={!hasPreviousPage}
                     onClick={expensesQuery.goBack}
                     aria-label="Pagina anterior"
@@ -228,7 +228,7 @@ export function CaseTaskExpensesPopup({
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-8 w-8 border-border/50 p-0"
+                    className="h-7 w-7 border-border/50 p-0"
                     disabled={!hasNextPage}
                     onClick={expensesQuery.goForward}
                     aria-label="Pagina siguiente"
@@ -287,11 +287,11 @@ function ExpensePopupRowActions({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 border-border/50 p-0"
+            className="h-7 w-7 border-border/50 p-0"
             disabled={deleteDisabled}
             aria-label={`Acciones para ${expense.concept}`}
           >
-            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+            <MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">

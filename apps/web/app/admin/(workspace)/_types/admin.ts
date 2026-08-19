@@ -6,7 +6,8 @@ import type { BogaapSession } from "@/lib/auth/session";
 export type AdminSidebarVariant = "desktop" | "mobile";
 
 export type AdminNavItem = {
-  href: string;
+  children?: AdminNavItem[];
+  href?: string;
   icon: LucideIcon;
   label: string;
   permissionMode?: PermissionMode;
@@ -27,8 +28,10 @@ export type AdminPageTitle = {
 export type AdminHeaderProps = {
   onOpenCommand: () => void;
   onOpenMobileSidebar: () => void;
+  onToggleSidebar: () => void;
   scrolled: boolean;
   session: BogaapSession | null;
+  sidebarOpen: boolean;
 };
 
 export type AdminMetric = {

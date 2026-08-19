@@ -39,7 +39,10 @@ los modelos MVP esten completos.
 - `Case` -> `cases`
 - `CaseParticipant` -> `case_participants`
 - `DocumentCategory` -> `document_categories`
+- `DocumentFolder` -> `document_folders`
 - `Document` -> `documents`
+- `DocumentImportJob` -> `document_import_jobs`
+- `DocumentImportItem` -> `document_import_items`
 - `CaseTask` -> `case_tasks`
 - `CaseExpense` -> `case_expenses`
 - `CaseExpenseAttachment` -> `case_expense_attachments`
@@ -97,11 +100,24 @@ Post-MVP o despues del core legal:
   Guarda metadata tenant-scoped y el `object_key` del storage S3-compatible; el
   acceso al archivo se resuelve desde API, no exponiendo bucket/key al frontend.
 - `document_categories` representa categorias configurables tenant-scoped para
-  ordenar documentos de expedientes. En v1 la categoria es opcional.
-- `documents` representa archivos privados asociados a expedientes. Guarda
-  metadata tenant-scoped, categoria opcional y referencia privada S3-compatible;
-  upload, preview y download se resuelven por API proxy sin exponer bucket/key
-  al frontend.
+  ordenar documentos. En v1 la categoria es opcional.
+- `document_folders` representa carpetas jerarquicas tenant-scoped de la
+  biblioteca del estudio. Los nombres son unicos por tenant y carpeta padre,
+  comparados case-insensitive desde indice funcional de PostgreSQL.
+- `documents` representa archivos privados de la biblioteca del estudio. Guarda
+  metadata tenant-scoped, carpeta opcional, expediente opcional, categoria
+  opcional y referencia privada S3-compatible; upload, preview y download se
+  resuelven por API proxy sin exponer bucket/key al frontend. `status =
+  deleting` oculta documentos cuyo borrado definitivo esta esperando cleanup de
+  storage.
+- `document_storage_cleanup_jobs` es el outbox durable para borrar objetos del
+  storage externo sin depender de una transaccion distribuida con PostgreSQL.
+  Los workers reclaman jobs de forma atomica con locks de base de datos para
+  soportar multiples instancias.
+- `document_import_jobs` y `document_import_items` registran importaciones
+  masivas tenant-scoped desde carpetas locales. El job conserva progreso y cada
+  item documenta resultado por archivo (`completed`, `skipped_duplicate`,
+  `rejected`, `failed`, `canceled`) sin mezclar datos entre estudios.
 - `case_expense_cashbox_sync_jobs` es un outbox persistente tenant-scoped para
   sincronizar gastos pagados con caja. Cada gasto tiene como maximo un job activo
   por `case_expense_id`; los fallos guardan `last_error`, incrementan
