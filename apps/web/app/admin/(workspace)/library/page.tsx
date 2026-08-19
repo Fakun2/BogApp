@@ -16,7 +16,7 @@ export default function LibraryPage() {
   return (
     <RequirePermission permissions={["documents:read"]} fallback={<RestrictedLibrary />}>
       <LibraryHeaderBreadcrumbPublisher breadcrumbs={data?.breadcrumbs ?? []} />
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scrollbar-none">
         <div data-admin-surface className="flex min-h-0 flex-1 flex-col rounded-md bg-card shadow-[var(--admin-card-shadow)]">
           <LibraryToolbar
             busy={library.busy}
@@ -40,7 +40,7 @@ export default function LibraryPage() {
             onUploadFiles={(files) => void library.uploadFiles(files)}
           />
 
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 overflow-auto scrollbar-none">
             {library.query.isLoading ? (
               <LibraryStateBox label="Cargando biblioteca" />
             ) : library.query.error ? (

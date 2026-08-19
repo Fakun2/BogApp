@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useDashboardMutation } from "@/lib/query/use-dashboard-mutation";
 import { useDashboardQuery } from "@/lib/query/use-dashboard-query";
+import { dashboardKeys } from "../../_api/dashboard.api";
 import {
   cashboxKeys,
   createCashboxConversion,
@@ -78,10 +79,16 @@ export function useDeleteCashboxMovementMutation() {
 }
 
 function invalidateCashboxQueries(queryClient: ReturnType<typeof useQueryClient>) {
-  void queryClient.invalidateQueries({
-    predicate: (query) => isActiveCashboxDataQuery(query.queryKey),
-    refetchType: "active"
-  });
+  return Promise.all([
+    queryClient.invalidateQueries({
+      predicate: (query) => isActiveCashboxDataQuery(query.queryKey),
+      refetchType: "active"
+    }),
+    queryClient.invalidateQueries({
+      predicate: (query) => isActiveDashboardMetricsQuery(query.queryKey),
+      refetchType: "active"
+    })
+  ]);
 }
 
 function isActiveCashboxDataQuery(queryKey: readonly unknown[]) {
@@ -89,4 +96,11 @@ function isActiveCashboxDataQuery(queryKey: readonly unknown[]) {
   const segment = cashboxIndex >= 0 ? queryKey[cashboxIndex + 1] : null;
 
   return segment === cashboxKeys.summaryRoot()[1] || segment === cashboxKeys.movementsRoot()[1];
+}
+
+function isActiveDashboardMetricsQuery(queryKey: readonly unknown[]) {
+  const dashboardIndex = queryKey.findIndex((item) => item === dashboardKeys.all[0]);
+  const segment = dashboardIndex >= 0 ? queryKey[dashboardIndex + 1] : null;
+
+  return segment === dashboardKeys.metrics()[1];
 }

@@ -74,9 +74,9 @@ export function AdminDashboardMetrics({
           value: "--"
         },
         {
-          detail: `${formatCanonicalMoney(metrics.cashbox.incomeToday, metrics.cashbox.currency.symbol)} ingresos / ${formatCanonicalMoney(metrics.cashbox.expenseToday, metrics.cashbox.currency.symbol)} egresos hoy`,
+          detail: `Caja en ${metrics.cashbox.currency.code}`,
           icon: Banknote,
-          label: "Caja diaria",
+          label: "Balance",
           value: formatCanonicalMoney(metrics.cashbox.balance, metrics.cashbox.currency.symbol)
         },
         {

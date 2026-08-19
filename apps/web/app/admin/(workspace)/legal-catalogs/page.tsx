@@ -84,7 +84,7 @@ export default function LegalCatalogsPage() {
       permissions={["forums:read", "provinces:read"]}
       fallback={<RestrictedLegalCatalogs />}
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden md:gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto scrollbar-none md:gap-3">
         {(forumsQuery.isLoading && !forumsQuery.data) ||
         (provincesQuery.isLoading && !provincesQuery.data) ? (
           <AdminMetricsSkeletonGrid count={3} />
@@ -338,7 +338,7 @@ function CatalogTable({
         ) : rows.length === 0 ? (
           <StateBox text={emptyText} />
         ) : (
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto scrollbar-none">
             {rows.map((row) => (
               <div
                 key={row.id}

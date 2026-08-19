@@ -1,11 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Eye, EyeOff } from "lucide-react";
-import { Bar, BarChart, Tooltip, XAxis } from "recharts";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -15,15 +13,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import type { CurrencyDto } from "../../currencies/_types/currencies.types";
-import type { CashboxFlowMetricTone, CashboxSummaryDto } from "../_types/cashbox.types";
-import { buildCashboxMetricChartData } from "../_utils/cashbox-chart";
+import type { CashboxSummaryDto } from "../_types/cashbox.types";
 import { formatCanonicalMoney } from "../_utils/local-decimal";
-
-const cashboxMetricChartConfig = {
-  amount: {
-    label: "Monto"
-  }
-} satisfies ChartConfig;
 
 export function CashboxSummaryGrid({
   currencies,
@@ -39,7 +30,7 @@ export function CashboxSummaryGrid({
   onCurrencyChange: (currencyCode: string) => void;
 }) {
   return (
-    <section className="grid shrink-0 gap-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.75fr)] md:gap-3">
+    <section className="grid shrink-0 gap-2 md:gap-3">
       <CashboxBalanceCard
         currencies={currencies}
         currencyCode={currencyCode}
@@ -47,24 +38,6 @@ export function CashboxSummaryGrid({
         summary={summary}
         onCurrencyChange={onCurrencyChange}
       />
-      <div className="grid min-h-[208px] gap-2 md:gap-3">
-        <CashboxFlowMetricCard
-          amount={summary?.incomeToday}
-          hourly={summary?.hourly}
-          loading={loading}
-          symbol={summary?.currency.symbol}
-          title="Ingresos Hoy"
-          tone="income"
-        />
-        <CashboxFlowMetricCard
-          amount={summary?.expenseToday}
-          hourly={summary?.hourly}
-          loading={loading}
-          symbol={summary?.currency.symbol}
-          title="Egresos Hoy"
-          tone="expense"
-        />
-      </div>
     </section>
   );
 }
@@ -143,110 +116,5 @@ function CashboxBalanceCard({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function CashboxFlowMetricCard({
-  amount,
-  hourly,
-  loading,
-  symbol,
-  title,
-  tone
-}: {
-  amount?: string;
-  hourly?: CashboxSummaryDto["hourly"];
-  loading: boolean;
-  symbol?: string;
-  title: string;
-  tone: CashboxFlowMetricTone;
-}) {
-  const Icon = tone === "income" ? ArrowUpRight : ArrowDownLeft;
-  const accentClassName =
-    tone === "income" ? "bg-primary text-primary-foreground" : "bg-destructive text-white";
-  const strokeColor = tone === "income" ? "var(--primary)" : "var(--destructive)";
-  const chartData = useMemo(() => buildCashboxMetricChartData(hourly, tone), [hourly, tone]);
-  const showSkeleton = loading && !amount;
-
-  return (
-    <Card
-      data-admin-surface
-      className="min-h-[98px] overflow-hidden rounded-[8px] border-border/35 bg-card shadow-[var(--admin-card-shadow)]"
-    >
-      <CardContent className="grid h-full grid-cols-[1fr_auto] gap-x-3 gap-y-1.5 p-4">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-muted-foreground md:text-base">{title}</p>
-          {showSkeleton ? (
-            <Skeleton className="mt-2 h-6 w-28" />
-          ) : (
-            <p className="mt-1 text-xl font-semibold text-foreground">
-              {formatCanonicalMoney(amount, symbol)}
-            </p>
-          )}
-        </div>
-        <div
-          className={`flex h-9 w-9 items-center justify-center rounded-[8px] ${accentClassName}`}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="col-span-2 h-14">
-          {showSkeleton ? (
-            <Skeleton className="h-full w-full" />
-          ) : (
-            <ChartContainer config={cashboxMetricChartConfig} className="h-full w-full">
-              <BarChart data={chartData} margin={{ bottom: 0, left: 0, right: 0, top: 3 }}>
-                <XAxis
-                  axisLine={false}
-                  dataKey="hour"
-                  interval={3}
-                  tickLine={false}
-                  tickMargin={3}
-                  tick={{ fill: "currentColor", fontSize: 10 }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip
-                  content={<CashboxMetricTooltip symbol={symbol} title={title} />}
-                  cursor={{ fill: "color-mix(in oklab, var(--muted) 45%, transparent)" }}
-                />
-                <Bar
-                  dataKey="value"
-                  fill={strokeColor}
-                  isAnimationActive={false}
-                  radius={[3, 3, 0, 0]}
-                />
-              </BarChart>
-            </ChartContainer>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CashboxMetricTooltip({
-  active,
-  payload,
-  symbol,
-  title
-}: {
-  active?: boolean;
-  payload?: Array<{ payload?: { amount: string; hour: string } }>;
-  symbol?: string;
-  title: string;
-}) {
-  const item = payload?.[0]?.payload;
-
-  if (!active || !item) {
-    return null;
-  }
-
-  return (
-    <div className="rounded-[8px] border border-border/40 bg-popover px-3 py-2 text-xs shadow-[var(--admin-card-shadow)]">
-      <p className="font-medium text-foreground">{title}</p>
-      <p className="mt-1 text-muted-foreground">{item.hour}:00 hs</p>
-      <p className="mt-1 font-semibold text-foreground">
-        {formatCanonicalMoney(item.amount, symbol)}
-      </p>
-    </div>
   );
 }

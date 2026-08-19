@@ -1,122 +1,120 @@
 import {
+  Banknote,
   BriefcaseBusiness,
-  Building2,
   Bot,
-  Code2,
+  CircleDollarSign,
+  FileText,
   FilePlus2,
+  FolderOpen,
   Gavel,
-  Plus,
+  Home,
+  Landmark,
   ShieldCheck,
   Settings,
-  Tags,
-  Users
+  Tags
 } from "lucide-react";
 import type { AdminCommandSection } from "../_types/admin";
 
 export const adminCommandSections: AdminCommandSection[] = [
   {
-    title: "Shortcuts",
+    title: "Acciones rapidas",
     items: [
       {
-        href: "/admin/ai",
-        label: "Abrir asistente IA...",
-        icon: Bot,
-        requiredPermissions: ["ai:case_chat"]
-      },
-      {
         href: "/admin/cases",
-        label: "Nuevo caso",
+        label: "Nuevo expediente",
+        icon: FilePlus2,
         requiredPermissions: ["cases:create"],
         shortcut: "N"
       },
       {
-        href: "/admin/clients",
-        label: "Buscar clientes",
-        requiredPermissions: ["clients:read"],
-        shortcut: "F",
-        status: "soon"
+        href: "/admin/library",
+        label: "Subir documento",
+        icon: FileText,
+        requiredPermissions: ["documents:write"]
       },
       {
-        href: "/admin/settings",
-        label: "Ver atajos de teclado",
-        requiredPermissions: ["tenants:manage"],
-        shortcut: "?",
-        status: "soon"
+        href: "/admin/cashbox",
+        label: "Nuevo ingreso",
+        icon: Banknote,
+        requiredPermissions: ["finance:create"]
+      },
+      {
+        href: "/admin/cashbox",
+        label: "Nuevo egreso",
+        icon: CircleDollarSign,
+        requiredPermissions: ["finance:create"]
+      },
+      {
+        href: "/admin/categories",
+        label: "Nueva categoria",
+        icon: Tags,
+        requiredPermissions: ["categories:create"]
       }
     ]
   },
   {
-    title: "Queries",
+    title: "Navegacion",
     items: [
       {
-        href: "/admin/reports",
-        label: "Consultar reportes",
-        icon: Code2,
-        requiredPermissions: ["finance:read"],
-        status: "soon"
-      }
-    ]
-  },
-  {
-    title: "Actions",
-    items: [
+        href: "/admin",
+        label: "Ir a Dashboard",
+        icon: Home,
+        requiredPermissions: ["admin:access"]
+      },
       {
         href: "/admin/cases",
-        label: "Crear...",
-        icon: Plus,
-        requiredPermissions: ["cases:create"]
+        label: "Ir a Expedientes",
+        icon: BriefcaseBusiness,
+        requiredPermissions: ["cases:read"]
       },
       {
-        href: "/admin/settings",
-        label: "Configurar estudio...",
-        icon: Building2,
-        requiredPermissions: ["tenants:manage"],
-        status: "soon"
+        href: "/admin/library",
+        label: "Ir a Biblioteca",
+        icon: FolderOpen,
+        requiredPermissions: ["documents:read"]
       },
       {
         href: "/admin/staff",
-        label: "Gestionar staff...",
+        label: "Ir a Staff",
         icon: Settings,
         requiredPermissions: ["staff:read"]
       },
       {
         href: "/admin/roles",
-        label: "Gestionar roles...",
+        label: "Ir a Roles",
         icon: ShieldCheck,
         requiredPermissions: ["roles:read"]
       },
       {
         href: "/admin/legal-catalogs",
-        label: "Gestionar catalogos legales...",
+        label: "Ir a Catalogos legales",
         icon: Gavel,
         requiredPermissions: ["forums:read", "provinces:read"],
         permissionMode: "any"
       },
       {
         href: "/admin/categories",
-        label: "Gestionar categorias...",
+        label: "Ir a Categorias",
         icon: Tags,
         requiredPermissions: ["categories:read"]
       },
       {
-        href: "/admin/cases",
-        label: "Abrir expediente...",
-        icon: BriefcaseBusiness,
-        requiredPermissions: ["cases:read"]
-      },
-      {
-        href: "/admin/clients",
-        label: "Gestionar clientes...",
-        icon: Users,
-        requiredPermissions: ["clients:read"],
-        status: "soon"
+        href: "/admin/currencies",
+        label: "Ir a Monedas",
+        icon: Landmark,
+        requiredPermissions: ["currencies:read"]
       },
       {
         href: "/admin/cashbox",
-        label: "Registrar movimiento...",
-        icon: FilePlus2,
-        requiredPermissions: ["finance:update"],
-        status: "soon"
+        label: "Ir a Caja",
+        icon: Banknote,
+        requiredPermissions: ["finance:read"]
+      },
+      {
+        href: "/admin/ai",
+        label: "Ir a IA",
+        icon: Bot,
+        requiredPermissions: ["ai:case_chat"]
       }
     ]
   }

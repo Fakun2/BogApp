@@ -37,7 +37,7 @@ export default function CashboxPage() {
 
   return (
     <RequirePermission permissions={["finance:read"]} fallback={<RestrictedCashbox />}>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden md:gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto scrollbar-none md:gap-3">
         <CashboxSummaryGrid
           currencies={currencies}
           currencyCode={selectedCurrencyCode}

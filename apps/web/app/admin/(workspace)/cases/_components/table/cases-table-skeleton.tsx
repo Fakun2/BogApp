@@ -29,7 +29,7 @@ export function CasesTableSkeleton() {
         </div>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col overflow-visible px-3 md:px-4 lg:overflow-hidden">
-        <div className="max-h-[52svh] overflow-auto rounded-2xl lg:min-h-0 lg:max-h-none lg:flex-1">
+        <div className="max-h-[52svh] overflow-auto scrollbar-none rounded-2xl lg:min-h-0 lg:max-h-none lg:flex-1">
           <Table className="min-w-full text-xs">
             <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
               <TableRow className="hover:bg-transparent">

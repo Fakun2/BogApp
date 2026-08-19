@@ -74,10 +74,10 @@ export function AdminShell({ children }: AdminShellProps) {
         </div>
 
         <SidebarInset
-          className="h-[100svh] overflow-hidden"
+          className="h-[100svh] overflow-x-hidden overflow-y-auto scrollbar-none"
           onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 4)}
         >
-          <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden px-4 py-2 md:px-5 md:py-3 xl:px-6 2xl:px-8">
+          <div className="flex min-h-full w-full min-w-0 flex-col px-4 py-2 md:px-5 md:py-3 xl:px-6 2xl:px-8">
             {canAccessAdmin ? children : <RestrictedAdminAccess />}
           </div>
         </SidebarInset>

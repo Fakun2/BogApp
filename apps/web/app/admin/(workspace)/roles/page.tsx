@@ -21,7 +21,7 @@ export default function RolesPage() {
 
   return (
     <RequirePermission permissions={["roles:read"]} fallback={<RestrictedRoles />}>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-hidden md:gap-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto scrollbar-none md:gap-6">
         {rolesQuery.isLoading && !rolesQuery.data ? (
           <AdminMetricsSkeletonGrid count={3} />
         ) : (
@@ -40,7 +40,7 @@ export default function RolesPage() {
             </div>
             <CreateRoleSheet permissions={permissions} />
           </CardHeader>
-          <CardContent className="min-h-0 flex-1 overflow-y-auto pb-5">
+          <CardContent className="min-h-0 flex-1 overflow-y-auto scrollbar-none pb-5">
             {rolesQuery.isLoading ? (
               <AdminListSkeleton />
             ) : rolesQuery.error ? (
