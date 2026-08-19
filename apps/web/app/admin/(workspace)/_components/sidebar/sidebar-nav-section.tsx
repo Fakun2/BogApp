@@ -2,7 +2,7 @@
 
 import type { AdminNavItem } from "../../_types/admin";
 import { cn } from "@/lib/utils";
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu } from "@/components/ui/sidebar";
+import { SidebarGroup, SidebarMenu } from "@/components/ui/sidebar";
 import { SidebarNavItem } from "./sidebar-nav-item";
 
 type SidebarNavSectionProps = {
@@ -10,29 +10,40 @@ type SidebarNavSectionProps = {
   isActive: (pathname: string, href: string) => boolean;
   items: AdminNavItem[];
   pathname: string;
-  title: string;
+  title?: string;
 };
 
 export function SidebarNavSection({
   collapsed,
   isActive,
   items,
-  pathname,
-  title
+  pathname
 }: SidebarNavSectionProps) {
   return (
-    <SidebarGroup className={cn(collapsed ? "mb-2" : "mb-5")}>
-      {!collapsed ? <SidebarGroupLabel>{title}</SidebarGroupLabel> : null}
-      <SidebarMenu>
+    <SidebarGroup className={cn(collapsed ? "mb-1" : "mb-2")}>
+      <SidebarMenu className={cn(collapsed ? "gap-1" : "gap-0.5")}>
         {items.map((item) => (
           <SidebarNavItem
-            key={item.href}
-            active={isActive(pathname, item.href)}
+            key={item.href ?? item.label}
+            active={isNavItemActive(item, pathname, isActive)}
             collapsed={collapsed}
             item={item}
+            pathname={pathname}
+            isActive={isActive}
           />
         ))}
       </SidebarMenu>
     </SidebarGroup>
+  );
+}
+
+function isNavItemActive(
+  item: AdminNavItem,
+  pathname: string,
+  isActive: (pathname: string, href: string) => boolean
+): boolean {
+  return Boolean(
+    (item.href && isActive(pathname, item.href)) ||
+      item.children?.some((child) => isNavItemActive(child, pathname, isActive))
   );
 }

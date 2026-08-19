@@ -175,9 +175,34 @@ enum DocumentStorageCleanupJobStatus {
 }
 
 enum DocumentStorageCleanupJobReason {
+  bulk_deleted
   case_deleted
   document_deleted
+  folder_deleted
   metadata_create_failed
+}
+
+enum DocumentStatus {
+  active
+  deleting
+}
+
+enum DocumentImportJobStatus {
+  pending
+  processing
+  completed
+  partial_failed
+  canceled
+  failed
+}
+
+enum DocumentImportItemStatus {
+  processing
+  completed
+  skipped_duplicate
+  rejected
+  failed
+  canceled
 }
 
 model Tenant {
@@ -197,8 +222,11 @@ model Tenant {
   caseExpenseCashboxSyncJobs CaseExpenseCashboxSyncJob[]
   caseHearings               CaseHearing[]
   expenseAttachments         CaseExpenseAttachment[]
+  documentFolders            DocumentFolder[]
   documentCategories         DocumentCategory[]
   documents                  Document[]
+  documentImportJobs         DocumentImportJob[]
+  documentImportItems        DocumentImportItem[]
   documentStorageCleanupJobs DocumentStorageCleanupJob[]
   aiChatRuns                 AiChatRun[]
   aiLegalDocuments           AiLegalDocument[]
@@ -229,6 +257,7 @@ model User {
   memberships                TenantMembership[]
   expenseAttachments         CaseExpenseAttachment[]
   documents                  Document[]
+  documentImportJobs         DocumentImportJob[]
   cashboxMovements           CashboxMovement[]
   aiChatRuns                 AiChatRun[]
   createdAt                  DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -498,39 +527,139 @@ model DocumentCategory {
   @@map("document_categories")
 }
 
+model DocumentFolder {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  parentId  String?  @map("parent_id") @db.Uuid
+  name      String
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parent    DocumentFolder?  @relation("DocumentFolderHierarchy", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Cascade)
+  children  DocumentFolder[] @relation("DocumentFolderHierarchy")
+  documents Document[]
+  importJobs DocumentImportJob[]
+  importItems DocumentImportItem[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([tenantId, parentId])
+  @@index([tenantId, name])
+  @@map("document_folders")
+}
+
 model Document {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId         String    @map("tenant_id") @db.Uuid
-  caseId           String    @map("case_id") @db.Uuid
+  caseId           String?   @map("case_id") @db.Uuid
+  folderId         String?   @map("folder_id") @db.Uuid
   categoryId       String?   @map("category_id") @db.Uuid
   uploadedByUserId String    @map("uploaded_by_user_id") @db.Uuid
   storageProvider  String    @map("storage_provider")
   bucket           String
   objectKey        String    @map("object_key")
+  title            String
   originalName     String    @map("original_name")
+  extension        String?
   mimeType         String    @map("mime_type")
   sizeBytes        Int       @map("size_bytes")
   checksum         String?
   notes            String?
+  status           DocumentStatus @default(active)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   tenant         Tenant                      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  case           Case                        @relation(fields: [tenantId, caseId], references: [tenantId, id], onDelete: Cascade)
+  case           Case?                       @relation(fields: [tenantId, caseId], references: [tenantId, id], onDelete: Cascade)
+  folder         DocumentFolder?             @relation(fields: [tenantId, folderId], references: [tenantId, id], onDelete: Restrict)
   category       DocumentCategory?           @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
   uploadedByUser User                        @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
   cleanupJobs    DocumentStorageCleanupJob[]
+  importItems    DocumentImportItem[]
 
   @@unique([tenantId, id])
   @@index([tenantId])
   @@index([caseId])
+  @@index([folderId])
   @@index([categoryId])
   @@index([uploadedByUserId])
   @@index([tenantId, caseId])
+  @@index([tenantId, folderId])
+  @@index([tenantId, folderId, createdAt])
   @@index([tenantId, caseId, createdAt])
   @@index([tenantId, categoryId])
+  @@index([tenantId, status])
+  @@index([tenantId, mimeType])
+  @@index([tenantId, title])
   @@index([tenantId, deletedAt])
   @@map("documents")
+}
+
+model DocumentImportJob {
+  id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String                  @map("tenant_id") @db.Uuid
+  rootFolderId    String?                 @map("root_folder_id") @db.Uuid
+  createdByUserId String                  @map("created_by_user_id") @db.Uuid
+  status          DocumentImportJobStatus @default(pending)
+  totalFiles      Int                     @default(0) @map("total_files")
+  totalBytes      Int                     @default(0) @map("total_bytes")
+  processedFiles  Int                     @default(0) @map("processed_files")
+  completedFiles  Int                     @default(0) @map("completed_files")
+  skippedFiles    Int                     @default(0) @map("skipped_files")
+  rejectedFiles   Int                     @default(0) @map("rejected_files")
+  failedFiles     Int                     @default(0) @map("failed_files")
+  lastError       String?                 @map("last_error")
+  startedAt       DateTime?               @map("started_at") @db.Timestamptz(6)
+  completedAt     DateTime?               @map("completed_at") @db.Timestamptz(6)
+  canceledAt      DateTime?               @map("canceled_at") @db.Timestamptz(6)
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rootFolder    DocumentFolder?  @relation(fields: [tenantId, rootFolderId], references: [tenantId, id], onDelete: SetNull)
+  createdByUser User            @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  items         DocumentImportItem[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@index([rootFolderId])
+  @@index([createdByUserId])
+  @@map("document_import_jobs")
+}
+
+model DocumentImportItem {
+  id          String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String                   @map("tenant_id") @db.Uuid
+  importJobId String                   @map("import_job_id") @db.Uuid
+  folderId    String?                  @map("folder_id") @db.Uuid
+  documentId  String?                  @map("document_id") @db.Uuid
+  relativePath String                  @map("relative_path")
+  originalName String                  @map("original_name")
+  mimeType    String                   @map("mime_type")
+  sizeBytes   Int                      @map("size_bytes")
+  checksum    String?
+  status      DocumentImportItemStatus
+  error       String?
+  createdAt   DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant    Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  importJob DocumentImportJob @relation(fields: [tenantId, importJobId], references: [tenantId, id], onDelete: Cascade)
+  folder    DocumentFolder?   @relation(fields: [tenantId, folderId], references: [tenantId, id], onDelete: SetNull)
+  document  Document?         @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: SetNull)
+
+  @@unique([tenantId, importJobId, relativePath])
+  @@index([tenantId])
+  @@index([tenantId, importJobId])
+  @@index([tenantId, status])
+  @@index([folderId])
+  @@index([documentId])
+  @@map("document_import_items")
 }
 
 model DocumentStorageCleanupJob {

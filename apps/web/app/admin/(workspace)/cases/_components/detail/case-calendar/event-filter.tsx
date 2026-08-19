@@ -25,7 +25,7 @@ export function CalendarEventFilter({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <AdminTableHeaderActionButton
-          className="h-8 w-8 rounded-xl sm:h-8 sm:px-3"
+          className="h-7 w-7 rounded-xl sm:h-8 sm:px-2.5"
           icon={ListFilter}
           label="Filtros"
         />

@@ -121,7 +121,7 @@ export function CasesTable({
           </p>
           <Button
             type="button"
-            className="h-9 bg-destructive px-3 text-destructive-foreground hover:bg-destructive/85 sm:gap-2 sm:px-4"
+            className="h-9 px-3 sm:gap-2 sm:px-4"
             disabled={deleteMutation.isPending}
             onClick={() => setBulkDeleteOpen(true)}
           >

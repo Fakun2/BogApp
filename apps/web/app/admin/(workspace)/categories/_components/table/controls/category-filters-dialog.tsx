@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Filter, RotateCcw } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { ArrowDownUp, Boxes, Search, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,13 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { AdminTableHeaderActionButton } from "../../../../_components/admin-table-header-action-button";
+  AdminTableFilterClearItem,
+  AdminTableFilterMenu
+} from "../../../../_components/admin-table-filter-menu";
 import type {
   CategoryFiltersState,
   CategoryKindFilter,
@@ -29,7 +25,6 @@ import {
   categoryKindFilterOptions,
   categoryOriginFilterOptions,
   categoryStatusFilterOptions,
-  defaultCategoryFilters,
   getActiveCategoryFiltersCount
 } from "../../../_utils/category-filters";
 
@@ -42,132 +37,104 @@ export function CategoryFiltersDialog({
   onApply: (filters: CategoryFiltersState) => void;
   onClear: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<CategoryFiltersState>(filters);
   const activeFiltersCount = getActiveCategoryFiltersCount(filters);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState(filters.search);
 
-  useEffect(() => {
-    if (open) {
-      setDraft(filters);
-    }
-  }, [filters, open]);
-
-  function handleApply() {
-    onApply(draft);
-    setOpen(false);
+  function applyFilter<K extends keyof CategoryFiltersState>(
+    key: K,
+    value: CategoryFiltersState[K]
+  ) {
+    onApply({ ...filters, [key]: value });
   }
 
-  function handleClear() {
-    setDraft(defaultCategoryFilters);
-    onClear();
-    setOpen(false);
+  function openSearchDialog() {
+    setSearchValue(filters.search);
+    setSearchDialogOpen(true);
+  }
+
+  function submitSearchDialog(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    applyFilter("search", searchValue.trim());
+    setSearchDialogOpen(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <AdminTableHeaderActionButton
-        icon={Filter}
+    <>
+      <AdminTableFilterMenu
+        active={activeFiltersCount > 0}
         label={activeFiltersCount > 0 ? `Filtros (${activeFiltersCount})` : "Filtros"}
-        onClick={() => setOpen(true)}
-      />
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Filtrar categorias</DialogTitle>
-          <DialogDescription>
-            Ajusta la vista por nombre, origen, tipo y estado.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4">
-          <label className="grid gap-2 text-sm font-medium">
-            Nombre
-            <Input
-              value={draft.search}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, search: event.target.value }))
+        sections={[
+          {
+            icon: Search,
+            label: "Nombre",
+            options: [
+              { active: !filters.search, label: "Todos", onSelect: () => applyFilter("search", "") },
+              {
+                active: Boolean(filters.search),
+                label: "Buscar...",
+                valueLabel: filters.search || undefined,
+                onSelect: openSearchDialog
               }
-              placeholder="Buscar categoria"
-              className="h-11"
-            />
-          </label>
+            ]
+          },
+          {
+            icon: Boxes,
+            label: "Origen",
+            options: categoryOriginFilterOptions.map((option) => ({
+              active: filters.origin === option.value,
+              label: option.label,
+              onSelect: () => applyFilter("origin", option.value as CategoryOriginFilter)
+            }))
+          },
+          {
+            icon: ArrowDownUp,
+            label: "Tipo",
+            options: categoryKindFilterOptions.map((option) => ({
+              active: filters.kind === option.value,
+              label: option.label,
+              onSelect: () => applyFilter("kind", option.value as CategoryKindFilter)
+            }))
+          },
+          {
+            icon: ShieldCheck,
+            label: "Estado",
+            options: categoryStatusFilterOptions.map((option) => ({
+              active: filters.status === option.value,
+              label: option.label,
+              onSelect: () => applyFilter("status", option.value as CategoryStatusFilter)
+            }))
+          }
+        ]}
+        footer={<AdminTableFilterClearItem disabled={activeFiltersCount === 0} onClear={onClear} />}
+      />
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <label className="grid gap-2 text-sm font-medium">
-              Origen
-              <Select
-                value={draft.origin}
-                onValueChange={(value) =>
-                  setDraft((current) => ({ ...current, origin: value as CategoryOriginFilter }))
-                }
-              >
-                <SelectTrigger className="h-11 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOriginFilterOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Filtrar por nombre</DialogTitle>
+            <DialogDescription>Ingresa el texto que queres buscar en categorias.</DialogDescription>
+          </DialogHeader>
+          <form className="grid gap-4" onSubmit={submitSearchDialog}>
+            <label className="grid gap-1.5 text-sm font-medium">
+              <span className="text-xs text-muted-foreground">Nombre</span>
+              <Input
+                autoFocus
+                type="text"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="Buscar categoria"
+              />
             </label>
-
-            <label className="grid gap-2 text-sm font-medium">
-              Tipo
-              <Select
-                value={draft.kind}
-                onValueChange={(value) =>
-                  setDraft((current) => ({ ...current, kind: value as CategoryKindFilter }))
-                }
-              >
-                <SelectTrigger className="h-11 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryKindFilterOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </label>
-
-            <label className="grid gap-2 text-sm font-medium">
-              Estado
-              <Select
-                value={draft.status}
-                onValueChange={(value) =>
-                  setDraft((current) => ({ ...current, status: value as CategoryStatusFilter }))
-                }
-              >
-                <SelectTrigger className="h-11 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryStatusFilterOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </label>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button type="button" variant="outline" onClick={handleClear}>
-              <RotateCcw className="h-4 w-4" />
-              Limpiar
-            </Button>
-            <Button type="button" onClick={handleApply}>
-              <Filter className="h-4 w-4" />
-              Aplicar filtros
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setSearchDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Aplicar</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

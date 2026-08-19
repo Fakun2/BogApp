@@ -88,7 +88,7 @@ export function CaseDocumentAttachment({
         {canWrite ? (
           <AttachmentAction
             aria-label={`Eliminar ${document.originalName}`}
-            className="border-destructive/30 text-destructive hover:text-destructive"
+            className="border-border/50 text-foreground hover:text-foreground"
             disabled={isDeleting}
             title="Eliminar"
             variant="outline"

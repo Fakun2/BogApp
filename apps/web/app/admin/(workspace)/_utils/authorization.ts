@@ -1,6 +1,6 @@
 import { hasPermissions } from "@/lib/auth/permissions";
 import type { BogaapSession } from "@/lib/auth/session";
-import type { AdminCommandSection, AdminNavSection } from "../_types/admin";
+import type { AdminCommandSection, AdminNavItem, AdminNavSection } from "../_types/admin";
 
 export function getAuthorizedNavSections(
   session: BogaapSession | null,
@@ -9,7 +9,9 @@ export function getAuthorizedNavSections(
   return sections
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => isAuthorizedItem(session, item))
+      items: section.items
+        .map((item) => getAuthorizedNavItem(session, item))
+        .filter((item): item is AdminNavItem => Boolean(item))
     }))
     .filter((section) => section.items.length > 0);
 }
@@ -39,4 +41,24 @@ function isAuthorizedItem(
   }
 
   return hasPermissions(session, item.requiredPermissions, item.permissionMode);
+}
+
+function getAuthorizedNavItem(session: BogaapSession | null, item: AdminNavItem): AdminNavItem | null {
+  if (item.status === "soon") {
+    return null;
+  }
+
+  if (item.children?.length) {
+    const children = item.children
+      .map((child) => getAuthorizedNavItem(session, child))
+      .filter((child): child is AdminNavItem => Boolean(child));
+
+    if (!children.length || !hasPermissions(session, item.requiredPermissions, item.permissionMode)) {
+      return null;
+    }
+
+    return { ...item, children };
+  }
+
+  return hasPermissions(session, item.requiredPermissions, item.permissionMode) ? item : null;
 }

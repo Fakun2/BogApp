@@ -25,7 +25,7 @@ export function TasksTablePagination({
         <Button
           type="button"
           variant="outline"
-          className="h-8 w-8 border-border/50 p-0"
+          className="h-7 w-7 border-border/50 p-0"
           disabled={!canGoBack}
           onClick={goBack}
           aria-label="Pagina anterior"
@@ -35,7 +35,7 @@ export function TasksTablePagination({
         <Button
           type="button"
           variant="outline"
-          className="h-8 w-8 border-border/50 p-0"
+          className="h-7 w-7 border-border/50 p-0"
           disabled={!canGoForward}
           onClick={goForward}
           aria-label="Pagina siguiente"

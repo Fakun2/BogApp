@@ -111,7 +111,7 @@ function CalendarEventListPagination({
         <Button
           type="button"
           variant="outline"
-          className="h-8 w-8 rounded-xl border-border/50 p-0"
+          className="h-7 w-7 rounded-xl border-border/50 p-0"
           disabled={!canGoBack}
           onClick={goBack}
           aria-label="Pagina anterior"
@@ -121,7 +121,7 @@ function CalendarEventListPagination({
         <Button
           type="button"
           variant="outline"
-          className="h-8 w-8 rounded-xl border-border/50 p-0"
+          className="h-7 w-7 rounded-xl border-border/50 p-0"
           disabled={!canGoForward}
           onClick={goForward}
           aria-label="Pagina siguiente"

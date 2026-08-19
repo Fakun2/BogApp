@@ -44,18 +44,18 @@ export function AdminUserMenu({
           data-admin-surface={triggerVariant === "pill" ? true : undefined}
           type="button"
           className={cn(
-            "flex min-h-14 w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            collapsed && "min-h-9 justify-center rounded-full p-0",
+            "flex min-h-8 w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            collapsed && "min-h-8 justify-center rounded-full p-0",
             triggerVariant === "pill" &&
-              "h-10 min-h-10 w-auto gap-2 rounded-md border-0 bg-card px-2.5 py-1 shadow-[var(--admin-header-control-shadow)] hover:bg-secondary/70"
+              "grid size-8 min-h-8 w-8 place-items-center gap-0 rounded-full border border-[var(--dropdown-border)] bg-[var(--dropdown-bg)] p-0 shadow-none backdrop-blur-xl hover:bg-[var(--dropdown-item-hover)]"
           )}
           aria-label="Abrir menu de usuario"
         >
           <Avatar
             size={collapsed ? "default" : "lg"}
-            className={cn(collapsed ? "size-8" : "size-10", triggerVariant === "pill" && "size-8")}
+            className={cn(collapsed ? "size-6" : "size-8", triggerVariant === "pill" && "size-8")}
           >
-            <AvatarFallback className="border-0 bg-secondary text-sm font-medium text-foreground">
+            <AvatarFallback className="grid place-items-center border-0 bg-secondary/80 text-xs font-semibold leading-none text-muted-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -65,33 +65,33 @@ export function AdminUserMenu({
               <span className="block truncate text-xs text-muted-foreground">{email}</span>
             </span>
           ) : null}
-          {triggerVariant === "pill" ? (
+          {triggerVariant === "pill" && !collapsed ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
           ) : null}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-md border-border/80 p-0 shadow-lg">
+      <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-1.5">
         <DropdownMenuLabel className="px-3 py-2.5">
           <span className="block truncate text-sm font-medium leading-5">{displayName}</span>
           <span className="block truncate text-xs font-normal leading-5 text-muted-foreground">
             {email}
           </span>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="m-0 bg-border/80" />
-        <DropdownMenuItem className="rounded-none px-3 py-2 text-[13px] text-muted-foreground focus:bg-secondary/70 focus:text-foreground">
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="px-3 py-2 text-[13px] text-muted-foreground">
           <User className="h-4 w-4 opacity-70" />
           Cuenta
         </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-none px-3 py-2 text-[13px] text-muted-foreground focus:bg-secondary/70 focus:text-foreground">
+        <DropdownMenuItem className="px-3 py-2 text-[13px] text-muted-foreground">
           <Beaker className="h-4 w-4 opacity-70" />
           Funciones beta
         </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-none px-3 py-2 text-[13px] text-muted-foreground focus:bg-secondary/70 focus:text-foreground">
+        <DropdownMenuItem className="px-3 py-2 text-[13px] text-muted-foreground">
           <FileText className="h-4 w-4 opacity-70" />
           Novedades
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="m-0 bg-border/80" />
+        <DropdownMenuSeparator />
         <div className="px-3 pb-1.5 pt-2 text-[13px] text-muted-foreground">Color</div>
         <ThemeOption
           active={theme.colorMode === "navy-slate"}
@@ -104,7 +104,7 @@ export function AdminUserMenu({
           onSelect={() => theme.setColorMode("light-dark")}
         />
 
-        <DropdownMenuSeparator className="m-0 mt-1 bg-border/80" />
+        <DropdownMenuSeparator className="mt-1" />
         <div className="px-3 pb-1.5 pt-2 text-[13px] text-muted-foreground">Modo</div>
         <ThemeOption
           active={theme.variant === "dark"}
@@ -117,11 +117,11 @@ export function AdminUserMenu({
           onSelect={() => theme.setVariant("light")}
         />
 
-        <DropdownMenuSeparator className="m-0 mt-1 bg-border/80" />
+        <DropdownMenuSeparator className="mt-1" />
         <DropdownMenuItem
           onClick={logout}
           variant="destructive"
-          className="rounded-none px-3 py-2.5 text-[13px]"
+          className="px-3 py-2.5 text-[13px]"
         >
           <LogOut className="h-4 w-4 opacity-70" />
           Log out
@@ -142,7 +142,7 @@ function ThemeOption({
 }) {
   return (
     <DropdownMenuItem
-      className="rounded-none px-3 py-1.5 pl-9 text-[13px] text-muted-foreground focus:bg-secondary/70 focus:text-foreground"
+      className="px-3 py-1.5 pl-9 text-[13px] text-muted-foreground"
       onSelect={(event) => {
         event.preventDefault();
         onSelect();

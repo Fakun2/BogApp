@@ -125,7 +125,7 @@ export function CaseExpenseAttachmentsPopup({
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 border-border/50 p-0"
+            className="h-7 w-7 border-border/50 p-0"
             onClick={requestClose}
             aria-label="Cerrar comprobantes"
           >
@@ -197,7 +197,7 @@ export function CaseExpenseAttachmentsPopup({
                       asChild
                       type="button"
                       variant="outline"
-                      className="h-8 w-8 border-border/50 p-0"
+                      className="h-7 w-7 border-border/50 p-0"
                       aria-label={`Descargar ${attachment.originalName}`}
                     >
                       <a
@@ -214,7 +214,7 @@ export function CaseExpenseAttachmentsPopup({
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-8 w-8 border-destructive/30 p-0 text-destructive hover:text-destructive"
+                        className="h-7 w-7 border-border/50 p-0 text-foreground hover:text-foreground"
                         disabled={deleteMutation.isPending}
                         onClick={() => void handleDelete(attachment.id)}
                         aria-label={`Eliminar ${attachment.originalName}`}
@@ -240,7 +240,7 @@ export function CaseExpenseAttachmentsPopup({
               <Button
                 type="button"
                 variant="outline"
-                className="h-8 w-8 border-border/50 p-0"
+                className="h-7 w-7 border-border/50 p-0"
                 disabled={!attachmentsQuery.canGoBack || attachmentsQuery.isFetching}
                 onClick={attachmentsQuery.goBack}
                 aria-label="Pagina anterior"
@@ -250,7 +250,7 @@ export function CaseExpenseAttachmentsPopup({
               <Button
                 type="button"
                 variant="outline"
-                className="h-8 w-8 border-border/50 p-0"
+                className="h-7 w-7 border-border/50 p-0"
                 disabled={!hasNextPage || attachmentsQuery.isFetching}
                 onClick={attachmentsQuery.goForward}
                 aria-label="Pagina siguiente"

@@ -10,6 +10,7 @@ import { CasesModule } from "./cases/cases.module";
 import { CurrenciesModule } from "./currencies/currencies.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { DatabaseModule } from "./database/database.module";
+import { DocumentsModule } from "./documents/documents.module";
 import { HealthModule } from "./health/health.module";
 import { IdentityModule } from "./identity/identity.module";
 import { ForumsModule } from "./forums/forums.module";
@@ -40,6 +41,7 @@ import { TenancyModule } from "./tenancy/tenancy.module";
     IdentityModule,
     CashboxModule,
     CategoriesModule,
+    DocumentsModule,
     CasesModule,
     CurrenciesModule,
     DashboardModule,

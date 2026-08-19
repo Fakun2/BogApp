@@ -88,7 +88,7 @@ export function RoleCard({ permissions, role }: { permissions: PermissionDto[]; 
           <Button
             type="button"
             variant="outline"
-            className="h-10 px-3 text-destructive hover:text-destructive sm:px-4"
+            className="h-10 px-3 text-foreground hover:text-foreground sm:px-4"
             disabled={deleteRoleMutation.isPending}
             onClick={() => setDeleteOpen(true)}
           >

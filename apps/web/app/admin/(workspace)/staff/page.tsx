@@ -26,7 +26,7 @@ export default function StaffPage() {
 
   return (
     <RequirePermission permissions={["staff:read"]} fallback={<RestrictedStaff />}>
-      <div className="flex h-[calc(100svh-104px)] min-h-0 flex-col gap-3 overflow-hidden md:h-[calc(100svh-112px)] md:gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden md:gap-4">
         {staffQuery.isLoading && !staffQuery.data ? (
           <AdminMetricsSkeletonGrid />
         ) : (

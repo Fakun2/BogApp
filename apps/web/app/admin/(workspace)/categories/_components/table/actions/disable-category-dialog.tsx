@@ -30,7 +30,7 @@ export function DisableCategoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <div className="flex items-start gap-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-[var(--dropdown-item-hover)] text-muted-foreground">
             <TriangleAlert className="h-5 w-5" aria-hidden="true" />
           </span>
           <DialogHeader>
@@ -41,7 +41,7 @@ export function DisableCategoryDialog({
           </DialogHeader>
         </div>
         {error ? (
-          <p className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+          <p className="rounded-md border border-[var(--dropdown-border)] bg-[var(--dropdown-item-hover)] px-4 py-3 text-sm font-medium text-muted-foreground">
             {error}
           </p>
         ) : null}
@@ -52,7 +52,7 @@ export function DisableCategoryDialog({
           </Button>
           <Button
             type="button"
-            className="bg-destructive text-white hover:bg-destructive/85"
+            className="text-foreground"
             disabled={loading}
             onClick={onConfirm}
           >

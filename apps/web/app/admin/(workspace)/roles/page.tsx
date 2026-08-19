@@ -21,7 +21,7 @@ export default function RolesPage() {
 
   return (
     <RequirePermission permissions={["roles:read"]} fallback={<RestrictedRoles />}>
-      <div className="flex h-[calc(100svh-4rem)] max-h-[calc(100svh-4rem)] min-h-0 flex-col gap-5 overflow-hidden md:h-[calc(100svh-5rem)] md:max-h-[calc(100svh-5rem)] md:gap-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-hidden md:gap-6">
         {rolesQuery.isLoading && !rolesQuery.data ? (
           <AdminMetricsSkeletonGrid count={3} />
         ) : (
