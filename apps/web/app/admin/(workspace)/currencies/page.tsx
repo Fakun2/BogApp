@@ -24,7 +24,7 @@ export default function CurrenciesPage() {
 
   return (
     <RequirePermission permissions={["currencies:read"]} fallback={<RestrictedCurrencies />}>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden md:gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto scrollbar-none md:gap-3">
         {currenciesQuery.isLoading && !currenciesQuery.data ? (
           <AdminMetricsSkeletonGrid count={2} />
         ) : (

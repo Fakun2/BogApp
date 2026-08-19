@@ -168,7 +168,7 @@ function CashboxTable({
 
   return (
     <div
-      className={`min-h-0 flex-1 ${hasState ? "overflow-hidden" : "overflow-auto"} [scrollbar-gutter:stable]`}
+      className={`min-h-0 flex-1 scrollbar-none ${hasState ? "overflow-hidden" : "overflow-auto"} [scrollbar-gutter:stable]`}
     >
       <Table className="min-w-full text-xs">
         <TableHeader className="sticky top-0 z-10 bg-[color-mix(in_oklab,var(--muted)_28%,transparent)]">
