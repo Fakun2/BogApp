@@ -15,11 +15,11 @@ type UploadRateLimitEntry = {
 };
 
 const uploadCounters = new Map<string, UploadRateLimitEntry>();
-const defaultUploadLimit = 3;
+const defaultUploadLimit = 5;
 const defaultUploadWindowMs = 60_000;
 
 @Injectable()
-export class CaseExpenseAttachmentUploadRateLimitGuard implements CanActivate {
+export class CaseDocumentUploadRateLimitGuard implements CanActivate {
   constructor(private readonly config: ConfigService) {}
 
   canActivate(context: ExecutionContext) {
@@ -45,7 +45,7 @@ export class CaseExpenseAttachmentUploadRateLimitGuard implements CanActivate {
     if (entry.count > limit) {
       throw new HttpException(
         {
-          message: `Puedes subir hasta ${limit} comprobantes por minuto.`,
+          message: `Puedes subir hasta ${limit} documentos por minuto.`,
           statusCode: HttpStatus.TOO_MANY_REQUESTS
         },
         HttpStatus.TOO_MANY_REQUESTS
@@ -59,7 +59,7 @@ export class CaseExpenseAttachmentUploadRateLimitGuard implements CanActivate {
   private getLimit() {
     return getPositiveIntegerConfig(
       this.config,
-      "ATTACHMENT_UPLOAD_RATE_LIMIT_MAX",
+      "DOCUMENT_UPLOAD_RATE_LIMIT_MAX",
       defaultUploadLimit
     );
   }
@@ -67,7 +67,7 @@ export class CaseExpenseAttachmentUploadRateLimitGuard implements CanActivate {
   private getWindowMs() {
     return getPositiveIntegerConfig(
       this.config,
-      "ATTACHMENT_UPLOAD_RATE_LIMIT_WINDOW_MS",
+      "DOCUMENT_UPLOAD_RATE_LIMIT_WINDOW_MS",
       defaultUploadWindowMs
     );
   }

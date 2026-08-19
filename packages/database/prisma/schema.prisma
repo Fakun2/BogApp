@@ -167,6 +167,18 @@ enum CaseExpenseCashboxSyncJobStatus {
   failed
 }
 
+enum DocumentStorageCleanupJobStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum DocumentStorageCleanupJobReason {
+  document_deleted
+  metadata_create_failed
+}
+
 model Tenant {
   id                         String                      @id @default(uuid()) @db.Uuid
   name                       String
@@ -184,6 +196,9 @@ model Tenant {
   caseExpenseCashboxSyncJobs CaseExpenseCashboxSyncJob[]
   caseHearings               CaseHearing[]
   expenseAttachments         CaseExpenseAttachment[]
+  documentCategories         DocumentCategory[]
+  documents                  Document[]
+  documentStorageCleanupJobs DocumentStorageCleanupJob[]
   aiChatRuns                 AiChatRun[]
   aiLegalDocuments           AiLegalDocument[]
   aiLegalVersions            AiLegalDocumentVersion[]
@@ -212,6 +227,7 @@ model User {
   status                     UserStatus                  @default(active)
   memberships                TenantMembership[]
   expenseAttachments         CaseExpenseAttachment[]
+  documents                  Document[]
   cashboxMovements           CashboxMovement[]
   aiChatRuns                 AiChatRun[]
   createdAt                  DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -443,9 +459,11 @@ model Case {
   expenses              CaseExpense[]
   hearings              CaseHearing[]
   expenseAttachments    CaseExpenseAttachment[]
+  documents             Document[]
   aiChatRuns            AiChatRun[]
 
   @@unique([tenantId, caseNumber])
+  @@unique([tenantId, id])
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([tenantId, caption])
@@ -457,6 +475,86 @@ model Case {
   @@index([practiceAreaId])
   @@index([responsibleMembershipId])
   @@map("cases")
+}
+
+model DocumentCategory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  name         String
+  description  String?
+  active       Boolean  @default(true)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents Document[]
+
+  @@unique([tenantId, name])
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([tenantId, active, displayOrder])
+  @@map("document_categories")
+}
+
+model Document {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  caseId           String    @map("case_id") @db.Uuid
+  categoryId       String?   @map("category_id") @db.Uuid
+  uploadedByUserId String    @map("uploaded_by_user_id") @db.Uuid
+  storageProvider  String    @map("storage_provider")
+  bucket           String
+  objectKey        String    @map("object_key")
+  originalName     String    @map("original_name")
+  mimeType         String    @map("mime_type")
+  sizeBytes        Int       @map("size_bytes")
+  checksum         String?
+  notes            String?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  tenant         Tenant                      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  case           Case                        @relation(fields: [tenantId, caseId], references: [tenantId, id], onDelete: Cascade)
+  category       DocumentCategory?           @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+  uploadedByUser User                        @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  cleanupJobs    DocumentStorageCleanupJob[]
+
+  @@index([tenantId])
+  @@index([caseId])
+  @@index([categoryId])
+  @@index([uploadedByUserId])
+  @@index([tenantId, caseId])
+  @@index([tenantId, caseId, createdAt])
+  @@index([tenantId, categoryId])
+  @@index([tenantId, deletedAt])
+  @@map("documents")
+}
+
+model DocumentStorageCleanupJob {
+  id              String                          @id @default(uuid()) @db.Uuid
+  tenantId        String                          @map("tenant_id") @db.Uuid
+  documentId      String?                         @map("document_id") @db.Uuid
+  storageProvider String                          @map("storage_provider")
+  bucket          String
+  objectKey       String                          @map("object_key")
+  reason          DocumentStorageCleanupJobReason
+  status          DocumentStorageCleanupJobStatus @default(pending)
+  attempts        Int                             @default(0)
+  nextRunAt       DateTime                        @default(now()) @map("next_run_at") @db.Timestamptz(6)
+  lastError       String?                         @map("last_error")
+  completedAt     DateTime?                       @map("completed_at") @db.Timestamptz(6)
+  createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@unique([storageProvider, bucket, objectKey])
+  @@index([status, nextRunAt])
+  @@index([tenantId, status])
+  @@index([documentId])
+  @@map("document_storage_cleanup_jobs")
 }
 
 model AiChatRun {

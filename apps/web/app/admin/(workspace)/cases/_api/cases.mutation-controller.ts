@@ -5,12 +5,14 @@ import type {
   CaseTaskFormValues
 } from "@/lib/validation/cases";
 import type {
+  CaseDocumentDto,
   CaseDto,
   CaseExpenseAttachmentDto,
   CaseExpenseDto,
   CaseHearingDto,
   CaseTaskDto
 } from "../_types/cases.types";
+import { deleteCaseDocument, uploadCaseDocument } from "./case-documents.api";
 import {
   deleteCase,
   deleteCaseExpense,
@@ -112,6 +114,22 @@ export const casesMutations = {
     };
   },
 
+  uploadDocument(
+    caseId: string
+  ): CasesMutationSpec<CaseDocumentDto, { categoryId?: string; file: File; notes?: string }> {
+    return {
+      mutationFn: (input) => uploadCaseDocument({ caseId, ...input }),
+      permission: "documents:write"
+    };
+  },
+
+  deleteDocument(caseId: string): CasesMutationSpec<{ status: "ok" }, string> {
+    return {
+      mutationFn: (documentId) => deleteCaseDocument({ caseId, documentId }),
+      permission: "documents:write"
+    };
+  },
+
   uploadExpenseAttachment({
     caseId,
     expenseId
@@ -133,7 +151,8 @@ export const casesMutations = {
     expenseId: string;
   }): CasesMutationSpec<{ status: "ok" }, string> {
     return {
-      mutationFn: (attachmentId) => deleteCaseExpenseAttachment({ attachmentId, caseId, expenseId }),
+      mutationFn: (attachmentId) =>
+        deleteCaseExpenseAttachment({ attachmentId, caseId, expenseId }),
       permission: "expenses:update"
     };
   }

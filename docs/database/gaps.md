@@ -21,11 +21,13 @@ y decisiones de producto. No corregir todas en un mismo PR.
 
 ### Storage provider
 
-- Decision de producto: abstraccion `StorageProvider` con LOCAL, SUPABASE, S3 y
-  GOOGLE_DRIVE conceptual.
-- Estado actual Prisma: `DocumentStorageMode` solo `local` y `s3`.
-- Impacto: documentos pueden acoplarse demasiado pronto a un proveedor.
-- Resolver en: PR documentos/storage.
+- Decision de producto: storage S3-compatible privado con MinIO productivo
+  recomendado y Cloudflare R2 soportado por configuracion.
+- Estado actual: existe abstraccion backend para MinIO/R2 y documentos de
+  expediente usan acceso proxyado por API.
+- Impacto: `DocumentStorageMode` historico sigue limitado a `local` y `s3` en
+  settings, pero no gobierna aun la seleccion runtime del provider.
+- Resolver en: PR settings/storage por tenant.
 
 ### Tenant guard incompleto
 
@@ -75,10 +77,6 @@ Implementado en Prisma y presente en ERD:
 Presente en ERD y no implementado en Prisma:
 
 - `opposing_parties`
-- `cases`
-- `case_participants`
-- `document_categories`
-- `documents`
 - `notifications`
 - `tasks`
 - `task_responsibles`
@@ -114,8 +112,8 @@ Implementado en Prisma y no conflictivo:
   quedar integrado con una continuacion clara hacia onboarding.
 - `IdentityController` expone respuestas minimas; falta modelo de usuario/tenant
   mas rico para dashboard.
-- No existen modulos `clients`, `cases`, `documents`, `tasks`, `notifications`,
-  `storage` ni `audit-logs`.
+- No existen modulos completos de `notifications`, `tasks` operativas globales
+  ni `audit-logs`.
 
 ## Gaps de frontend
 

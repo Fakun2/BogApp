@@ -1,5 +1,6 @@
 import { CaseCalendarCard } from "../../_components/detail/case-calendar";
 import { CaseDetailSummary } from "../../_components/detail/case-detail-summary";
+import { CaseDocumentsPanel } from "../../_components/detail/case-documents-panel";
 import { CaseExpensesTable } from "../../_components/detail/case-expenses-table";
 import { CaseHearingsTable } from "../../_components/detail/case-hearings-table";
 import { CaseExpensesBreakdownCard } from "../../_components/detail/paid-expenses-breakdown";
@@ -29,6 +30,13 @@ export function CaseDetailView({
         />
         <CaseExpensesBreakdownCard
           canReadExpense={permissions.canReadExpense}
+          caseId={caseItem.id}
+        />
+      </section>
+      <section className="min-h-0 flex-1 overflow-visible">
+        <CaseDocumentsPanel
+          canRead={permissions.canReadDocument}
+          canWrite={permissions.canWriteDocument}
           caseId={caseItem.id}
         />
       </section>

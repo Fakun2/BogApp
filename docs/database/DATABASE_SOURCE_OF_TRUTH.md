@@ -38,6 +38,8 @@ los modelos MVP esten completos.
 - `Client` -> `clients` (definido en Prisma en #19; migracion pendiente en #20)
 - `Case` -> `cases`
 - `CaseParticipant` -> `case_participants`
+- `DocumentCategory` -> `document_categories`
+- `Document` -> `documents`
 - `CaseTask` -> `case_tasks`
 - `CaseExpense` -> `case_expenses`
 - `CaseExpenseAttachment` -> `case_expense_attachments`
@@ -61,8 +63,6 @@ los modelos MVP esten completos.
 MVP:
 
 - `opposing_parties`
-- `document_categories`
-- `documents`
 - `task_responsibles`
 - `notifications`
 
@@ -96,6 +96,12 @@ Post-MVP o despues del core legal:
 - `case_expense_attachments` representa comprobantes privados asociados a gastos.
   Guarda metadata tenant-scoped y el `object_key` del storage S3-compatible; el
   acceso al archivo se resuelve desde API, no exponiendo bucket/key al frontend.
+- `document_categories` representa categorias configurables tenant-scoped para
+  ordenar documentos de expedientes. En v1 la categoria es opcional.
+- `documents` representa archivos privados asociados a expedientes. Guarda
+  metadata tenant-scoped, categoria opcional y referencia privada S3-compatible;
+  upload, preview y download se resuelven por API proxy sin exponer bucket/key
+  al frontend.
 - `case_expense_cashbox_sync_jobs` es un outbox persistente tenant-scoped para
   sincronizar gastos pagados con caja. Cada gasto tiene como maximo un job activo
   por `case_expense_id`; los fallos guardan `last_error`, incrementan

@@ -34,9 +34,11 @@ Estas decisiones son fuente de verdad funcional para los proximos PRs.
 
 ## Almacenamiento de documentos
 
-- Usar abstraccion `StorageProvider`.
-- Conceptos soportados: `LOCAL`, `SUPABASE`, `S3`, `GOOGLE_DRIVE`.
-- MVP: `LOCAL` solo desarrollo y `SUPABASE` o `S3` preparado para produccion.
+- Usar storage S3-compatible privado detras de la abstraccion backend.
+- MVP: MinIO es el proveedor productivo recomendado y tambien el default local.
+- Cloudflare R2 queda soportado por configuracion con `STORAGE_DRIVER=r2`.
+- Upload, preview y download pasan por API proxy; no se exponen bucket ni keys
+  al frontend.
 - Google Drive queda post-MVP.
 
 ## MVP obligatorio
