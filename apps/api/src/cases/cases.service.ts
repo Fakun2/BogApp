@@ -7,11 +7,12 @@ import {
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import type {
+  CaseCalendarQuery,
+  CreateCaseDocumentInput,
   CreateCaseExpenseInput,
   CreateCaseHearingInput,
   CreateCaseInput,
   CreateCaseTaskInput,
-  CaseCalendarQuery,
   ListCaseDocumentsQuery,
   ListCaseExpenseAttachmentsQuery,
   ListCaseExpensesQuery,
@@ -30,7 +31,6 @@ import {
 } from "./use-cases/case-expense-attachments.use-case";
 import {
   CaseDocumentsUseCase,
-  type CreateCaseDocumentMetadata,
   type UploadedCaseDocumentFile
 } from "./use-cases/case-documents.use-case";
 import { CaseExpensesUseCase } from "./use-cases/case-expenses.use-case";
@@ -253,7 +253,7 @@ export class CasesService {
     tenantId: string,
     caseId: string,
     uploadedByUserId: string,
-    metadata: CreateCaseDocumentMetadata,
+    metadata: CreateCaseDocumentInput,
     file?: UploadedCaseDocumentFile
   ) {
     return this.caseDocumentsUseCase.create(tenantId, caseId, uploadedByUserId, metadata, file);
@@ -383,7 +383,11 @@ export class CasesService {
 
   async delete(tenantId: string, caseId: string) {
     await this.findTenantCaseOrThrow(tenantId, caseId);
-    await this.prisma.case.delete({ where: { id: caseId } });
+    await this.prisma.$transaction(async (tx) => {
+      await this.caseDocumentsUseCase.enqueueCleanupForCaseDeletion(tx, tenantId, caseId);
+      await tx.case.delete({ where: { id: caseId } });
+    });
+    await this.caseDocumentsUseCase.processDueCleanupJobs();
 
     return { status: "ok" as const };
   }
