@@ -414,6 +414,7 @@ export interface CreateCaseDto {
 }
 
 export interface CaseMetricsDto {
+  hearingsCount: number;
   totalExpenses: number;
   pendingPayments: number;
   totalTasks: number;

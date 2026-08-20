@@ -41,6 +41,7 @@ export default function CashboxPage() {
         <CashboxSummaryGrid
           currencies={currencies}
           currencyCode={selectedCurrencyCode}
+          error={summaryQuery.error}
           loading={summaryQuery.isLoading}
           summary={summary}
           onCurrencyChange={pageState.updateCurrencyCode}

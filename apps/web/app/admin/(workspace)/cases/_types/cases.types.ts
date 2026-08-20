@@ -159,6 +159,7 @@ export type CaseHearingDto = {
 };
 
 export type CaseMetricsDto = {
+  hearingsCount: number;
   totalExpenses: number;
   pendingPayments: number;
   totalTasks: number;

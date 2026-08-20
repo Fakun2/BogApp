@@ -419,22 +419,25 @@ export class CasesService {
   }
 
   private async getCaseTaskMetrics(tenantId: string, caseId: string) {
-    const [totalTasks, pendingTasks, paidExpenses, pendingPayments] = await Promise.all([
-      this.prisma.caseTask.count({ where: { caseId, tenantId } }),
-      this.prisma.caseTask.count({
-        where: { caseId, status: { in: ["pending", "in_progress"] }, tenantId }
-      }),
-      this.prisma.caseExpense.aggregate({
-        _sum: { amount: true },
-        where: { caseId, status: "paid", tenantId }
-      }),
-      this.prisma.caseExpense.aggregate({
-        _sum: { amount: true },
-        where: { caseId, status: { in: ["pending", "overdue"] }, tenantId }
-      })
-    ]);
+    const [totalTasks, pendingTasks, paidExpenses, pendingPayments, hearingsCount] =
+      await Promise.all([
+        this.prisma.caseTask.count({ where: { caseId, tenantId } }),
+        this.prisma.caseTask.count({
+          where: { caseId, status: { in: ["pending", "in_progress"] }, tenantId }
+        }),
+        this.prisma.caseExpense.aggregate({
+          _sum: { amount: true },
+          where: { caseId, status: "paid", tenantId }
+        }),
+        this.prisma.caseExpense.aggregate({
+          _sum: { amount: true },
+          where: { caseId, status: { in: ["pending", "overdue"] }, tenantId }
+        }),
+        this.prisma.caseHearing.count({ where: { caseId, tenantId } })
+      ]);
 
     return {
+      hearingsCount,
       pendingTasks,
       pendingPayments: Number(pendingPayments._sum.amount ?? 0),
       totalExpenses: Number(paidExpenses._sum.amount ?? 0),

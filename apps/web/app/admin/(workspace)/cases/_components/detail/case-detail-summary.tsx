@@ -53,7 +53,7 @@ export function CaseDetailSummary({ caseItem }: { caseItem: CaseDetailDto }) {
           {
             icon: CalendarDays,
             label: "Audiencias",
-            value: "0"
+            value: String(caseItem.metrics.hearingsCount)
           },
           {
             icon: Clock3,
