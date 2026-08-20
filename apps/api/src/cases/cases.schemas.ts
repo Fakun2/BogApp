@@ -584,6 +584,9 @@ export class CaseHearingDto {
 }
 
 export class CaseMetricsDto {
+  @ApiProperty({ example: 3 })
+  hearingsCount!: number;
+
   @ApiProperty({ example: 15000 })
   totalExpenses!: number;
 
