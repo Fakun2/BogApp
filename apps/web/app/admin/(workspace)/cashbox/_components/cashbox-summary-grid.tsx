@@ -19,12 +19,14 @@ import { formatCanonicalMoney } from "../_utils/local-decimal";
 export function CashboxSummaryGrid({
   currencies,
   currencyCode,
+  error,
   loading,
   summary,
   onCurrencyChange
 }: {
   currencies: CurrencyDto[];
   currencyCode?: string;
+  error: Error | null;
   loading: boolean;
   summary: CashboxSummaryDto | undefined;
   onCurrencyChange: (currencyCode: string) => void;
@@ -34,6 +36,7 @@ export function CashboxSummaryGrid({
       <CashboxBalanceCard
         currencies={currencies}
         currencyCode={currencyCode}
+        error={error}
         loading={loading}
         summary={summary}
         onCurrencyChange={onCurrencyChange}
@@ -41,7 +44,8 @@ export function CashboxSummaryGrid({
       <div className="grid gap-2 md:grid-cols-2 md:gap-3 xl:grid-cols-1">
         <CashboxFlowCard
           icon={ArrowUpRight}
-          label="Ingresos de hoy"
+          label="Ingresos del día"
+          error={error}
           loading={loading}
           value={summary?.incomeToday}
           summary={summary}
@@ -49,7 +53,8 @@ export function CashboxSummaryGrid({
         />
         <CashboxFlowCard
           icon={ArrowDownLeft}
-          label="Egresos de hoy"
+          label="Egresos del día"
+          error={error}
           loading={loading}
           value={summary?.expenseToday}
           summary={summary}
@@ -63,20 +68,25 @@ export function CashboxSummaryGrid({
 function CashboxBalanceCard({
   currencies,
   currencyCode,
+  error,
   loading,
   summary,
   onCurrencyChange
 }: {
   currencies: CurrencyDto[];
   currencyCode?: string;
+  error: Error | null;
   loading: boolean;
   summary: CashboxSummaryDto | undefined;
   onCurrencyChange: (currencyCode: string) => void;
 }) {
   const [visible, setVisible] = useState(true);
   const selectedCode = currencyCode ?? summary?.currency.code ?? "";
-  const balance = formatCanonicalMoney(summary?.balance, summary?.currency.symbol);
+  const balance = summary
+    ? formatCanonicalMoney(summary.balance, summary.currency.symbol)
+    : null;
   const showSkeleton = loading && !summary;
+  const showError = Boolean(error && !summary);
 
   return (
     <Card
@@ -93,6 +103,14 @@ function CashboxBalanceCard({
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2.5">
               {showSkeleton ? (
                 <Skeleton className="h-9 w-44 md:h-10 md:w-56" />
+              ) : showError ? (
+                <p className="text-2xl font-semibold leading-none text-foreground md:text-3xl">
+                  No disponible
+                </p>
+              ) : !balance ? (
+                <p className="text-3xl font-semibold leading-none text-foreground md:text-4xl">
+                  --
+                </p>
               ) : (
                 <p className="text-3xl font-semibold leading-none text-foreground md:text-4xl">
                   {visible ? balance : "$ ****"}
@@ -126,6 +144,8 @@ function CashboxBalanceCard({
         <div className="text-sm text-muted-foreground">
           {showSkeleton ? (
             <Skeleton className="h-4 w-28" />
+          ) : showError ? (
+            "No se pudo consultar caja."
           ) : summary?.currency.code ? (
             `Caja en ${summary.currency.code}`
           ) : (
@@ -138,6 +158,7 @@ function CashboxBalanceCard({
 }
 
 function CashboxFlowCard({
+  error,
   icon: Icon,
   label,
   loading,
@@ -145,6 +166,7 @@ function CashboxFlowCard({
   tone,
   value
 }: {
+  error: Error | null;
   icon: LucideIcon;
   label: string;
   loading: boolean;
@@ -153,7 +175,9 @@ function CashboxFlowCard({
   value?: string;
 }) {
   const showSkeleton = loading && !summary;
-  const formattedValue = formatCanonicalMoney(value, summary?.currency.symbol);
+  const showError = Boolean(error && !summary);
+  const formattedValue =
+    summary && value ? formatCanonicalMoney(value, summary.currency.symbol) : null;
   const toneClassName =
     tone === "income"
       ? "bg-emerald-500/10 text-emerald-700"
@@ -166,7 +190,9 @@ function CashboxFlowCard({
     >
       <CardContent className="flex min-h-[74px] items-center justify-between gap-3 p-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] ${toneClassName}`}>
+          <span
+            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] ${toneClassName}`}
+          >
             <Icon className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -176,6 +202,14 @@ function CashboxFlowCard({
             <div className="mt-1.5">
               {showSkeleton ? (
                 <Skeleton className="h-6 w-28" />
+              ) : showError ? (
+                <p className="truncate text-sm font-semibold leading-none text-foreground">
+                  No disponible
+                </p>
+              ) : !formattedValue ? (
+                <p className="truncate text-xl font-semibold leading-none text-foreground">
+                  --
+                </p>
               ) : (
                 <p className="truncate text-xl font-semibold leading-none text-foreground">
                   {formattedValue}
@@ -184,9 +218,15 @@ function CashboxFlowCard({
             </div>
           </div>
         </div>
-        <p className="shrink-0 text-xs font-medium text-muted-foreground">
-          {showSkeleton ? <Skeleton className="h-4 w-12" /> : (summary?.currency.code ?? "")}
-        </p>
+        <div className="shrink-0 text-xs font-medium text-muted-foreground">
+          {showSkeleton ? (
+            <Skeleton className="h-4 w-12" />
+          ) : showError ? (
+            "Error"
+          ) : (
+            (summary?.currency.code ?? "")
+          )}
+        </div>
       </CardContent>
     </Card>
   );
