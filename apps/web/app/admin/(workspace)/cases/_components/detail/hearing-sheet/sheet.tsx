@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, type FormEvent } from "react";
 import { Bell, CalendarPlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
   caseSelectTriggerClassName,
   caseTextareaClassName
 } from "../../../_constants/cases.constants";
+import { CasePickerField } from "../../case-picker-field";
 import { CaseActionSheet } from "../case-action-sheet";
 import { CaseDateInput } from "../../sheet/case-date-input";
 import { CaseField } from "../../sheet/case-field";
@@ -30,17 +32,37 @@ export function CaseHearingSheet({
   hearing,
   onOpenChange,
   open: controlledOpen,
+  selectedCase,
   trigger
 }: CaseHearingSheetProps) {
+  const [localSelectedCase, setLocalSelectedCase] = useState(selectedCase ?? null);
+  const selectedCaseId = caseId ?? localSelectedCase?.id ?? "";
   const { draft, errors, handleSubmit, mutation, open, setOpen, updateDraft } = useCaseHearingSheet(
     {
-      caseId,
+      caseId: selectedCaseId,
       defaultDate,
       hearing,
       onOpenChange,
       open: controlledOpen
     }
   );
+  const canSelectCase = !hearing && !caseId;
+  const isMissingCase = canSelectCase && !selectedCaseId;
+
+  useEffect(() => {
+    if (open) {
+      setLocalSelectedCase(selectedCase ?? null);
+    }
+  }, [open, selectedCase]);
+
+  function handleCaseScopedSubmit(event: FormEvent<HTMLFormElement>) {
+    if (isMissingCase) {
+      event.preventDefault();
+      return;
+    }
+
+    handleSubmit(event);
+  }
 
   return (
     <CaseActionSheet
@@ -49,12 +71,19 @@ export function CaseHearingSheet({
       icon={CalendarPlus}
       isSubmitting={mutation.isPending}
       onOpenChange={setOpen}
-      onSubmit={handleSubmit}
+      onSubmit={handleCaseScopedSubmit}
       open={open}
+      submitDisabled={isMissingCase}
       title={hearing ? "Editar audiencia" : "Nueva audiencia"}
       trigger={trigger}
       widthClassName="w-[760px] max-w-[94vw] sm:max-w-[760px]"
     >
+      {canSelectCase ? (
+        <CaseField label="Expediente" required>
+          <CasePickerField selectedCase={localSelectedCase} onSelect={setLocalSelectedCase} />
+        </CaseField>
+      ) : null}
+
       <CaseField error={errors.type} label="Tipo de audiencia" required>
         <Select
           value={draft.type}

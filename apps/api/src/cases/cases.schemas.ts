@@ -188,9 +188,17 @@ export const listCasesQuerySchema = z.object({
   sortDirection: z.enum(["asc", "desc"]).default("desc")
 });
 
+export const listCasePickerOptionsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(20).default(8),
+  cursor: optionalTrimmedString,
+  offset: z.coerce.number().int().min(0).default(0),
+  search: optionalTrimmedString
+});
+
 export const listCaseExpensesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(8).default(8),
   cursor: optionalTrimmedString,
+  currencyCode: currencyCodeSchema.optional(),
   status: caseExpenseStatusSchema.optional(),
   taskId: optionalUuid
 });
@@ -228,6 +236,7 @@ export const createCaseDocumentBodySchema = z.object({
 });
 
 export const caseCalendarQuerySchema = z.object({
+  caseId: optionalUuid,
   month: monthStringSchema,
   mode: z.enum(["month", "list"]).default("month"),
   limit: z.coerce.number().int().min(1).max(8).default(5),
@@ -236,6 +245,7 @@ export const caseCalendarQuerySchema = z.object({
 });
 
 export class ListCasesQueryDto extends createZodDto(listCasesQuerySchema) {}
+export class ListCasePickerOptionsQueryDto extends createZodDto(listCasePickerOptionsQuerySchema) {}
 export class ListCaseExpensesQueryDto extends createZodDto(listCaseExpensesQuerySchema) {}
 export class ListCaseHearingsQueryDto extends createZodDto(listCaseHearingsQuerySchema) {}
 export class ListCaseTasksQueryDto extends createZodDto(listCaseTasksQuerySchema) {}
@@ -385,6 +395,20 @@ export class CaseDto {
 
   @ApiProperty({ format: "date-time" })
   updatedAt!: string;
+}
+
+export class CasePickerOptionDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ example: "EXP-1234/2026" })
+  caseNumber!: string;
+
+  @ApiProperty({ example: "Perez c/ Gomez s/ Danos y perjuicios" })
+  caption!: string;
+
+  @ApiProperty({ nullable: true, type: String })
+  subject!: string | null;
 }
 
 export class CaseTaskAssigneeDto {
@@ -619,6 +643,20 @@ export class CasesMetricsDto {
   pendingTasks!: number;
 }
 
+export class TenantCalendarMetricsDto {
+  @ApiPropertyOptional({ example: 12 })
+  totalTasks?: number;
+
+  @ApiPropertyOptional({ example: 5 })
+  pendingTasks?: number;
+
+  @ApiPropertyOptional({ example: 3 })
+  hearingsCount?: number;
+
+  @ApiPropertyOptional({ example: 4 })
+  pendingExpensesCount?: number;
+}
+
 export class CasesPageInfoDto {
   @ApiProperty({ example: 8 })
   limit!: number;
@@ -720,6 +758,15 @@ export class CaseCalendarEventDto {
 
   @ApiPropertyOptional({ type: String, example: "09:30" })
   time?: string;
+
+  @ApiPropertyOptional({ format: "uuid" })
+  caseId?: string;
+
+  @ApiPropertyOptional({ example: "EXP-123/2026" })
+  caseNumber?: string;
+
+  @ApiPropertyOptional({ example: "Perez c/ Gomez s/ Danos y perjuicios" })
+  caseCaption?: string;
 }
 
 export class CaseCalendarResponseDto {
@@ -731,6 +778,9 @@ export class CaseCalendarResponseDto {
 
   @ApiPropertyOptional({ type: CasesPageInfoDto })
   pageInfo?: CasesPageInfoDto;
+
+  @ApiPropertyOptional({ type: TenantCalendarMetricsDto })
+  metrics?: TenantCalendarMetricsDto;
 }
 
 export class CaseExpenseAttachmentsListResponseDto {
@@ -765,12 +815,21 @@ export class CasesListResponseDto {
   pageInfo!: CasesPageInfoDto;
 }
 
+export class CasePickerOptionsResponseDto {
+  @ApiProperty({ type: [CasePickerOptionDto] })
+  items!: CasePickerOptionDto[];
+
+  @ApiProperty({ type: CasesPageInfoDto })
+  pageInfo!: CasesPageInfoDto;
+}
+
 export class CaseDeleteResponseDto {
   @ApiProperty({ example: "ok" })
   status!: "ok";
 }
 
 export type ListCasesQuery = z.infer<typeof listCasesQuerySchema>;
+export type ListCasePickerOptionsQuery = z.infer<typeof listCasePickerOptionsQuerySchema>;
 export type ListCaseExpensesQuery = z.infer<typeof listCaseExpensesQuerySchema>;
 export type ListCaseHearingsQuery = z.infer<typeof listCaseHearingsQuerySchema>;
 export type ListCaseTasksQuery = z.infer<typeof listCaseTasksQuerySchema>;

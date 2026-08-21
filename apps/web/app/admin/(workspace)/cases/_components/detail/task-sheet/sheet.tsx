@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, type FormEvent } from "react";
 import { ListTodo } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +17,7 @@ import {
   caseSelectTriggerClassName,
   caseTextareaClassName
 } from "../../../_constants/cases.constants";
+import { CasePickerField } from "../../case-picker-field";
 import { CaseActionSheet } from "../case-action-sheet";
 import { CaseDateInput } from "../../sheet/case-date-input";
 import { CaseField } from "../../sheet/case-field";
@@ -29,16 +31,36 @@ export function CaseTaskSheet({
   defaultDate,
   onOpenChange,
   open: controlledOpen,
+  selectedCase,
   task,
   trigger
 }: CaseTaskSheetProps) {
+  const [localSelectedCase, setLocalSelectedCase] = useState(selectedCase ?? null);
+  const selectedCaseId = caseId ?? localSelectedCase?.id ?? "";
   const { draft, errors, handleSubmit, mutation, open, setOpen, updateDraft } = useCaseTaskSheet({
-    caseId,
+    caseId: selectedCaseId,
     defaultDate,
     onOpenChange,
     open: controlledOpen,
     task
   });
+  const canSelectCase = !task && !caseId;
+  const isMissingCase = !selectedCaseId;
+
+  useEffect(() => {
+    if (open) {
+      setLocalSelectedCase(selectedCase ?? null);
+    }
+  }, [open, selectedCase]);
+
+  function handleCaseScopedSubmit(event: FormEvent<HTMLFormElement>) {
+    if (isMissingCase) {
+      event.preventDefault();
+      return;
+    }
+
+    handleSubmit(event);
+  }
 
   return (
     <CaseActionSheet
@@ -47,12 +69,19 @@ export function CaseTaskSheet({
       icon={ListTodo}
       isSubmitting={mutation.isPending}
       onOpenChange={setOpen}
-      onSubmit={handleSubmit}
+      onSubmit={handleCaseScopedSubmit}
       open={open}
+      submitDisabled={isMissingCase}
       title={task ? "Editar tarea" : "Nueva tarea"}
       trigger={trigger}
     >
-      <CaseField error={errors.name} label="Nombre" required>
+      {canSelectCase ? (
+        <CaseField label="Expediente" required>
+          <CasePickerField selectedCase={localSelectedCase} onSelect={setLocalSelectedCase} />
+        </CaseField>
+      ) : null}
+
+      <CaseField error={errors.name} label="Descripcion" required>
         <Input
           autoComplete="off"
           className={caseInputClassName}

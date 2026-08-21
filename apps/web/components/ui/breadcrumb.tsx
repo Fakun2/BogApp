@@ -54,13 +54,13 @@ function BreadcrumbPage({ className, ...props }: ComponentProps<"span">) {
 
 function BreadcrumbSeparator({ children, className, ...props }: ComponentProps<"li">) {
   return (
-    <li
+    <span
       aria-hidden="true"
       className={cn("flex items-center text-muted-foreground/70", className)}
       {...props}
     >
       {children ?? <ChevronRight className="size-3.5" />}
-    </li>
+    </span>
   );
 }
 

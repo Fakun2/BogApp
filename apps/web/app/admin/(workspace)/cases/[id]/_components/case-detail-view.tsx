@@ -1,4 +1,3 @@
-import { CaseCalendarCard } from "../../_components/detail/case-calendar";
 import { CaseDetailSummary } from "../../_components/detail/case-detail-summary";
 import { CaseDocumentsPanel } from "../../_components/detail/case-documents-panel";
 import { CaseExpensesTable } from "../../_components/detail/case-expenses-table";
@@ -20,34 +19,6 @@ export function CaseDetailView({
     <div className="flex min-h-[calc(100svh-104px)] flex-col gap-4 overflow-visible md:min-h-[calc(100svh-112px)] md:gap-5">
       <CaseDetailSummary caseItem={caseItem} />
       <CaseAiPanel canUseAi={permissions.canUseCaseAi} caseItem={caseItem} />
-      <section className="grid gap-6 overflow-visible lg:grid-cols-[minmax(0,1fr)_340px]">
-        <CaseCalendarCard
-          canCreateExpense={permissions.canCreateExpense}
-          canCreateHearing={permissions.canCreateHearing}
-          canCreateTask={permissions.canCreateTask}
-          canUpdateExpense={permissions.canUpdateExpense}
-          caseId={caseItem.id}
-        />
-        <CaseExpensesBreakdownCard
-          canReadExpense={permissions.canReadExpense}
-          caseId={caseItem.id}
-        />
-      </section>
-      <section className="min-h-0 flex-1 overflow-visible">
-        <CaseDocumentsPanel
-          canRead={permissions.canReadDocument}
-          canWrite={permissions.canWriteDocument}
-          caseId={caseItem.id}
-        />
-      </section>
-      <section className="min-h-0 flex-1 overflow-visible">
-        <CaseHearingsTable
-          canCreate={permissions.canCreateHearing}
-          canDelete={permissions.canDeleteHearing}
-          canUpdate={permissions.canUpdateHearing}
-          caseId={caseItem.id}
-        />
-      </section>
       <section className="min-h-0 flex-1 overflow-visible">
         <CaseTasksTable
           canCreate={permissions.canCreateTask}
@@ -61,11 +32,37 @@ export function CaseDetailView({
         />
       </section>
       <section className="min-h-0 flex-1 overflow-visible">
+        <CaseHearingsTable
+          canCreate={permissions.canCreateHearing}
+          canDelete={permissions.canDeleteHearing}
+          canUpdate={permissions.canUpdateHearing}
+          caseId={caseItem.id}
+        />
+      </section>
+      <section className="min-h-0 flex-1 overflow-visible">
+        <CaseDocumentsPanel
+          canRead={permissions.canReadDocument}
+          canWrite={permissions.canWriteDocument}
+          caseId={caseItem.id}
+        />
+      </section>
+      <section className="grid gap-6 overflow-visible lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* <CalendarCard
+          canCreateExpense={permissions.canCreateExpense}
+          canCreateHearing={permissions.canCreateHearing}
+          canCreateTask={permissions.canCreateTask}
+          canUpdateExpense={permissions.canUpdateExpense}
+          caseId={caseItem.id}
+        /> */}
         <CaseExpensesTable
           canCreate={permissions.canCreateExpense}
           canDelete={permissions.canDeleteExpense}
           canRead={permissions.canReadExpense}
           canUpdate={permissions.canUpdateExpense}
+          caseId={caseItem.id}
+        />
+        <CaseExpensesBreakdownCard
+          canReadExpense={permissions.canReadExpense}
           caseId={caseItem.id}
         />
       </section>

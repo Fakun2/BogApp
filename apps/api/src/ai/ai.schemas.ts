@@ -8,12 +8,12 @@ export const aiToolSchema = z.enum(aiToolIds);
 
 export const aiChatSchema = z.object({
   caseId: z.string().uuid().optional(),
-  model: aiModelSchema.default("bogapp-legal"),
+  model: aiModelSchema.default("justinia-legal"),
   prompt: z.string().trim().min(1).max(4000),
   tool: aiToolSchema.default("general")
 });
 
-export class AiChatDto extends createZodDto(aiChatSchema) {}
+export class AiChatDto extends createZodDto(aiChatSchema) { }
 
 export type AiChatInput = z.infer<typeof aiChatSchema>;
 export type { AiModel, AiTool };

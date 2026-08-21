@@ -225,6 +225,9 @@ export type CaseExpensesSummaryDto = {
 
 export type CaseCalendarEventDto = {
   amount?: number;
+  caseCaption?: string;
+  caseId?: string;
+  caseNumber?: string;
   currencyCode?: string;
   date: string;
   id: string;
@@ -235,8 +238,16 @@ export type CaseCalendarEventDto = {
   type: "payment_due" | "hearing" | "task_due";
 };
 
+export type TenantCalendarMetricsDto = {
+  hearingsCount?: number;
+  pendingExpensesCount?: number;
+  pendingTasks?: number;
+  totalTasks?: number;
+};
+
 export type CaseCalendarResponseDto = {
   events: CaseCalendarEventDto[];
+  metrics?: TenantCalendarMetricsDto;
   month: string;
   pageInfo?: {
     hasNextPage: boolean;
@@ -291,6 +302,24 @@ export type CasesListResponse = {
   };
 };
 
+export type CasePickerOptionDto = {
+  id: string;
+  caseNumber: string;
+  caption: string;
+  subject: string | null;
+};
+
+export type CasePickerOptionsResponse = {
+  items: CasePickerOptionDto[];
+  pageInfo: {
+    hasNextPage: boolean;
+    limit: number;
+    nextCursor: string | null;
+    offset: number;
+    total: number;
+  };
+};
+
 export type CasesQueryParams = {
   court?: string;
   cursor?: string;
@@ -305,6 +334,13 @@ export type CasesQueryParams = {
   status?: string;
   sortBy: CaseSortKey;
   sortDirection: CaseSortDirection;
+};
+
+export type CasePickerOptionsQueryParams = {
+  cursor?: string;
+  limit: number;
+  offset: number;
+  search?: string;
 };
 
 export type CasesTableColumn =

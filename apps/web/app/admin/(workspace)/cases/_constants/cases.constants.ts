@@ -97,7 +97,7 @@ export const caseTaskStatusLabels: Record<CaseTaskStatus, string> = {
 };
 
 export const caseTasksTableColumnLabels = {
-  name: "Nombre",
+  name: "Descripcion",
   assignedTo: "Asignado",
   startDate: "Inicio",
   endDate: "Finalizacion",

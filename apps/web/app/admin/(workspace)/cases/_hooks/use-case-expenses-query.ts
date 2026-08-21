@@ -9,22 +9,31 @@ const caseExpensesPageSize = 8;
 
 export function useCaseExpensesQuery({
   caseId,
+  currencyCode,
   status,
   taskId
 }: {
   caseId: string;
+  currencyCode?: string;
   status?: CaseExpenseStatus;
   taskId?: string;
 }) {
   const [cursorStack, setCursorStack] = useState<string[]>([""]);
   const cursor = cursorStack.at(-1) || undefined;
   const query = useCasesQuery<CaseExpensesListResponse>(
-    casesQueries.expenses({ caseId, cursor, limit: caseExpensesPageSize, status, taskId })
+    casesQueries.expenses({
+      caseId,
+      currencyCode,
+      cursor,
+      limit: caseExpensesPageSize,
+      status,
+      taskId
+    })
   );
 
   useEffect(() => {
     setCursorStack([""]);
-  }, [caseId, status, taskId]);
+  }, [caseId, currencyCode, status, taskId]);
 
   return {
     ...query,

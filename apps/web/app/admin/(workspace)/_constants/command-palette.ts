@@ -2,6 +2,7 @@ import {
   Banknote,
   BriefcaseBusiness,
   Bot,
+  CalendarDays,
   CircleDollarSign,
   FileText,
   FilePlus2,
@@ -65,6 +66,12 @@ export const adminCommandSections: AdminCommandSection[] = [
         href: "/admin/cases",
         label: "Ir a Expedientes",
         icon: BriefcaseBusiness,
+        requiredPermissions: ["cases:read"]
+      },
+      {
+        href: "/admin/calendar",
+        label: "Ir a Calendario",
+        icon: CalendarDays,
         requiredPermissions: ["cases:read"]
       },
       {

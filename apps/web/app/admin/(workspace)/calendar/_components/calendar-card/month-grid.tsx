@@ -1,32 +1,30 @@
-import type { CaseCalendarEventDto } from "../../../_types/cases.types";
-import type { TaskAssigneeOption } from "../../../_types/cases.types";
+import { memo, useMemo } from "react";
+import type { CaseCalendarEventDto } from "../../../cases/_types/cases.types";
 import { CalendarDay } from "./calendar-day";
-import { calendarPanelClassName } from "./constants";
-import { getCalendarDays, groupEventsByDate } from "./date-utils";
+import { calendarPanelClassName } from "../../_constants/calendar.constants";
+import { getCalendarDays, groupEventsByDate } from "../../_utils/calendar-date-utils";
 
 const weekDays = ["D", "L", "M", "M", "J", "V", "S"];
 
-export function CalendarMonthGrid({
-  assignees,
+function CalendarMonthGridComponent({
   canCreateExpense,
   canCreateHearing,
   canCreateTask,
-  caseId,
   events,
   isFetching,
-  month
+  month,
+  onCreateRequest
 }: {
-  assignees: TaskAssigneeOption[];
   canCreateExpense: boolean;
   canCreateHearing: boolean;
   canCreateTask: boolean;
-  caseId: string;
   events: CaseCalendarEventDto[];
   isFetching: boolean;
   month: string;
+  onCreateRequest: (date: string, day: number) => void;
 }) {
-  const days = getCalendarDays(month);
-  const eventsByDate = groupEventsByDate(events);
+  const days = useMemo(() => getCalendarDays(month), [month]);
+  const eventsByDate = useMemo(() => groupEventsByDate(events), [events]);
 
   return (
     <section className={`grid gap-2 ${calendarPanelClassName}`} aria-label="Vista mensual del calendario">
@@ -41,16 +39,15 @@ export function CalendarMonthGrid({
         <ol className="grid grid-cols-7 overflow-visible rounded-xl border-b border-l border-border/35">
           {days.map((day, index) => (
             <CalendarDay
-              assignees={assignees}
               canCreateExpense={canCreateExpense}
               canCreateHearing={canCreateHearing}
               canCreateTask={canCreateTask}
-              caseId={caseId}
               date={day.date}
               day={day.day}
               events={eventsByDate[day.date] ?? []}
               inCurrentMonth={day.inCurrentMonth}
               key={`${day.date}-${index}`}
+              onCreateRequest={onCreateRequest}
             />
           ))}
         </ol>
@@ -59,6 +56,8 @@ export function CalendarMonthGrid({
     </section>
   );
 }
+
+export const CalendarMonthGrid = memo(CalendarMonthGridComponent);
 
 function CalendarFetchingOverlay() {
   return (

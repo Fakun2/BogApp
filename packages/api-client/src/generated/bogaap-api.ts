@@ -549,12 +549,25 @@ export interface CaseCalendarEventDto {
   amount?: number;
   currencyCode?: string;
   status?: string;
+  hearingType?: string;
+  time?: string;
+  caseId?: string;
+  caseNumber?: string;
+  caseCaption?: string;
+}
+
+export interface TenantCalendarMetricsDto {
+  totalTasks: number;
+  pendingTasks: number;
+  hearingsCount: number;
+  pendingExpensesCount: number;
 }
 
 export interface CaseCalendarResponseDto {
   month: string;
   events: CaseCalendarEventDto[];
   pageInfo?: CasesPageInfoDto;
+  metrics?: TenantCalendarMetricsDto;
 }
 
 export interface CaseExpenseSummaryItemDto {
@@ -1390,6 +1403,34 @@ export const casesControllerGetMetrics = async (
     ...options,
     method: "GET"
   });
+};
+
+export type casesControllerGetTenantCalendarResponse200 = {
+  data: CaseCalendarResponseDto;
+  status: 200;
+};
+
+export type casesControllerGetTenantCalendarResponseSuccess =
+  casesControllerGetTenantCalendarResponse200 & {
+    headers: Headers;
+  };
+export type casesControllerGetTenantCalendarResponse =
+  casesControllerGetTenantCalendarResponseSuccess;
+
+export const getCasesControllerGetTenantCalendarUrl = () => {
+  return `/api/cases/calendar`;
+};
+
+export const casesControllerGetTenantCalendar = async (
+  options?: RequestInit
+): Promise<casesControllerGetTenantCalendarResponse> => {
+  return bogaapFetch<casesControllerGetTenantCalendarResponse>(
+    getCasesControllerGetTenantCalendarUrl(),
+    {
+      ...options,
+      method: "GET"
+    }
+  );
 };
 
 export type casesControllerGetDetailResponse200 = {

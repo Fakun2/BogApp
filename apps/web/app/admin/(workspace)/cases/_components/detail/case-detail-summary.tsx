@@ -1,14 +1,21 @@
+"use client";
+
 import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, ListTodo } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AdminMetricsGrid } from "../../../_components/admin-metrics-grid";
 import { adminSurfacePrimaryClassName } from "../../../_constants/dashboard";
+import { casesQueries } from "../../_api/cases.query-controller";
 import { caseStatusLabels } from "../../_constants/cases.constants";
+import { useCasesQuery } from "../../_hooks/use-cases-query";
 import type { CaseDetailDto } from "../../_types/cases.types";
 import { formatCaseMoney } from "./case-detail-format";
 import { CaseDetailsPopup } from "./case-details-popup";
 
 export function CaseDetailSummary({ caseItem }: { caseItem: CaseDetailDto }) {
+  const detailQuery = useCasesQuery(casesQueries.detail(caseItem.id));
+  const currentCase = detailQuery.data ?? caseItem;
+
   return (
     <div className="grid shrink-0 gap-3 md:gap-5">
       <div className="flex min-w-0 items-start justify-between gap-3">
@@ -28,24 +35,24 @@ export function CaseDetailSummary({ caseItem }: { caseItem: CaseDetailDto }) {
             <div className="flex min-w-0 items-center gap-2">
               <h1
                 className={`min-w-0 max-w-[min(72vw,760px)] truncate text-2xl font-semibold leading-tight md:text-3xl ${adminSurfacePrimaryClassName}`}
-                title={caseItem.caption}
+                title={currentCase.caption}
               >
-                {caseItem.caption}
+                {currentCase.caption}
               </h1>
-              <CaseDetailsPopup caseItem={caseItem} />
+              <CaseDetailsPopup caseItem={currentCase} />
             </div>
             <div className="mt-3 grid gap-1 sm:max-w-[760px]">
               <p className="truncate text-base font-semibold text-foreground sm:text-lg">
-                {caseItem.caseNumber}
+                {currentCase.caseNumber}
               </p>
               <p className="truncate text-sm font-medium text-muted-foreground sm:text-base">
-                {caseItem.province.name}
+                {currentCase.province.name}
               </p>
-              <p className="truncate text-sm text-muted-foreground">{caseItem.forum.name}</p>
+              <p className="truncate text-sm text-muted-foreground">{currentCase.forum.name}</p>
             </div>
           </div>
         </div>
-        <CaseStatusPill status={caseItem.status} />
+        <CaseStatusPill status={currentCase.status} />
       </div>
 
       <AdminMetricsGrid
@@ -53,18 +60,18 @@ export function CaseDetailSummary({ caseItem }: { caseItem: CaseDetailDto }) {
           {
             icon: CalendarDays,
             label: "Audiencias",
-            value: String(caseItem.metrics.hearingsCount)
+            value: String(currentCase.metrics.hearingsCount)
           },
           {
             icon: Clock3,
             label: "Pagos pendientes",
-            value: formatCaseMoney(caseItem.metrics.pendingPayments)
+            value: formatCaseMoney(currentCase.metrics.pendingPayments)
           },
-          { icon: ListTodo, label: "Tareas totales", value: String(caseItem.metrics.totalTasks) },
+          { icon: ListTodo, label: "Tareas totales", value: String(currentCase.metrics.totalTasks) },
           {
             icon: CheckCircle2,
             label: "Tareas pendientes",
-            value: String(caseItem.metrics.pendingTasks)
+            value: String(currentCase.metrics.pendingTasks)
           }
         ]}
       />

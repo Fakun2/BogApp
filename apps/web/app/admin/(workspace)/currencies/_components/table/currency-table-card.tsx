@@ -9,10 +9,7 @@ import type {
   CurrencyStatusFilter,
   TenantCurrencyListResponseDto
 } from "../../_types/currencies.types";
-import {
-  CurrencyTableProvider,
-  useCurrencyTableContext
-} from "./context/currency-table-context";
+import { CurrencyTableProvider, useCurrencyTableContext } from "./context/currency-table-context";
 import { CurrencyTableToolbar } from "./controls/currency-table-toolbar";
 import { CurrencyTable } from "./currency-table";
 

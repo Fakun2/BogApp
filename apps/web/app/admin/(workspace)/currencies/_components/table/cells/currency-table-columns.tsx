@@ -26,9 +26,9 @@ export function getCurrencyTableColumns({
   sortKey: CurrencySortKey;
   onSort: (key: CurrencySortKey) => void;
 }): Array<ColumnDef<CurrencyDto>> {
-  const columns: Array<ColumnDef<CurrencyDto>> = (Object.keys(
-    currencyTableColumnLabels
-  ) as CurrencyTableColumn[]).map((column) => ({
+  const columns: Array<ColumnDef<CurrencyDto>> = (
+    Object.keys(currencyTableColumnLabels) as CurrencyTableColumn[]
+  ).map((column) => ({
     id: column,
     accessorFn: (currency) => getCurrencyAccessorValue(currency, column),
     header: () =>
@@ -76,11 +76,11 @@ function renderCurrencyCell(currency: CurrencyDto, column: CurrencyTableColumn) 
   const cellRenderMap: Record<CurrencyTableColumn, ReactNode> = {
     active: <StatusPill active={currency.active} />,
     code: (
-      <span className="font-mono text-xs font-semibold text-muted-foreground">
-        {currency.code}
-      </span>
+      <span className="font-mono text-xs font-semibold text-muted-foreground">{currency.code}</span>
     ),
-    name: <span className="block truncate text-sm font-medium text-foreground">{currency.name}</span>,
+    name: (
+      <span className="block truncate text-sm font-medium text-foreground">{currency.name}</span>
+    ),
     symbol: <span className="block truncate text-sm text-foreground">{currency.symbol}</span>
   };
 

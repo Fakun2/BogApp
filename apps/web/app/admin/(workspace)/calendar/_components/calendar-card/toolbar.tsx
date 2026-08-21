@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   CalendarDays,
   ChevronLeft,
@@ -7,33 +6,44 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { type CalendarEventType, type CalendarView } from "./constants";
-import { CalendarEventFilter } from "./event-filter";
+import { type CalendarEventType, type CalendarView } from "../../_constants/calendar.constants";
+import type { CasePickerOption } from "../../../cases/_components/case-picker-field";
+import { CalendarFiltersMenu } from "./filters-menu";
 import { CalendarViewSwitch } from "./view-switch";
 
 export function CalendarToolbar({
-  actions,
+  caseFiltersDisabled,
   eventCount,
   monthLabel,
+  onClearCaseFilter,
   onGoToday,
+  onClearTypes,
   onNavigate,
+  onSelectCaseFilter,
   onToggleType,
   onViewChange,
+  selectedCase,
   view,
   visibleTypes
 }: {
-  actions?: ReactNode;
+  caseFiltersDisabled?: boolean;
   eventCount: number;
   monthLabel: string;
+  onClearCaseFilter?: () => void;
+  onClearTypes: () => void;
   onGoToday: () => void;
   onNavigate: (direction: -1 | 1) => void;
+  onSelectCaseFilter?: (caseItem: CasePickerOption) => void;
   onToggleType: (type: CalendarEventType, checked: boolean) => void;
   onViewChange: (view: CalendarView) => void;
+  selectedCase: CasePickerOption | null;
   view: CalendarView;
   visibleTypes: CalendarEventType[];
 }) {
+  const canFilterCases = Boolean(onClearCaseFilter && onSelectCaseFilter);
+
   return (
-    <header className="grid gap-3 px-4 py-3 md:px-5">
+    <header className="grid gap-3 px-5 py-3 md:px-8">
       <section className="flex flex-row items-center justify-between gap-3">
         <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-foreground">
           <CalendarDays className="h-5 w-5 shrink-0 text-foreground" aria-hidden="true" />
@@ -50,9 +60,16 @@ export function CalendarToolbar({
           </span>
         </h2>
         <nav className="flex flex-wrap items-center justify-end gap-1" aria-label="Acciones del calendario">
-          {actions}
+          <CalendarFiltersMenu
+            disabled={caseFiltersDisabled}
+            onClearCase={onClearCaseFilter ?? (() => undefined)}
+            onClearTypes={onClearTypes}
+            onSelectCase={onSelectCaseFilter ?? (() => undefined)}
+            onToggleType={onToggleType}
+            selectedCase={canFilterCases ? selectedCase : null}
+            visibleTypes={visibleTypes}
+          />
           <CalendarViewSwitch onViewChange={onViewChange} view={view} />
-          <CalendarEventFilter onToggleType={onToggleType} visibleTypes={visibleTypes} />
           <Button
             type="button"
             variant="outline"

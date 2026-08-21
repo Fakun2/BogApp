@@ -1,6 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
 import type {
   CaseCalendarResponseDto,
+  CaseDetailDto,
   CaseDocumentsListResponse,
   CaseExpenseAttachmentsListResponse,
   CaseExpenseDto,
@@ -8,6 +9,8 @@ import type {
   CaseExpensesListResponse,
   CaseExpensesSummaryDto,
   CaseHearingsListResponse,
+  CasePickerOptionsQueryParams,
+  CasePickerOptionsResponse,
   CaseTasksListResponse,
   CasesListResponse,
   CasesQueryParams,
@@ -18,12 +21,15 @@ import type {
 import {
   caseKeys,
   getCaseCalendar,
+  getCaseDetail,
   getCaseExpense,
   getCaseExpensesSummary,
+  getTenantCalendar,
   listCaseHearings,
   listCaseExpenseAttachments,
   listCaseExpenses,
   listCases,
+  listCasePickerOptions,
   listCaseTasks,
   listCatalogOptions,
   listTaskAssignees
@@ -43,6 +49,22 @@ export const casesQueries = {
       permission: "cases:read",
       queryKey: caseKeys.list(params),
       queryFn: () => listCases(params)
+    };
+  },
+
+  pickerOptions(params: CasePickerOptionsQueryParams): CasesQuerySpec<CasePickerOptionsResponse> {
+    return {
+      permission: "cases:read",
+      queryKey: caseKeys.pickerOptions(params),
+      queryFn: () => listCasePickerOptions(params)
+    };
+  },
+
+  detail(caseId: string): CasesQuerySpec<CaseDetailDto> {
+    return {
+      permission: "cases:read",
+      queryKey: caseKeys.detail(caseId),
+      queryFn: () => getCaseDetail(caseId)
     };
   },
 
@@ -90,18 +112,20 @@ export const casesQueries = {
 
   expenses({
     caseId,
+    currencyCode,
     cursor,
     limit,
     status,
     taskId
   }: {
     caseId: string;
+    currencyCode?: string;
     cursor?: string;
     limit: number;
     status?: CaseExpenseStatus;
     taskId?: string;
   }): CasesQuerySpec<CaseExpensesListResponse> {
-    const params = { cursor, limit, status, taskId };
+    const params = { currencyCode, cursor, limit, status, taskId };
 
     return {
       permission: "expenses:read",
@@ -177,6 +201,33 @@ export const casesQueries = {
       permission: "cases:read",
       queryKey: caseKeys.calendar(caseId, params),
       queryFn: () => getCaseCalendar({ caseId, ...params })
+    };
+  },
+
+  tenantCalendar({
+    caseId,
+    cursor,
+    enabled,
+    limit,
+    mode = "month",
+    month,
+    types
+  }: {
+    caseId?: string;
+    cursor?: string;
+    enabled?: boolean;
+    limit?: number;
+    mode?: "month" | "list";
+    month: string;
+    types?: string;
+  }): CasesQuerySpec<CaseCalendarResponseDto> {
+    const params = { caseId, cursor, limit, mode, month, types };
+
+    return {
+      enabled,
+      permission: "cases:read",
+      queryKey: caseKeys.tenantCalendar(params),
+      queryFn: () => getTenantCalendar(params)
     };
   },
 

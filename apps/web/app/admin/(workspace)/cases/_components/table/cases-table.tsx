@@ -14,10 +14,7 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import {
-  caseStatusLabels,
-  casesTableColumnLabels
-} from "../../_constants/cases.constants";
+import { caseStatusLabels, casesTableColumnLabels } from "../../_constants/cases.constants";
 import type {
   CaseDto,
   CaseSortDirection,

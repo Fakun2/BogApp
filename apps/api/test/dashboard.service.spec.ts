@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
+import { BadRequestException } from "@nestjs/common";
 import { CashboxMovementType, Prisma } from "@prisma/client";
-import { DashboardService } from "../src/dashboard/dashboard.service";
+import { dashboardSearchQuerySchema } from "../src/dashboard/dashboard.schemas";
+import { DashboardMetricsUseCase } from "../src/dashboard/use-cases/dashboard-metrics.use-case";
+import { DashboardSearchUseCase } from "../src/dashboard/use-cases/dashboard-search.use-case";
 
 const tenantId = "11111111-1111-4111-8111-111111111111";
+const caseId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
-describe("DashboardService", () => {
+describe("Dashboard use cases", () => {
   afterEach(() => {
     mock.timers.reset();
   });
@@ -21,9 +25,9 @@ describe("DashboardService", () => {
       expenseWhere: null as unknown,
       cashboxWheres: [] as unknown[]
     };
-    const service = new DashboardService(createPrismaMock(observed) as never);
+    const useCase = new DashboardMetricsUseCase(createPrismaMock(observed) as never);
 
-    const result = await service.getMetrics(tenantId);
+    const result = await useCase.execute(tenantId);
 
     assert.equal(result.activeCasesCount, 7);
     assert.equal(result.cashbox.date, "2026-08-17");
@@ -48,12 +52,192 @@ describe("DashboardService", () => {
       observed.cashboxWheres.every((where) => isTenantCashboxWhere(where, tenantId, "ARS"))
     );
   });
+
+  it("returns lightweight global search results with pagination", async () => {
+    const queryCalls: unknown[] = [];
+    const useCase = new DashboardSearchUseCase(
+      createPrismaMock({
+        caseWhere: null,
+        cashboxWheres: [],
+        expenseWhere: null,
+        queryCalls,
+        rows: [
+          makeSearchRow("case", "00000000-0000-4000-8000-000000000010", "2026-08-20"),
+          makeSearchRow("document", "00000000-0000-4000-8000-000000000011", "2026-08-20", {
+            file_name: "demanda.pdf",
+            file_size_bytes: 245760,
+            file_type: "application/pdf"
+          }),
+          makeSearchRow("cashbox_movement", "00000000-0000-4000-8000-000000000012", "2026-08-20", {
+            amount: new Prisma.Decimal("25000.00"),
+            case_caption: null,
+            case_id: null,
+            case_number: null,
+            currency_code: "ARS",
+            movement_name: "Honorarios",
+            movement_type: "income"
+          }),
+          makeSearchRow("task_due", "00000000-0000-4000-8000-000000000001", "2026-08-21"),
+          makeSearchRow("hearing", "00000000-0000-4000-8000-000000000002", "2026-08-22"),
+          makeSearchRow("payment_due", "00000000-0000-4000-8000-000000000003", "2026-08-23", {
+            amount: new Prisma.Decimal("1500.50"),
+            currency_code: "ARS"
+          })
+        ],
+        taskWhere: null
+      }) as never
+    );
+
+    const response = await useCase.execute(
+      tenantId,
+      { limit: 4, offset: 0, search: "presentar exp" },
+      allSearchPermissions
+    );
+
+    assert.equal(queryCalls.length, 1);
+    assert.equal(response.items.length, 4);
+    assert.deepEqual(Object.keys(response.items[0] ?? {}).sort(), [
+      "caseCaption",
+      "caseId",
+      "caseNumber",
+      "date",
+      "description",
+      "href",
+      "id",
+      "status",
+      "title",
+      "type"
+    ]);
+    assert.equal(response.items[0]?.href, `/admin/cases/${caseId}`);
+    assert.equal(response.items[1]?.fileName, "demanda.pdf");
+    assert.equal(response.items[1]?.fileType, "application/pdf");
+    assert.equal(response.items[1]?.fileSizeBytes, 245760);
+    assert.equal(response.items[2]?.href, "/admin/cashbox");
+    assert.equal(response.items[2]?.movementName, "Honorarios");
+    assert.equal(response.items[2]?.movementType, "income");
+    assert.equal(response.pageInfo.hasNextPage, true);
+    assert.ok(response.pageInfo.nextCursor);
+  });
+
+  it("does not query dynamic search results when permissions deny every event type", async () => {
+    const queryCalls: unknown[] = [];
+    const useCase = new DashboardSearchUseCase(
+      createPrismaMock({
+        caseWhere: null,
+        cashboxWheres: [],
+        expenseWhere: null,
+        queryCalls,
+        rows: [],
+        taskWhere: null
+      }) as never
+    );
+
+    const response = await useCase.execute(
+      tenantId,
+      { limit: 8, offset: 0, search: "presentar" },
+      noSearchPermissions
+    );
+
+    assert.equal(queryCalls.length, 0);
+    assert.deepEqual(response.items, []);
+    assert.equal(response.pageInfo.hasNextPage, false);
+  });
+
+  it("rejects a global search cursor created for a different search term", async () => {
+    const useCase = new DashboardSearchUseCase(
+      createPrismaMock({
+        caseWhere: null,
+        cashboxWheres: [],
+        expenseWhere: null,
+        queryCalls: [],
+        rows: [
+          makeSearchRow("hearing", "00000000-0000-4000-8000-000000000001", "2026-08-21"),
+          makeSearchRow("hearing", "00000000-0000-4000-8000-000000000002", "2026-08-22")
+        ],
+        taskWhere: null
+      }) as never
+    );
+    const firstPage = await useCase.execute(
+      tenantId,
+      { limit: 1, offset: 0, search: "presentar" },
+      { ...noSearchPermissions, canReadHearings: true }
+    );
+
+    await assert.rejects(
+      () =>
+        useCase.execute(
+          tenantId,
+          {
+            cursor: firstPage.pageInfo.nextCursor ?? undefined,
+            limit: 1,
+            offset: 1,
+            search: "tasa"
+          },
+          { ...noSearchPermissions, canReadHearings: true }
+        ),
+      BadRequestException
+    );
+  });
+
+  it("rejects dashboard search queries that exceed the maximum search length", () => {
+    assert.throws(() =>
+      dashboardSearchQuerySchema.parse({
+        search: "x".repeat(121)
+      })
+    );
+  });
+
+  it("limits dashboard search terms before building the SQL query", async () => {
+    const queryCalls: unknown[] = [];
+    const useCase = new DashboardSearchUseCase(
+      createPrismaMock({
+        caseWhere: null,
+        cashboxWheres: [],
+        expenseWhere: null,
+        queryCalls,
+        rows: [],
+        taskWhere: null
+      }) as never
+    );
+
+    await useCase.execute(
+      tenantId,
+      { limit: 8, offset: 0, search: "uno dos tres cuatro cinco seis siete ocho" },
+      allSearchPermissions
+    );
+
+    const serializedQuery = JSON.stringify(queryCalls[0]);
+
+    assert.match(serializedQuery, /%seis%/);
+    assert.doesNotMatch(serializedQuery, /%siete%/);
+    assert.doesNotMatch(serializedQuery, /%ocho%/);
+  });
 });
+
+const allSearchPermissions = {
+  canReadCases: true,
+  canReadDocuments: true,
+  canReadExpenses: true,
+  canReadFinance: true,
+  canReadHearings: true,
+  canReadTasks: true
+};
+
+const noSearchPermissions = {
+  canReadCases: false,
+  canReadDocuments: false,
+  canReadExpenses: false,
+  canReadFinance: false,
+  canReadHearings: false,
+  canReadTasks: false
+};
 
 function createPrismaMock(observed: {
   caseWhere: unknown;
   cashboxWheres: unknown[];
   expenseWhere: unknown;
+  queryCalls?: unknown[];
+  rows?: unknown[];
   taskWhere: unknown;
 }) {
   return {
@@ -96,6 +280,10 @@ function createPrismaMock(observed: {
         return { _sum: { amount: new Prisma.Decimal("450.00") } };
       }
     },
+    $queryRaw: async (query: unknown) => {
+      observed.queryCalls?.push(query);
+      return observed.rows ?? [];
+    },
     tenantCurrency: {
       findFirst: async () => ({
         currency: {
@@ -111,6 +299,59 @@ function createPrismaMock(observed: {
         timezone: "America/Argentina/Buenos_Aires"
       })
     }
+  };
+}
+
+function makeSearchRow(
+  type: "case" | "document" | "cashbox_movement" | "task_due" | "hearing" | "payment_due",
+  id: string,
+  date: string,
+  overrides: Partial<{
+    amount: Prisma.Decimal | null;
+    case_caption: string | null;
+    case_id: string | null;
+    case_number: string | null;
+    currency_code: string | null;
+    description: string | null;
+    file_name: string | null;
+    file_size_bytes: number | null;
+    file_type: string | null;
+    movement_name: string | null;
+    movement_type: "income" | "expense" | "conversion_in" | "conversion_out" | null;
+    status: string | null;
+    time: string | null;
+  }> = {}
+) {
+  return {
+    amount: null,
+    case_caption: "Perez c/ Gomez",
+    case_id: caseId,
+    case_number: "EXP-123/2026",
+    currency_code: null,
+    date: new Date(`${date}T00:00:00.000Z`),
+    description: "Notas breves",
+    file_name: null,
+    file_size_bytes: null,
+    file_type: null,
+    id,
+    movement_name: null,
+    movement_type: null,
+    status: type === "hearing" ? null : "pending",
+    time: type === "hearing" ? "09:30" : null,
+    title:
+      type === "case"
+        ? "EXP-123/2026 · Perez c/ Gomez"
+        : type === "document"
+          ? "demanda.pdf"
+          : type === "cashbox_movement"
+            ? "Honorarios"
+            : type === "task_due"
+              ? "Tarea: Presentar escrito"
+              : type === "hearing"
+                ? "Audiencia: Vista de causa"
+                : "Pago: Tasa judicial",
+    type,
+    ...overrides
   };
 }
 

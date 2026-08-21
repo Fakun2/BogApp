@@ -15,7 +15,7 @@ export function CaseField({
   required?: boolean;
 }) {
   return (
-    <div className={`grid gap-2 ${className}`}>
+    <div className={`grid min-w-0 gap-2 ${className}`}>
       <Label>
         {label}
         {required ? <span className="text-destructive"> *</span> : null}

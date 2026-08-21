@@ -1,0 +1,2 @@
+-- Keep the case trigram indexes: cases.listSearch still relies on ILIKE and
+-- similarity() over case_number and caption for the highest-weighted matches.

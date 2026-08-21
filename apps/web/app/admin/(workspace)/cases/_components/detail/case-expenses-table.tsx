@@ -23,6 +23,7 @@ import { AdminTableHeader } from "../../../_components/admin-table-header";
 import { AdminTableHeaderActionButton } from "../../../_components/admin-table-header-action-button";
 import { AdminTableBodySkeleton } from "../../../_components/admin-skeletons";
 import { adminSurfaceClassName } from "../../../_constants/dashboard";
+import { useTenantCurrenciesQuery } from "../../../currencies/_hooks/use-currencies-query";
 import { casesQueries } from "../../_api/cases.query-controller";
 import { caseExpenseStatusLabels } from "../../_constants/cases.constants";
 import { useCaseExpensesQuery } from "../../_hooks/use-case-expenses-query";
@@ -53,11 +54,19 @@ export function CaseExpensesTable({
   caseId: string;
 }) {
   const [statusFilter, setStatusFilter] = useState<CaseExpenseStatus | "all">("all");
+  const [currencyFilter, setCurrencyFilter] = useState<string>("all");
+  const currenciesQuery = useTenantCurrenciesQuery({
+    limit: 50,
+    sort: "code:asc",
+    status: "active"
+  });
   const expensesQuery = useCaseExpensesQuery({
     caseId,
+    currencyCode: currencyFilter === "all" ? undefined : currencyFilter,
     status: statusFilter === "all" ? undefined : statusFilter
   });
   const tasksQuery = useCasesQuery(casesQueries.tasks({ caseId, limit: 50 }));
+  const currencies = currenciesQuery.data?.items ?? [];
   const expenses = expensesQuery.data?.items ?? [];
   const tasks = tasksQuery.data?.items ?? [];
   const hasNextPage = Boolean(expensesQuery.data?.pageInfo.hasNextPage);
@@ -72,6 +81,22 @@ export function CaseExpensesTable({
       <AdminTableHeader
         actions={
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
+              <SelectTrigger
+                className="h-9 w-[130px] rounded-md border-border/50 bg-background/70 text-sm"
+                aria-label="Filtrar gastos por moneda"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as CaseExpenseStatus | "all")}
@@ -103,15 +128,15 @@ export function CaseExpensesTable({
           </div>
         }
         description={
-          statusFilter === "all"
+          statusFilter === "all" && currencyFilter === "all"
             ? "Gastos propios del expediente, asociados opcionalmente a una tarea."
-            : `Gastos del expediente con estado ${caseExpenseStatusLabels[statusFilter].toLowerCase()}.`
+            : getExpensesFilterDescription(statusFilter, currencyFilter)
         }
         icon={Banknote}
         title="Gastos del expediente"
       />
       <CardContent className="flex min-h-0 flex-1 flex-col px-3 md:px-4">
-        <div className="h-full min-h-full max-h-[56svh] flex-1 overflow-auto rounded-2xl">
+        <div className="h-[552px] min-h-[552px] overflow-auto rounded-2xl">
           <Table className="min-w-full text-xs">
             <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
               <TableRow className="hover:bg-transparent">
@@ -190,6 +215,20 @@ export function CaseExpensesTable({
   );
 }
 
+function getExpensesFilterDescription(
+  statusFilter: CaseExpenseStatus | "all",
+  currencyFilter: string
+) {
+  const filters = [
+    statusFilter === "all"
+      ? null
+      : `estado ${caseExpenseStatusLabels[statusFilter].toLowerCase()}`,
+    currencyFilter === "all" ? null : `moneda ${currencyFilter}`
+  ].filter(Boolean);
+
+  return `Gastos del expediente con ${filters.join(" y ")}.`;
+}
+
 function CaseExpensesTableBody({
   canDelete,
   canRead,
@@ -216,7 +255,7 @@ function CaseExpensesTableBody({
   tasks: CaseTaskDto[];
 }) {
   if (isLoading) {
-    return <AdminTableBodySkeleton columnCount={columnCount} rowCount={4} />;
+    return <AdminTableBodySkeleton columnCount={columnCount} rowCount={8} />;
   }
 
   if (errorMessage) {
@@ -314,7 +353,7 @@ function CaseExpensesMessageBody({
 }) {
   return (
     <TableBody className="[&_tr:last-child]:border-0">
-      <TableRow className="h-[220px] hover:bg-transparent">
+      <TableRow className="h-[512px] hover:bg-transparent">
         <TableCell className={`px-3 py-10 text-center text-sm ${className}`} colSpan={columnCount}>
           {message}
         </TableCell>

@@ -2,7 +2,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { AdminTableRowsSkeleton } from "../../../../_components/admin-skeletons";
 
 export function TaskRowsSkeleton({ columnCount }: { columnCount: number }) {
-  return <AdminTableRowsSkeleton columnCount={columnCount} rowCount={4} />;
+  return <AdminTableRowsSkeleton columnCount={columnCount} rowCount={8} />;
 }
 
 export function TaskTableMessageRow({
@@ -15,7 +15,7 @@ export function TaskTableMessageRow({
   message: string;
 }) {
   return (
-    <TableRow className="h-[260px] hover:bg-transparent">
+    <TableRow className="h-[512px] hover:bg-transparent">
       <TableCell className={`px-3 py-10 text-center text-sm ${className}`} colSpan={columnCount}>
         {message}
       </TableCell>

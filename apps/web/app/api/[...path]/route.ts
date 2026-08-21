@@ -35,7 +35,8 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 }
 
 async function proxyRequest(request: NextRequest, context: RouteContext) {
-  const initial = await forwardRequest(request, context);
+  const requestBody = await getReusableRequestBody(request);
+  const initial = await forwardRequest(request, context, requestBody);
   if (initial.status !== 401) {
     return initial;
   }
@@ -46,7 +47,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
     return initial;
   }
 
-  const retried = await forwardRequest(request, context, refreshed.accessToken);
+  const retried = await forwardRequest(request, context, requestBody, refreshed.accessToken);
   await updateAuthSessionResponse(retried, refreshed);
   return retried;
 }
@@ -54,6 +55,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
 async function forwardRequest(
   request: NextRequest,
   context: RouteContext,
+  requestBody: BodyInit | undefined,
   accessTokenOverride?: string
 ) {
   const { path } = await context.params;
@@ -78,12 +80,20 @@ async function forwardRequest(
   }
 
   const response = await fetch(targetUrl, {
-    body: ["GET", "HEAD"].includes(request.method) ? undefined : await request.arrayBuffer(),
+    body: requestBody,
     headers,
     method: request.method
   });
 
   return toProxyResponse(response);
+}
+
+async function getReusableRequestBody(request: NextRequest) {
+  if (["GET", "HEAD"].includes(request.method)) {
+    return undefined;
+  }
+
+  return request.arrayBuffer();
 }
 
 async function refreshAccessToken() {
