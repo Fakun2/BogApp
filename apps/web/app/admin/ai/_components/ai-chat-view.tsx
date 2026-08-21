@@ -51,12 +51,12 @@ import {
   type AiToolOption
 } from "../_api/ai.api";
 
-const defaultModel: AiModel = "bogapp-legal";
+const defaultModel: AiModel = "justinia-legal";
 const defaultTool: AiTool = "general";
 
 const fallbackModel: AiModelOption = {
   id: defaultModel,
-  name: "BogApp Legal",
+  name: "Justinia Legal",
   provider: "openai"
 };
 const fallbackTool: AiToolOption = {
@@ -154,8 +154,8 @@ export function AiChatView() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden px-8 sm:px-24 lg:px-48">
-      <Conversation className="min-h-0 w-full flex-1 overflow-y-auto">
-        <ConversationContent className="w-full gap-4 p-2 md:p-3">
+      <Conversation className="h-full w-full flex-1 overflow-y-auto  [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ConversationContent className="w-full gap-4 px-2 md:px-3">
           {messages.map((message) => (
             <Message className="max-w-full" from={message.role} key={message.id}>
               <MessageContent>
@@ -185,9 +185,9 @@ export function AiChatView() {
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="shrink-0 px-2 md:p-2 flex justify-center items-center">
+      <div className="self-center z-10 w-full max-w-2xl shrink-0 px-2 md:p-2 flex justify-center items-center">
         <PromptInput
-          className="w-full max-w-lg"
+          className="w-full"
           onSubmit={({ text }) => {
             const trimmedText = text.trim();
             if (!trimmedText || disabled) {

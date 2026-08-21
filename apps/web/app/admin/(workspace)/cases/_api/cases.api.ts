@@ -8,6 +8,7 @@ import type {
 import type {
   CaseDto,
   CaseCalendarResponseDto,
+  CaseDetailDto,
   CaseExpenseStatus,
   CaseExpenseAttachmentDto,
   CaseExpenseAttachmentsListResponse,
@@ -16,6 +17,8 @@ import type {
   CaseExpensesSummaryDto,
   CaseHearingDto,
   CaseHearingsListResponse,
+  CasePickerOptionsQueryParams,
+  CasePickerOptionsResponse,
   CaseTaskDto,
   CaseTasksListResponse,
   CasesMetricsDto,
@@ -31,11 +34,19 @@ export const caseKeys = {
   metrics: () => [...caseKeys.all, "metrics"] as const,
   taskAssignees: () => [...caseKeys.all, "task-assignees"] as const,
   list: (params: CasesQueryParams) => [...caseKeys.all, "list", params] as const,
+  pickerOptions: (params: CasePickerOptionsQueryParams) =>
+    [...caseKeys.all, "picker-options", params] as const,
   options: (key: string, params: Record<string, string | number | undefined>) =>
     ["case-options", key, params] as const,
   expenses: (
     caseId: string,
-    params?: { cursor?: string; limit?: number; status?: CaseExpenseStatus; taskId?: string }
+    params?: {
+      currencyCode?: string;
+      cursor?: string;
+      limit?: number;
+      status?: CaseExpenseStatus;
+      taskId?: string;
+    }
   ) => [...caseKeys.detail(caseId), "expenses", params ?? {}] as const,
   expense: (caseId: string, expenseId: string) =>
     [...caseKeys.detail(caseId), "expenses", expenseId] as const,
@@ -52,6 +63,14 @@ export const caseKeys = {
       types?: string;
     }
   ) => [...caseKeys.detail(caseId), "calendar", params] as const,
+  tenantCalendar: (params: {
+    caseId?: string;
+    cursor?: string;
+    limit?: number;
+    mode?: "month" | "list";
+    month: string;
+    types?: string;
+  }) => [...caseKeys.all, "calendar", params] as const,
   documents: (caseId: string, params?: { categoryId?: string; cursor?: string; limit?: number }) =>
     [...caseKeys.detail(caseId), "documents", params ?? {}] as const,
   documentCategories: (params?: { active?: boolean; cursor?: string; limit?: number }) =>
@@ -72,9 +91,24 @@ export async function listCases(params: CasesQueryParams): Promise<CasesListResp
   });
 }
 
+export async function listCasePickerOptions(
+  params: CasePickerOptionsQueryParams
+): Promise<CasePickerOptionsResponse> {
+  return dashboardHttpClient.request<CasePickerOptionsResponse>({
+    params,
+    path: "/cases/picker-options"
+  });
+}
+
 export async function getCaseMetrics(): Promise<CasesMetricsDto> {
   return dashboardHttpClient.request<CasesMetricsDto>({
     path: "/cases/metrics"
+  });
+}
+
+export async function getCaseDetail(caseId: string): Promise<CaseDetailDto> {
+  return dashboardHttpClient.request<CaseDetailDto>({
+    path: `/cases/${caseId}`
   });
 }
 
@@ -210,19 +244,21 @@ export async function deleteCaseTask({
 
 export async function listCaseExpenses({
   caseId,
+  currencyCode,
   cursor,
   limit = 8,
   status,
   taskId
 }: {
   caseId: string;
+  currencyCode?: string;
   cursor?: string;
   limit?: number;
   status?: CaseExpenseStatus;
   taskId?: string;
 }): Promise<CaseExpensesListResponse> {
   return dashboardHttpClient.request<CaseExpensesListResponse>({
-    params: { cursor, limit, status, taskId },
+    params: { currencyCode, cursor, limit, status, taskId },
     path: `/cases/${caseId}/expenses`
   });
 }
@@ -263,6 +299,27 @@ export async function getCaseCalendar({
   return dashboardHttpClient.request<CaseCalendarResponseDto>({
     params: { cursor, limit, mode, month, types },
     path: `/cases/${caseId}/calendar`
+  });
+}
+
+export async function getTenantCalendar({
+  caseId,
+  cursor,
+  limit,
+  mode,
+  month,
+  types
+}: {
+  caseId?: string;
+  cursor?: string;
+  limit?: number;
+  mode?: "month" | "list";
+  month: string;
+  types?: string;
+}): Promise<CaseCalendarResponseDto> {
+  return dashboardHttpClient.request<CaseCalendarResponseDto>({
+    params: { caseId, cursor, limit, mode, month, types },
+    path: "/cases/calendar"
   });
 }
 

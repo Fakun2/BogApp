@@ -50,6 +50,7 @@ import {
   CaseExpensesSummaryDto,
   CaseHearingDto,
   CaseHearingsListResponseDto,
+  CasePickerOptionsResponseDto,
   CasesMetricsDto,
   CaseTaskDto,
   CaseTasksListResponseDto,
@@ -63,6 +64,7 @@ import {
   ListCaseDocumentsQueryDto,
   ListCaseExpensesQueryDto,
   ListCaseHearingsQueryDto,
+  ListCasePickerOptionsQueryDto,
   ListCaseTasksQueryDto,
   ListCasesQueryDto,
   UpdateCaseDto,
@@ -97,6 +99,33 @@ export class CasesController {
   @ApiOkResponse({ type: CasesMetricsDto })
   getMetrics(@ActiveTenant() tenantId: string) {
     return this.casesService.getMetrics(tenantId);
+  }
+
+  @Get("calendar")
+  @Permissions("cases:read")
+  @ApiOkResponse({ type: CaseCalendarResponseDto })
+  getTenantCalendar(
+    @ActiveTenant() tenantId: string,
+    @Query() query: CaseCalendarQueryDto,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const tenantPermissions = getTenantPermissions(request, tenantId);
+
+    return this.casesService.getTenantCalendar(tenantId, query, {
+      canReadExpenses: tenantPermissions.has("expenses:read"),
+      canReadHearings: tenantPermissions.has("hearings:read"),
+      canReadTasks: tenantPermissions.has("tasks:read")
+    });
+  }
+
+  @Get("picker-options")
+  @Permissions("cases:read")
+  @ApiOkResponse({ type: CasePickerOptionsResponseDto })
+  listPickerOptions(
+    @ActiveTenant() tenantId: string,
+    @Query() query: ListCasePickerOptionsQueryDto
+  ) {
+    return this.casesService.listPickerOptions(tenantId, query);
   }
 
   @Post()

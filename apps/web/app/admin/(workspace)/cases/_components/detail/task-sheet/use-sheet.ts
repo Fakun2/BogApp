@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { caseTaskFormSchema, type CaseTaskFormValues } from "@/lib/validation/cases";
 import { casesMutations } from "../../../_api/cases.mutation-controller";
 import { useCasesMutation } from "../../../_hooks/use-cases-mutation";
@@ -26,7 +25,6 @@ export function useCaseTaskSheet({
   const [errors, setErrors] = useState<CaseTaskFieldErrors>({});
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const mutation = useCasesMutation(casesMutations.saveTask({ caseId, taskId: task?.id }));
-  const router = useRouter();
   const open = controlledOpen ?? uncontrolledOpen;
 
   function setOpen(nextOpen: boolean) {
@@ -72,7 +70,6 @@ export function useCaseTaskSheet({
     try {
       await mutation.mutateAsync(parsed.data);
       setOpen(false);
-      router.refresh();
     } catch {
       // The mutation exposes its error below.
     }

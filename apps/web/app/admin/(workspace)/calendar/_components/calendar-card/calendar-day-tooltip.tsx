@@ -1,12 +1,12 @@
 "use client";
 
-import type { CaseCalendarEventDto } from "../../../_types/cases.types";
-import { caseHearingTypeLabels } from "../../../_constants/cases.constants";
-import { formatCaseMoney } from "../case-detail-format";
+import type { CaseCalendarEventDto } from "../../../cases/_types/cases.types";
+import { caseHearingTypeLabels } from "../../../cases/_constants/cases.constants";
+import { formatCaseMoney } from "../../../cases/_components/detail/case-detail-format";
 import {
   calendarEventTypeDotClassNames,
   calendarEventTypeShortLabels
-} from "./constants";
+} from "../../_constants/calendar.constants";
 
 export function CalendarDayTooltip({
   date,
@@ -38,7 +38,9 @@ export function CalendarDayTooltip({
                 {event.title}
               </span>
               <span className="text-xs text-muted-foreground">
-                {calendarEventTypeShortLabels[event.type]}
+                {event.caseNumber
+                  ? `${event.caseNumber} - ${event.caseCaption ?? "Expediente"}`
+                  : calendarEventTypeShortLabels[event.type]}
               </span>
             </span>
             {event.type === "payment_due" ? (

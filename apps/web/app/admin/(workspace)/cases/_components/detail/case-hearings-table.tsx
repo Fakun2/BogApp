@@ -57,7 +57,7 @@ export function CaseHearingsTable({
         title="Audiencias del expediente"
       />
       <CardContent className="flex min-h-0 flex-1 flex-col px-3 md:px-4">
-        <section className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-2xl">
+        <section className="h-[552px] min-h-[552px] overflow-auto rounded-2xl">
           <Table className="min-w-full text-xs">
             <TableHeader className="bg-[color-mix(in_oklab,var(--muted)_28%,transparent)] [&_tr]:border-0">
               <TableRow className="hover:bg-transparent">
@@ -141,7 +141,7 @@ function HearingsTableBody({
   permissionDenied: boolean;
 }) {
   if (isLoading) {
-    return <AdminTableBodySkeleton columnCount={columnCount} rowCount={4} />;
+    return <AdminTableBodySkeleton columnCount={columnCount} rowCount={8} />;
   }
 
   if (errorMessage) {
@@ -213,8 +213,8 @@ function MessageBody({
 }) {
   return (
     <TableBody className="[&_tr:last-child]:border-0">
-      <TableRow>
-        <TableCell className={`h-24 px-3 text-center text-sm ${className}`} colSpan={columnCount}>
+      <TableRow className="h-[512px] hover:bg-transparent">
+        <TableCell className={`px-3 text-center text-sm ${className}`} colSpan={columnCount}>
           {message}
         </TableCell>
       </TableRow>

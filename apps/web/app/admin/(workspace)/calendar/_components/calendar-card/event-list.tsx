@@ -4,14 +4,18 @@ import { Button } from "@/components/ui/button";
 import {
   caseExpenseStatusLabels,
   caseHearingTypeLabels
-} from "../../../_constants/cases.constants";
-import type { CaseCalendarEventDto } from "../../../_types/cases.types";
-import { formatCaseDate, formatCaseMoney, getExpenseStatusClassName } from "../case-detail-format";
+} from "../../../cases/_constants/cases.constants";
+import type { CaseCalendarEventDto } from "../../../cases/_types/cases.types";
+import {
+  formatCaseDate,
+  formatCaseMoney,
+  getExpenseStatusClassName
+} from "../../../cases/_components/detail/case-detail-format";
 import {
   calendarPanelClassName,
   calendarEventTypeDotClassNames,
   calendarEventTypeShortLabels
-} from "./constants";
+} from "../../_constants/calendar.constants";
 
 export function CalendarEventList({
   canGoBack,
@@ -20,7 +24,8 @@ export function CalendarEventList({
   goBack,
   goForward,
   onEventSelect,
-  pageIndex
+  pageIndex,
+  totalEvents
 }: {
   canGoBack: boolean;
   canGoForward: boolean;
@@ -29,6 +34,7 @@ export function CalendarEventList({
   goForward: () => void;
   onEventSelect: (event: CaseCalendarEventDto) => void;
   pageIndex: number;
+  totalEvents: number;
 }) {
   if (!events.length) {
     return (
@@ -67,7 +73,9 @@ export function CalendarEventList({
                   </span>
                 </span>
                 <span className="mt-1 block text-xs text-muted-foreground">
-                  {calendarEventTypeShortLabels[event.type]}
+                  {event.caseNumber
+                    ? `${event.caseNumber} - ${event.caseCaption ?? "Expediente"}`
+                    : calendarEventTypeShortLabels[event.type]}
                 </span>
               </span>
               <EventListMeta event={event} />
@@ -82,6 +90,7 @@ export function CalendarEventList({
         goBack={goBack}
         goForward={goForward}
         page={pageIndex + 1}
+        totalEvents={totalEvents}
       />
     </section>
   );
@@ -93,7 +102,8 @@ function CalendarEventListPagination({
   eventCount,
   goBack,
   goForward,
-  page
+  page,
+  totalEvents
 }: {
   canGoBack: boolean;
   canGoForward: boolean;
@@ -101,11 +111,12 @@ function CalendarEventListPagination({
   goBack: () => void;
   goForward: () => void;
   page: number;
+  totalEvents: number;
 }) {
   return (
     <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-border/35 px-4 py-2 text-xs text-muted-foreground">
       <span>
-        Pagina {page} - {eventCount} eventos
+        Pagina {page} - {eventCount} de {totalEvents} eventos
       </span>
       <nav className="flex gap-2" aria-label="Paginacion de eventos del calendario">
         <Button

@@ -75,9 +75,7 @@ export function CurrencyTableProvider({
   });
   const pageRows = table.getRowModel().rows;
   const hasState =
-    (loading && currencies.length === 0) ||
-    Boolean(error) ||
-    (!loading && currencies.length === 0);
+    (loading && currencies.length === 0) || Boolean(error) || (!loading && currencies.length === 0);
 
   const value = useMemo<CurrencyTableContextValue>(
     () => ({

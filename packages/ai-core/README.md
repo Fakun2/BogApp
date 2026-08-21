@@ -35,4 +35,4 @@ AI_MAX_OUTPUT_TOKENS=1200
 AI_TEMPERATURE=0.2
 ```
 
-Los modelos de BogApp (`bogapp-legal`, `reasoning`, `fast`) son IDs logicos. El modelo real del proveedor se configura por entorno para evitar acoplar el codigo a nombres de modelos externos.
+Los modelos de BogApp (`justinia-legal`, `reasoning`, `fast`) son IDs logicos. El modelo real del proveedor se configura por entorno para evitar acoplar el codigo a nombres de modelos externos.

@@ -73,9 +73,7 @@ export function CategoryTableProvider({
   });
   const pageRows = table.getRowModel().rows;
   const hasState =
-    (loading && categories.length === 0) ||
-    Boolean(error) ||
-    (!loading && categories.length === 0);
+    (loading && categories.length === 0) || Boolean(error) || (!loading && categories.length === 0);
 
   const value = useMemo<CategoryTableContextValue>(
     () => ({

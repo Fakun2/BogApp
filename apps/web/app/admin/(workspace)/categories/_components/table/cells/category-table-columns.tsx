@@ -29,9 +29,9 @@ export function getCategoryTableColumns({
   onMutationSuccess: () => void;
   onSort: (key: CategorySortKey) => void;
 }): Array<ColumnDef<CategoryDto>> {
-  const columns: Array<ColumnDef<CategoryDto>> = (Object.keys(
-    categoryTableColumnLabels
-  ) as CategoryTableColumn[]).map((column) => ({
+  const columns: Array<ColumnDef<CategoryDto>> = (
+    Object.keys(categoryTableColumnLabels) as CategoryTableColumn[]
+  ).map((column) => ({
     id: column,
     accessorFn: (category) => getCategoryAccessorValue(category, column),
     header: () =>
@@ -80,7 +80,9 @@ function renderCategoryCell(category: CategoryDto, column: CategoryTableColumn) 
     name: (
       <span className="grid gap-0.5">
         <span className="font-medium text-foreground">{category.name}</span>
-        {category.code ? <span className="text-[11px] text-muted-foreground">{category.code}</span> : null}
+        {category.code ? (
+          <span className="text-[11px] text-muted-foreground">{category.code}</span>
+        ) : null}
       </span>
     ),
     origin: (

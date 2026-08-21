@@ -1,5 +1,5 @@
-import type { CaseCalendarEventDto } from "../../../_types/cases.types";
-import type { CalendarEventType } from "./constants";
+import type { CaseCalendarEventDto } from "../../cases/_types/cases.types";
+import type { CalendarEventType } from "../_constants/calendar.constants";
 
 export function getCurrentMonthKey() {
   const now = new Date();

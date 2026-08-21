@@ -9,10 +9,7 @@ import type {
   CategorySortDirection,
   CategorySortKey
 } from "../../_types/categories.types";
-import {
-  CategoryTableProvider,
-  useCategoryTableContext
-} from "./context/category-table-context";
+import { CategoryTableProvider, useCategoryTableContext } from "./context/category-table-context";
 import { CategoryTableToolbar } from "./controls/category-table-toolbar";
 import { CategoryTable } from "./category-table";
 

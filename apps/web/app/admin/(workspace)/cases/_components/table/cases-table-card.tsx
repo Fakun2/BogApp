@@ -58,8 +58,8 @@ export function CasesTableCard({
       forumTemplateId: localFilters.forumTemplateId || undefined,
       instance:
         localFilters.instance === "first" ||
-          localFilters.instance === "second" ||
-          localFilters.instance === "third"
+        localFilters.instance === "second" ||
+        localFilters.instance === "third"
           ? localFilters.instance
           : undefined,
       judicialCenter: localFilters.judicialCenter || undefined,

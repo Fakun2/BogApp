@@ -24,6 +24,7 @@ type CaseActionSheetProps = {
   onOpenChange: (open: boolean) => void;
   onSubmit: FormEventHandler<HTMLFormElement>;
   open: boolean;
+  submitDisabled?: boolean;
   title: string;
   trigger?: ReactNode;
   widthClassName?: string;
@@ -41,6 +42,7 @@ export function CaseActionSheet({
   onOpenChange,
   onSubmit,
   open,
+  submitDisabled = false,
   title,
   trigger,
   widthClassName = "w-[560px] max-w-[94vw] sm:max-w-[560px]"
@@ -85,7 +87,7 @@ export function CaseActionSheet({
             <Button
               type="submit"
               className={`px-3 sm:px-4 ${adminPrimaryActionButtonClassName}`}
-              disabled={isSubmitting}
+              disabled={isSubmitting || submitDisabled}
             >
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

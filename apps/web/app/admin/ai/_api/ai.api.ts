@@ -1,7 +1,7 @@
 import { dashboardHttpClient } from "@/lib/http";
 import type { BogaapSession } from "@/lib/auth/session";
 
-export type AiModel = "bogapp-legal" | "reasoning" | "fast";
+export type AiModel = "justinia-legal" | "reasoning" | "fast";
 export type AiTool = "general" | "case_summary" | "case_documents" | "case_deadlines";
 
 export type AiModelOption = {

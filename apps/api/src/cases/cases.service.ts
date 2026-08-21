@@ -18,6 +18,7 @@ import type {
   ListCaseExpensesQuery,
   ListDocumentCategoriesQuery,
   ListCaseHearingsQuery,
+  ListCasePickerOptionsQuery,
   ListCaseTasksQuery,
   ListCasesQuery,
   UpdateCaseExpenseInput,
@@ -51,6 +52,11 @@ export class CasesService {
   ) {}
 
   async list(tenantId: string, query: ListCasesQuery) {
+    const search = query.search?.trim();
+    if (search) {
+      return this.listSearch(tenantId, { ...query, search });
+    }
+
     const cursor = decodeCasesCursor(query.cursor);
     if (cursor?.sortBy !== undefined && cursor.sortBy !== query.sortBy) {
       throw new BadRequestException("El cursor no corresponde al orden seleccionado.");
@@ -162,6 +168,168 @@ export class CasesService {
     };
   }
 
+  async listPickerOptions(tenantId: string, query: ListCasePickerOptionsQuery) {
+    const search = query.search?.trim();
+    const cursor = decodeCasePickerCursor(query.cursor);
+
+    if (cursor && cursor.search !== (search ?? null)) {
+      throw new BadRequestException("El cursor no corresponde a la busqueda seleccionada.");
+    }
+
+    const andFilters: Prisma.CaseWhereInput[] = [
+      ...(search
+        ? [
+            {
+              OR: [
+                { caseNumber: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { caption: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { subject: { contains: search, mode: Prisma.QueryMode.insensitive } }
+              ]
+            }
+          ]
+        : []),
+      ...(cursor
+        ? [
+            {
+              OR: [
+                { createdAt: { lt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, id: { lt: cursor.id } }
+              ]
+            }
+          ]
+        : [])
+    ];
+    const where: Prisma.CaseWhereInput = {
+      tenantId,
+      ...(andFilters.length ? { AND: andFilters } : {})
+    };
+
+    const items = await this.prisma.case.findMany({
+      where,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: query.limit + 1,
+      select: casePickerOptionSelect
+    });
+    const pageItems = items.slice(0, query.limit);
+    const lastItem = pageItems.at(-1);
+    const hasNextPage = items.length > query.limit;
+
+    return {
+      items: pageItems.map(toCasePickerOptionDto),
+      pageInfo: {
+        limit: query.limit,
+        offset: query.offset,
+        nextCursor:
+          hasNextPage && lastItem
+            ? encodeCasePickerCursor({
+                createdAt: lastItem.createdAt,
+                id: lastItem.id,
+                search: search ?? null
+              })
+            : null,
+        hasNextPage,
+        total: query.offset + pageItems.length + (hasNextPage ? 1 : 0)
+      }
+    };
+  }
+
+  private async listSearch(tenantId: string, query: ListCasesQuery & { search: string }) {
+    const cursor = decodeCasesSearchCursor(query.cursor);
+    if (cursor && cursor.search !== query.search) {
+      throw new BadRequestException("El cursor no corresponde a la busqueda seleccionada.");
+    }
+
+    const search = query.search.trim();
+    const likeSearch = `%${search}%`;
+    const searchRankSql = Prisma.sql`
+      (
+        similarity("case_number", ${search}) * 3.0 +
+        similarity("caption", ${search}) * 2.0 +
+        similarity(coalesce("subject", ''), ${search}) +
+        similarity(coalesce("court", ''), ${search}) * 0.5 +
+        similarity(coalesce("judicial_center_text", ''), ${search}) * 0.5
+      )
+    `;
+    const filters = [
+      Prisma.sql`"tenant_id" = ${tenantId}::uuid`,
+      Prisma.sql`(
+        "case_number" ILIKE ${likeSearch}
+        OR "caption" ILIKE ${likeSearch}
+        OR "subject" ILIKE ${likeSearch}
+        OR "court" ILIKE ${likeSearch}
+        OR "judicial_center_text" ILIKE ${likeSearch}
+        OR "case_number" % ${search}
+        OR "caption" % ${search}
+        OR coalesce("subject", '') % ${search}
+        OR coalesce("court", '') % ${search}
+        OR coalesce("judicial_center_text", '') % ${search}
+      )`,
+      ...(query.status ? [Prisma.sql`"status" = ${query.status}::"CaseStatus"`] : []),
+      ...(query.instance ? [Prisma.sql`"instance" = ${query.instance}::"CaseInstance"`] : []),
+      ...(query.filingDate
+        ? [Prisma.sql`"filing_date" = ${new Date(`${query.filingDate}T00:00:00.000Z`)}`]
+        : []),
+      ...(query.provinceId ? [Prisma.sql`"province_id" = ${query.provinceId}::uuid`] : []),
+      ...(query.forumTemplateId
+        ? [Prisma.sql`"forum_template_id" = ${query.forumTemplateId}::uuid`]
+        : []),
+      ...(query.court ? [Prisma.sql`"court" ILIKE ${`%${query.court}%`}`] : []),
+      ...(query.judicialCenter
+        ? [Prisma.sql`"judicial_center_text" ILIKE ${`%${query.judicialCenter}%`}`]
+        : []),
+      ...(cursor
+        ? [
+            Prisma.sql`(
+              ${searchRankSql} < ${cursor.rank}
+              OR (${searchRankSql} = ${cursor.rank} AND "created_at" < ${cursor.createdAt})
+              OR (${searchRankSql} = ${cursor.rank} AND "created_at" = ${cursor.createdAt} AND "id"::text < ${cursor.id})
+            )`
+          ]
+        : [])
+    ];
+
+    const rows = await this.prisma.$queryRaw<CaseSearchRow[]>`
+      SELECT "id"::text, "created_at", ${searchRankSql} AS "rank"
+      FROM "cases"
+      WHERE ${Prisma.join(filters, " AND ")}
+      ORDER BY "rank" DESC, "created_at" DESC, "id" DESC
+      LIMIT ${query.limit + 1}
+    `;
+    const pageRows = rows.slice(0, query.limit);
+    const hasNextPage = rows.length > query.limit;
+    const ids = pageRows.map((row) => row.id);
+    const records = ids.length
+      ? await this.prisma.case.findMany({
+          where: { id: { in: ids }, tenantId },
+          include: caseInclude
+        })
+      : [];
+    const recordsById = new Map(records.map((record) => [record.id, record]));
+    const items = pageRows
+      .map((row) => recordsById.get(row.id))
+      .filter((record): record is CaseWithInclude => Boolean(record));
+    const lastRow = pageRows.at(-1);
+
+    return {
+      items: items.map(toCaseDto),
+      pageInfo: {
+        limit: query.limit,
+        offset: query.offset,
+        nextCursor:
+          hasNextPage && lastRow
+            ? encodeCasesSearchCursor({
+                createdAt: lastRow.created_at,
+                id: lastRow.id,
+                rank: Number(lastRow.rank),
+                search
+              })
+            : null,
+        hasNextPage,
+        total: query.offset + items.length + (hasNextPage ? 1 : 0)
+      }
+    };
+  }
+
   async create(tenantId: string, input: CreateCaseInput) {
     const relationContext = await this.assertCaseRelations(tenantId, input);
 
@@ -239,6 +407,14 @@ export class CasesService {
     permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
   ) {
     return this.caseExpensesUseCase.calendar(tenantId, caseId, query, permissions);
+  }
+
+  async getTenantCalendar(
+    tenantId: string,
+    query: CaseCalendarQuery,
+    permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
+  ) {
+    return this.caseExpensesUseCase.tenantCalendar(tenantId, query, permissions);
   }
 
   async listDocumentCategories(tenantId: string, query: ListDocumentCategoriesQuery) {
@@ -594,6 +770,16 @@ const caseInclude = {
 
 type CaseWithInclude = Prisma.CaseGetPayload<{ include: typeof caseInclude }>;
 
+const casePickerOptionSelect = {
+  id: true,
+  caseNumber: true,
+  caption: true,
+  subject: true,
+  createdAt: true
+} satisfies Prisma.CaseSelect;
+
+type CasePickerOptionRecord = Prisma.CaseGetPayload<{ select: typeof casePickerOptionSelect }>;
+
 function toCaseData(
   input: CreateCaseInput | UpdateCaseInput,
   caseCatalogStrategy: "manual" | "center_forum"
@@ -660,6 +846,15 @@ function toCaseDto(item: CaseWithInclude) {
   };
 }
 
+function toCasePickerOptionDto(item: CasePickerOptionRecord) {
+  return {
+    id: item.id,
+    caseNumber: item.caseNumber,
+    caption: item.caption,
+    subject: item.subject
+  };
+}
+
 function getParticipantClientIds(input: CreateCaseInput | UpdateCaseInput) {
   return [
     ...new Set(
@@ -698,6 +893,25 @@ type CasesCursor = {
   value: Date | string;
 };
 
+type CasesSearchCursor = {
+  createdAt: Date;
+  id: string;
+  rank: number;
+  search: string;
+};
+
+type CasePickerCursor = {
+  createdAt: Date;
+  id: string;
+  search: string | null;
+};
+
+type CaseSearchRow = {
+  created_at: Date;
+  id: string;
+  rank: number;
+};
+
 function encodeCasesCursor(cursor: CasesCursor) {
   const value = cursor.value instanceof Date ? cursor.value.toISOString() : cursor.value;
 
@@ -733,6 +947,81 @@ function decodeCasesCursor(cursor?: string): CasesCursor | null {
     };
   } catch {
     throw new BadRequestException("El cursor de paginacion es invalido.");
+  }
+}
+
+function encodeCasesSearchCursor(cursor: CasesSearchCursor) {
+  return Buffer.from(
+    JSON.stringify({
+      createdAt: cursor.createdAt.toISOString(),
+      id: cursor.id,
+      rank: cursor.rank,
+      search: cursor.search
+    })
+  ).toString("base64url");
+}
+
+function decodeCasesSearchCursor(cursor?: string): CasesSearchCursor | null {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
+      createdAt?: string;
+      id?: string;
+      rank?: number;
+      search?: string;
+    };
+
+    if (!parsed.createdAt || !parsed.id || typeof parsed.rank !== "number" || !parsed.search) {
+      return null;
+    }
+
+    return {
+      createdAt: new Date(parsed.createdAt),
+      id: parsed.id,
+      rank: parsed.rank,
+      search: parsed.search
+    };
+  } catch {
+    throw new BadRequestException("El cursor de busqueda es invalido.");
+  }
+}
+
+function encodeCasePickerCursor(cursor: CasePickerCursor) {
+  return Buffer.from(
+    JSON.stringify({
+      createdAt: cursor.createdAt.toISOString(),
+      id: cursor.id,
+      search: cursor.search
+    })
+  ).toString("base64url");
+}
+
+function decodeCasePickerCursor(cursor?: string): CasePickerCursor | null {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
+      createdAt?: string;
+      id?: string;
+      search?: string | null;
+    };
+
+    if (!parsed.createdAt || !parsed.id) {
+      return null;
+    }
+
+    return {
+      createdAt: new Date(parsed.createdAt),
+      id: parsed.id,
+      search: parsed.search ?? null
+    };
+  } catch {
+    throw new BadRequestException("El cursor de busqueda es invalido.");
   }
 }
 

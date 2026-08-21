@@ -105,17 +105,102 @@ describe("CaseExpensesUseCase calendar list", () => {
     assert.deepEqual(response.events, []);
     assert.equal(response.pageInfo?.hasNextPage, false);
   });
+
+  it("returns tenant calendar events with case context and global metrics", async () => {
+    const executeCalls: unknown[] = [];
+    const queryCalls: unknown[] = [];
+    const useCase = new CaseExpensesUseCase(
+      makePrisma({
+        executeCalls,
+        queryCalls,
+        rows: [
+          {
+            amount: null,
+            case_caption: "Perez c/ Gomez",
+            case_id: caseId,
+            case_number: "EXP-123/2026",
+            currency_code: null,
+            event_date: new Date("2026-08-11T00:00:00.000Z"),
+            event_type: "task_due",
+            hearing_type: null,
+            id: "00000000-0000-4000-8000-000000000002",
+            status: "in_progress",
+            time: null,
+            title: "Tarea: Presentar escrito"
+          }
+        ],
+        counts: [12, 5, 3, 4]
+      })
+    );
+
+    const response = await useCase.tenantCalendar(
+      tenantId,
+      {
+        limit: 5,
+        mode: "list",
+        month: "2026-08",
+        types: "task_due"
+      },
+      { canReadExpenses: true, canReadHearings: true, canReadTasks: true }
+    );
+
+    assert.equal(queryCalls.length, 1);
+    assert.equal(response.events.length, 1);
+    const event = response.events[0] as {
+      caseCaption?: string;
+      caseId?: string;
+      caseNumber?: string;
+    };
+
+    assert.equal(event.caseId, caseId);
+    assert.equal(event.caseNumber, "EXP-123/2026");
+    assert.equal(event.caseCaption, "Perez c/ Gomez");
+    assert.deepEqual(response.metrics, {
+      hearingsCount: 3,
+      pendingExpensesCount: 4,
+      pendingTasks: 5,
+      totalTasks: 12
+    });
+  });
+
+  it("returns tenant calendar metrics without event queries when permissions deny selected types", async () => {
+    const executeCalls: unknown[] = [];
+    const queryCalls: unknown[] = [];
+    const useCase = new CaseExpensesUseCase(
+      makePrisma({ executeCalls, queryCalls, rows: [], counts: [2, 1, 4, 3] })
+    );
+
+    const response = await useCase.tenantCalendar(
+      tenantId,
+      {
+        limit: 5,
+        mode: "list",
+        month: "2026-08",
+        types: "payment_due"
+      },
+      { canReadExpenses: false, canReadHearings: true, canReadTasks: true }
+    );
+
+    assert.equal(queryCalls.length, 0);
+    assert.deepEqual(response.events, []);
+    assert.equal(response.metrics?.pendingExpensesCount, 3);
+    assert.equal(response.pageInfo?.hasNextPage, false);
+  });
 });
 
 function makePrisma({
+  counts = [],
   executeCalls,
   queryCalls,
   rows
 }: {
+  counts?: number[];
   executeCalls: unknown[];
   queryCalls: unknown[];
   rows: unknown[];
 }) {
+  let countIndex = 0;
+
   return {
     $executeRaw: async (query: unknown) => {
       executeCalls.push(query);
@@ -127,6 +212,15 @@ function makePrisma({
     },
     case: {
       findFirst: async () => ({ id: caseId })
+    },
+    caseExpense: {
+      count: async () => counts[countIndex++] ?? 0
+    },
+    caseHearing: {
+      count: async () => counts[countIndex++] ?? 0
+    },
+    caseTask: {
+      count: async () => counts[countIndex++] ?? 0
     }
   } as unknown as PrismaService;
 }

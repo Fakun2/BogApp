@@ -1,6 +1,6 @@
 import { CalendarDays, List } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { calendarViewLabels, type CalendarView } from "./constants";
+import { calendarViewLabels, type CalendarView } from "../../_constants/calendar.constants";
 
 export function CalendarViewSwitch({
   onViewChange,

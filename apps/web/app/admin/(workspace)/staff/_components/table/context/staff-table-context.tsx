@@ -6,14 +6,14 @@ import {
   type RowSelectionState,
   type Table as ReactTable,
   type VisibilityState,
-  useReactTable,
+  useReactTable
 } from "@tanstack/react-table";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type {
   StaffListResponse,
   StaffSortDirection,
   StaffSortKey,
-  StaffWorker,
+  StaffWorker
 } from "../../../_types/staff.types";
 import { getStaffTableColumns } from "../cells/staff-table-columns";
 
@@ -46,7 +46,7 @@ export function StaffTableProvider({
   onNextPage,
   onPreviousPage,
   onSort,
-  onStaffCreated,
+  onStaffCreated
 }: {
   children: ReactNode;
   error: Error | null;
@@ -71,9 +71,9 @@ export function StaffTableProvider({
         sortDirection,
         sortKey,
         staffData,
-        onSort,
+        onSort
       }),
-    [onStaffCreated, sortDirection, sortKey, staffData, onSort],
+    [onStaffCreated, sortDirection, sortKey, staffData, onSort]
   );
   const table = useReactTable({
     columns,
@@ -84,14 +84,12 @@ export function StaffTableProvider({
     onRowSelectionChange: setRowSelection,
     state: {
       columnVisibility,
-      rowSelection,
-    },
+      rowSelection
+    }
   });
   const pageRows = table.getRowModel().rows;
   const hasState =
-    (loading && workers.length === 0) ||
-    Boolean(error) ||
-    (!loading && workers.length === 0);
+    (loading && workers.length === 0) || Boolean(error) || (!loading && workers.length === 0);
 
   const value = useMemo<StaffTableContextValue>(
     () => ({
@@ -105,7 +103,7 @@ export function StaffTableProvider({
       table,
       workers,
       onNextPage,
-      onPreviousPage,
+      onPreviousPage
     }),
     [
       columnVisibility,
@@ -120,8 +118,8 @@ export function StaffTableProvider({
       table,
       workers,
       onNextPage,
-      onPreviousPage,
-    ],
+      onPreviousPage
+    ]
   );
 
   return <StaffTableContext.Provider value={value}>{children}</StaffTableContext.Provider>;

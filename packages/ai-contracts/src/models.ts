@@ -1,4 +1,4 @@
-export const aiModelIds = ["bogapp-legal", "reasoning", "fast"] as const;
+export const aiModelIds = ["justinia-legal", "reasoning", "fast"] as const;
 
 export type AiModel = (typeof aiModelIds)[number];
 
@@ -9,7 +9,7 @@ export type AiModelDefinition = {
 };
 
 export const aiModels: AiModelDefinition[] = [
-  { id: "bogapp-legal", name: "BogApp Legal", provider: "openai" },
+  { id: "justinia-legal", name: "Justinia Legal", provider: "openai" },
   { id: "reasoning", name: "Razonamiento", provider: "openai" },
   { id: "fast", name: "Rapido", provider: "openai" }
 ];

@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bot,
   BriefcaseBusiness,
+  CalendarDays,
   CircleHelp,
   CircleDollarSign,
   FolderOpen,
@@ -23,6 +24,12 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/cases",
         label: "Expedientes",
         icon: BriefcaseBusiness,
+        requiredPermissions: ["cases:read"]
+      },
+      {
+        href: "/admin/calendar",
+        label: "Calendario",
+        icon: CalendarDays,
         requiredPermissions: ["cases:read"]
       },
       {
@@ -111,6 +118,7 @@ export const adminPageTitles: AdminPageTitle[] = [
   { href: "/admin/categories", title: "Categorias" },
   { href: "/admin/staff", title: "Staff" },
   { href: "/admin/cases", title: "Expedientes" },
+  { href: "/admin/calendar", title: "Calendario" },
   { href: "/admin/library", title: "Biblioteca" },
   { href: "/admin/clients", title: "Clientes" },
   { href: "/admin/cashbox", title: "Caja" },

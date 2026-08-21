@@ -24,6 +24,7 @@ export class CaseExpensesUseCase {
       where: {
         caseId,
         tenantId,
+        ...(query.currencyCode ? { currencyCode: query.currencyCode } : {}),
         ...(query.status ? { status: query.status } : {}),
         ...(query.taskId ? { taskId: query.taskId } : {}),
         ...(cursor ? { OR: getExpenseCursorWhere(cursor) } : {})
@@ -170,20 +171,101 @@ export class CaseExpensesUseCase {
     };
   }
 
+  async tenantCalendar(
+    tenantId: string,
+    query: CaseCalendarQuery,
+    permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
+  ) {
+    if (query.caseId) {
+      await this.findTenantCaseOrThrow(tenantId, query.caseId);
+    }
+
+    const month = query.month ?? getBuenosAiresMonth();
+    const { endDate, startDate } = getMonthDateRange(month);
+    const eventTypes = toCalendarEventTypes(query.types);
+    const canReadPaymentEvents = permissions.canReadExpenses && eventTypes.includes("payment_due");
+    const canReadTaskEvents = permissions.canReadTasks && eventTypes.includes("task_due");
+    const canReadHearingEvents = permissions.canReadHearings && eventTypes.includes("hearing");
+    const metricsPromise = this.getTenantCalendarMetrics(tenantId);
+
+    if (!canReadPaymentEvents && !canReadTaskEvents && !canReadHearingEvents) {
+      return {
+        ...toCalendarResponse({ events: [], limit: query.limit, mode: query.mode, month }),
+        metrics: await metricsPromise
+      };
+    }
+
+    if (query.mode !== "list") {
+      const [events, metrics] = await Promise.all([
+        this.getCalendarEvents({
+          canReadHearingEvents,
+          canReadPaymentEvents,
+          canReadTaskEvents,
+          caseId: query.caseId,
+          endDate,
+          includeCaseContext: true,
+          startDate,
+          tenantId
+        }),
+        metricsPromise
+      ]);
+
+      return { month, events, metrics };
+    }
+
+    const cursor = decodeCalendarCursor(query.cursor);
+    const [events, metrics] = await Promise.all([
+      this.getCalendarListEvents({
+        canReadHearingEvents,
+        canReadPaymentEvents,
+        canReadTaskEvents,
+        caseId: query.caseId,
+        cursor,
+        endDate,
+        includeCaseContext: true,
+        limit: query.limit + 1,
+        startDate,
+        tenantId
+      }),
+      metricsPromise
+    ]);
+    const pageItems = events.slice(0, query.limit);
+    const lastItem = pageItems.at(-1);
+    const hasNextPage = events.length > query.limit;
+
+    return {
+      month,
+      events: pageItems,
+      metrics,
+      pageInfo: {
+        limit: query.limit,
+        offset: 0,
+        nextCursor:
+          hasNextPage && lastItem
+            ? encodeCalendarCursor({ date: lastItem.date, id: lastItem.id })
+            : null,
+        hasNextPage,
+        total: pageItems.length + (hasNextPage ? 1 : 0)
+      }
+    };
+  }
+
   private async getCalendarEvents({
     canReadHearingEvents,
     canReadPaymentEvents,
     canReadTaskEvents,
     caseId,
     endDate,
+    includeCaseContext = false,
     startDate,
     tenantId
   }: {
     canReadHearingEvents: boolean;
     canReadPaymentEvents: boolean;
     canReadTaskEvents: boolean;
-    caseId: string;
+    caseId?: string;
     endDate: Date;
+    includeCaseContext?: boolean;
     startDate: Date;
     tenantId: string;
   }) {
@@ -197,10 +279,11 @@ export class CaseExpensesUseCase {
               currencyCode: true,
               id: true,
               paymentDate: true,
-              status: true
+              status: true,
+              ...(includeCaseContext ? { case: { select: caseCalendarContextSelect } } : {})
             },
             where: {
-              caseId,
+              ...(caseId ? { caseId } : {}),
               tenantId,
               paymentDate: {
                 gte: startDate,
@@ -218,10 +301,11 @@ export class CaseExpensesUseCase {
               id: true,
               name: true,
               startDate: true,
-              status: true
+              status: true,
+              ...(includeCaseContext ? { case: { select: caseCalendarContextSelect } } : {})
             },
             where: {
-              caseId,
+              ...(caseId ? { caseId } : {}),
               tenantId,
               status: { in: ["pending", "in_progress"] },
               OR: [
@@ -250,10 +334,11 @@ export class CaseExpensesUseCase {
               description: true,
               id: true,
               time: true,
-              type: true
+              type: true,
+              ...(includeCaseContext ? { case: { select: caseCalendarContextSelect } } : {})
             },
             where: {
-              caseId,
+              ...(caseId ? { caseId } : {}),
               tenantId,
               date: {
                 gte: startDate,
@@ -265,9 +350,11 @@ export class CaseExpensesUseCase {
     ]);
 
     return [
-      ...paymentExpenses.map(toPaymentDueCalendarEvent),
-      ...pendingTasks.map(toTaskDueCalendarEvent),
-      ...hearings.map(toHearingCalendarEvent)
+      ...paymentExpenses.map((expense) =>
+        toPaymentDueCalendarEvent(expense, includeCaseContext)
+      ),
+      ...pendingTasks.map((task) => toTaskDueCalendarEvent(task, includeCaseContext)),
+      ...hearings.map((hearing) => toHearingCalendarEvent(hearing, includeCaseContext))
     ].sort(compareCalendarEvents);
   }
 
@@ -278,6 +365,7 @@ export class CaseExpensesUseCase {
     caseId,
     cursor,
     endDate,
+    includeCaseContext = false,
     limit,
     startDate,
     tenantId
@@ -285,9 +373,10 @@ export class CaseExpensesUseCase {
     canReadHearingEvents: boolean;
     canReadPaymentEvents: boolean;
     canReadTaskEvents: boolean;
-    caseId: string;
+    caseId?: string;
     cursor: CalendarCursor | null;
     endDate: Date;
+    includeCaseContext?: boolean;
     limit: number;
     startDate: Date;
     tenantId: string;
@@ -305,10 +394,15 @@ export class CaseExpensesUseCase {
           case_expenses.amount AS amount,
           case_expenses.currency_code::text AS currency_code,
           NULL::text AS hearing_type,
-          NULL::text AS time
+          NULL::text AS time,
+          cases.id::text AS case_id,
+          cases.case_number::text AS case_number,
+          cases.caption::text AS case_caption
         FROM case_expenses
+        INNER JOIN cases ON cases.id = case_expenses.case_id
         WHERE case_expenses.tenant_id = ${tenantId}::uuid
-          AND case_expenses.case_id = ${caseId}::uuid
+          AND cases.tenant_id = ${tenantId}::uuid
+          ${caseId ? Prisma.sql`AND case_expenses.case_id = ${caseId}::uuid` : Prisma.empty}
           AND case_expenses.payment_date >= ${startDate}::date
           AND case_expenses.payment_date < ${endDate}::date
           AND case_expenses.status IN ('pending', 'overdue')
@@ -326,10 +420,15 @@ export class CaseExpensesUseCase {
           NULL::numeric AS amount,
           NULL::text AS currency_code,
           NULL::text AS hearing_type,
-          NULL::text AS time
+          NULL::text AS time,
+          cases.id::text AS case_id,
+          cases.case_number::text AS case_number,
+          cases.caption::text AS case_caption
         FROM case_tasks
+        INNER JOIN cases ON cases.id = case_tasks.case_id
         WHERE case_tasks.tenant_id = ${tenantId}::uuid
-          AND case_tasks.case_id = ${caseId}::uuid
+          AND cases.tenant_id = ${tenantId}::uuid
+          ${caseId ? Prisma.sql`AND case_tasks.case_id = ${caseId}::uuid` : Prisma.empty}
           AND case_tasks.status IN ('pending', 'in_progress')
           AND COALESCE(case_tasks.end_date, case_tasks.start_date) >= ${startDate}::date
           AND COALESCE(case_tasks.end_date, case_tasks.start_date) < ${endDate}::date
@@ -347,17 +446,22 @@ export class CaseExpensesUseCase {
           NULL::numeric AS amount,
           NULL::text AS currency_code,
           case_hearings.type::text AS hearing_type,
-          case_hearings.time::text AS time
+          case_hearings.time::text AS time,
+          cases.id::text AS case_id,
+          cases.case_number::text AS case_number,
+          cases.caption::text AS case_caption
         FROM case_hearings
+        INNER JOIN cases ON cases.id = case_hearings.case_id
         WHERE case_hearings.tenant_id = ${tenantId}::uuid
-          AND case_hearings.case_id = ${caseId}::uuid
+          AND cases.tenant_id = ${tenantId}::uuid
+          ${caseId ? Prisma.sql`AND case_hearings.case_id = ${caseId}::uuid` : Prisma.empty}
           AND case_hearings.date >= ${startDate}::date
           AND case_hearings.date < ${endDate}::date
       `);
     }
 
     const rows = await this.prisma.$queryRaw<CalendarListEventRow[]>(Prisma.sql`
-      SELECT event_type, id, title, event_date, status, amount, currency_code, hearing_type, time
+      SELECT event_type, id, title, event_date, status, amount, currency_code, hearing_type, time, case_id, case_number, case_caption
       FROM (${joinSql(eventQueries, Prisma.sql`UNION ALL`)}) AS calendar_events
       ${
         cursor
@@ -368,7 +472,27 @@ export class CaseExpensesUseCase {
       LIMIT ${limit}
     `);
 
-    return rows.map(toCalendarEventFromRow);
+    return rows.map((row) => toCalendarEventFromRow(row, includeCaseContext));
+  }
+
+  private async getTenantCalendarMetrics(tenantId: string) {
+    const [totalTasks, pendingTasks, hearingsCount, pendingExpensesCount] = await Promise.all([
+      this.prisma.caseTask.count({ where: { tenantId } }),
+      this.prisma.caseTask.count({
+        where: { status: { in: ["pending", "in_progress"] }, tenantId }
+      }),
+      this.prisma.caseHearing.count({ where: { tenantId } }),
+      this.prisma.caseExpense.count({
+        where: { status: { in: ["pending", "overdue"] }, tenantId }
+      })
+    ]);
+
+    return {
+      hearingsCount,
+      pendingExpensesCount,
+      pendingTasks,
+      totalTasks
+    };
   }
 
   async create(
@@ -513,13 +637,26 @@ type CalendarCursor = {
   id: string;
 };
 
-type CalendarEvent =
-  | ReturnType<typeof toPaymentDueCalendarEvent>
-  | ReturnType<typeof toTaskDueCalendarEvent>
-  | ReturnType<typeof toHearingCalendarEvent>;
+type CalendarEvent = {
+  amount?: number;
+  caseCaption?: string;
+  caseId?: string;
+  caseNumber?: string;
+  currencyCode?: string;
+  date: string;
+  hearingType?: HearingType;
+  id: string;
+  status?: "pending" | "overdue" | "in_progress" | "completed" | "paid" | "cancelled";
+  time?: string;
+  title: string;
+  type: CalendarEventType;
+};
 
 type CalendarListEventRow = {
   amount: Prisma.Decimal | null;
+  case_caption: string | null;
+  case_id: string | null;
+  case_number: string | null;
   currency_code: string | null;
   event_date: Date | string;
   event_type: CalendarEventType;
@@ -583,15 +720,19 @@ function toCalendarResponse({
   };
 }
 
-function toPaymentDueCalendarEvent(expense: {
-  amount: Prisma.Decimal;
-  concept: string;
-  currencyCode: string;
-  id: string;
-  paymentDate: Date;
-  status: "pending" | "overdue" | "paid" | "cancelled";
-}) {
-  return {
+function toPaymentDueCalendarEvent(
+  expense: {
+    amount: Prisma.Decimal;
+    case?: CalendarCaseContext;
+    concept: string;
+    currencyCode: string;
+    id: string;
+    paymentDate: Date;
+    status: "pending" | "overdue" | "paid" | "cancelled";
+  },
+  includeCaseContext = false
+) {
+  return withCalendarCaseContext({
     type: "payment_due" as const,
     id: expense.id,
     title: `Pago: ${expense.concept}`,
@@ -599,49 +740,57 @@ function toPaymentDueCalendarEvent(expense: {
     amount: Number(expense.amount),
     currencyCode: expense.currencyCode,
     status: expense.status
-  };
+  }, includeCaseContext ? expense.case : undefined);
 }
 
-function toTaskDueCalendarEvent(task: {
-  endDate: Date | null;
-  id: string;
-  name: string;
-  startDate: Date | null;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-}) {
+function toTaskDueCalendarEvent(
+  task: {
+    case?: CalendarCaseContext;
+    endDate: Date | null;
+    id: string;
+    name: string;
+    startDate: Date | null;
+    status: "pending" | "in_progress" | "completed" | "cancelled";
+  },
+  includeCaseContext = false
+) {
   const taskDate = task.endDate ?? task.startDate;
 
-  return {
+  return withCalendarCaseContext({
     type: "task_due" as const,
     id: task.id,
     title: `Tarea: ${task.name}`,
     date: taskDate?.toISOString().slice(0, 10) ?? "",
     status: task.status
-  };
+  }, includeCaseContext ? task.case : undefined);
 }
 
-function toHearingCalendarEvent(hearing: {
-  date: Date;
-  description: string;
-  id: string;
-  time: string;
-  type: HearingType;
-}) {
-  return {
+function toHearingCalendarEvent(
+  hearing: {
+    case?: CalendarCaseContext;
+    date: Date;
+    description: string;
+    id: string;
+    time: string;
+    type: HearingType;
+  },
+  includeCaseContext = false
+) {
+  return withCalendarCaseContext({
     type: "hearing" as const,
     id: hearing.id,
     title: `Audiencia: ${hearing.description}`,
     date: hearing.date.toISOString().slice(0, 10),
     hearingType: hearing.type,
     time: hearing.time
-  };
+  }, includeCaseContext ? hearing.case : undefined);
 }
 
-function toCalendarEventFromRow(row: CalendarListEventRow): CalendarEvent {
+function toCalendarEventFromRow(row: CalendarListEventRow, includeCaseContext = false): CalendarEvent {
   const date = toCalendarDateString(row.event_date);
 
   if (row.event_type === "payment_due") {
-    return {
+    return withCalendarCaseContext({
       type: "payment_due",
       id: row.id,
       title: row.title,
@@ -649,26 +798,54 @@ function toCalendarEventFromRow(row: CalendarListEventRow): CalendarEvent {
       amount: Number(row.amount ?? 0),
       currencyCode: row.currency_code ?? "ARS",
       status: row.status === "overdue" ? "overdue" : "pending"
-    };
+    }, includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined);
   }
 
   if (row.event_type === "task_due") {
-    return {
+    return withCalendarCaseContext({
       type: "task_due",
       id: row.id,
       title: row.title,
       date,
       status: row.status === "in_progress" ? "in_progress" : "pending"
-    };
+    }, includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined);
   }
 
-  return {
+  return withCalendarCaseContext({
     type: "hearing",
     id: row.id,
     title: row.title,
     date,
     hearingType: row.hearing_type ?? "other",
     time: row.time ?? ""
+  }, includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined);
+}
+
+function withCalendarCaseContext<TEvent extends CalendarEvent>(
+  event: TEvent,
+  caseContext?: CalendarCaseContext
+) {
+  if (!caseContext) {
+    return event;
+  }
+
+  return {
+    ...event,
+    caseId: caseContext.id,
+    caseNumber: caseContext.caseNumber,
+    caseCaption: caseContext.caption
+  };
+}
+
+function toCalendarCaseContextFromRow(row: CalendarListEventRow): CalendarCaseContext | undefined {
+  if (!row.case_id || !row.case_number || !row.case_caption) {
+    return undefined;
+  }
+
+  return {
+    id: row.case_id,
+    caseNumber: row.case_number,
+    caption: row.case_caption
   };
 }
 
@@ -753,7 +930,14 @@ const caseExpenseSelect = {
   updatedAt: true
 } satisfies Prisma.CaseExpenseSelect;
 
+const caseCalendarContextSelect = {
+  caption: true,
+  caseNumber: true,
+  id: true
+} satisfies Prisma.CaseSelect;
+
 type CaseExpenseWithSelect = Prisma.CaseExpenseGetPayload<{ select: typeof caseExpenseSelect }>;
+type CalendarCaseContext = Prisma.CaseGetPayload<{ select: typeof caseCalendarContextSelect }>;
 
 type CaseExpenseWriteStatus = NonNullable<Prisma.CaseExpenseUncheckedCreateInput["status"]>;
 

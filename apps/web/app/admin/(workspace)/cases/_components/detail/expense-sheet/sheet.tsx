@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Banknote, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +21,7 @@ import {
   caseTextareaClassName
 } from "../../../_constants/cases.constants";
 import { useTenantCurrenciesQuery } from "../../../../currencies/_hooks/use-currencies-query";
+import { CasePickerField } from "../../case-picker-field";
 import { CaseActionSheet } from "../case-action-sheet";
 import { CaseDateInput } from "../../sheet/case-date-input";
 import { CaseField } from "../../sheet/case-field";
@@ -37,16 +38,21 @@ export function CaseExpenseSheet({
   hideTaskSelect = false,
   onOpenChange,
   open: controlledOpen,
+  selectedCase,
   tasks,
   trigger
 }: CaseExpenseSheetProps) {
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const [localSelectedCase, setLocalSelectedCase] = useState(selectedCase ?? null);
+  const selectedCaseId = caseId ?? localSelectedCase?.id ?? "";
   const currenciesQuery = useTenantCurrenciesQuery({
     limit: 50,
     sort: "name:asc",
     status: "active"
   });
   const currencies = currenciesQuery.data?.items ?? [];
+  const defaultCurrencyCode =
+    currencies.find((currency) => currency.code === "ARS")?.code ?? currencies[0]?.code;
   const {
     amountText,
     draft,
@@ -59,8 +65,8 @@ export function CaseExpenseSheet({
     updateDraft,
     updateStatus
   } = useCaseExpenseSheet({
-    caseId,
-    defaultCurrencyCode: currencies[0]?.code,
+    caseId: selectedCaseId,
+    defaultCurrencyCode,
     defaultDate,
     defaultTaskId,
     expense,
@@ -68,6 +74,23 @@ export function CaseExpenseSheet({
     onOpenChange,
     open: controlledOpen
   });
+  const canSelectCase = !expense && !caseId;
+  const isMissingCase = canSelectCase && !selectedCaseId;
+
+  useEffect(() => {
+    if (open) {
+      setLocalSelectedCase(selectedCase ?? null);
+    }
+  }, [open, selectedCase]);
+
+  function handleCaseScopedSubmit(event: FormEvent<HTMLFormElement>) {
+    if (isMissingCase) {
+      event.preventDefault();
+      return;
+    }
+
+    handleSubmit(event);
+  }
 
   function handleSheetOpenChange(nextOpen: boolean) {
     if (!nextOpen && attachmentsOpen) {
@@ -102,11 +125,18 @@ export function CaseExpenseSheet({
         isSubmitting={mutation.isPending}
         modal={!attachmentsOpen}
         onOpenChange={handleSheetOpenChange}
-        onSubmit={handleSubmit}
+        onSubmit={handleCaseScopedSubmit}
         open={open}
+        submitDisabled={isMissingCase}
         title={expense ? "Editar gasto" : "Nuevo gasto"}
         trigger={trigger}
       >
+        {canSelectCase ? (
+          <CaseField label="Expediente" required>
+            <CasePickerField selectedCase={localSelectedCase} onSelect={setLocalSelectedCase} />
+          </CaseField>
+        ) : null}
+
         <CaseField error={errors.concept} label="Concepto" required>
           <Input
             autoComplete="off"
@@ -149,7 +179,7 @@ export function CaseExpenseSheet({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <CaseField error={errors.expenseDate} label="Fecha de emision" required>
+          <CaseField error={errors.expenseDate} label="Fecha de emision">
             <CaseDateInput
               autoComplete="off"
               value={draft.expenseDate}
@@ -159,7 +189,7 @@ export function CaseExpenseSheet({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <CaseField error={errors.paymentDate} label="Fecha de pago" required>
+          <CaseField error={errors.paymentDate} label="Fecha de pago">
             <CaseDateInput
               autoComplete="off"
               value={draft.paymentDate}
@@ -169,9 +199,7 @@ export function CaseExpenseSheet({
           <CaseField label="Estado" required>
             <Select
               value={draft.status}
-              onValueChange={(value) =>
-                updateStatus(value as CaseExpenseFormValues["status"])
-              }
+              onValueChange={(value) => updateStatus(value as CaseExpenseFormValues["status"])}
             >
               <SelectTrigger className={caseSelectTriggerClassName}>
                 <SelectValue />
@@ -299,7 +327,7 @@ export function CaseExpenseSheet({
       {expense && attachmentsOpen ? (
         <CaseExpenseAttachmentsPopup
           canUpdate
-          caseId={caseId}
+          caseId={caseId!}
           expense={expense}
           onClose={() => setAttachmentsOpen(false)}
         />

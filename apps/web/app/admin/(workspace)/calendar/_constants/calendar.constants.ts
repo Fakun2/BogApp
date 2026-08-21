@@ -1,4 +1,4 @@
-import type { CaseCalendarEventDto } from "../../../_types/cases.types";
+import type { CaseCalendarEventDto } from "../../cases/_types/cases.types";
 
 export type CalendarEventType = CaseCalendarEventDto["type"];
 export type CalendarView = "month" | "list";
@@ -16,9 +16,9 @@ export const calendarEventTypeShortLabels: Record<CalendarEventType, string> = {
 };
 
 export const calendarEventTypeDotClassNames: Record<CalendarEventType, string> = {
-  hearing: "bg-sky-500",
+  hearing: "bg-amber-500",
   payment_due: "bg-red-500",
-  task_due: "bg-amber-500"
+  task_due: "bg-sky-500"
 };
 
 export const defaultCalendarEventTypes: CalendarEventType[] = [

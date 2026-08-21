@@ -50,7 +50,7 @@ function toProviderConfig(config: ConfigService): Parameters<typeof createBogapp
 function createModelResolver(config: ConfigService) {
   const fallbackModel = config.get<string>("AI_OPENAI_MODEL") ?? config.get<string>("AI_DEFAULT_MODEL");
   const modelMap: Record<AiModel, string | undefined> = {
-    "bogapp-legal": config.get<string>("AI_MODEL_BOGAPP_LEGAL") ?? fallbackModel,
+    "justinia-legal": config.get<string>("AI_MODEL_JUSTINIA_LEGAL") ?? fallbackModel,
     fast: config.get<string>("AI_MODEL_FAST") ?? fallbackModel,
     reasoning: config.get<string>("AI_MODEL_REASONING") ?? fallbackModel
   };
