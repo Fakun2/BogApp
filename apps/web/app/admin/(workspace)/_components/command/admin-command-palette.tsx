@@ -68,6 +68,7 @@ export function AdminCommandPalette({ open, session, onOpenChange }: AdminComman
     enabled: open && search.length > 0
   });
   const dynamicResults = dashboardSearchQuery.data?.items ?? [];
+  const searchErrorMessage = getErrorMessage(dashboardSearchQuery.error);
   const pageInfo = dashboardSearchQuery.data?.pageInfo;
 
   useEffect(() => {
@@ -143,6 +144,14 @@ export function AdminCommandPalette({ open, session, onOpenChange }: AdminComman
                     >
                       Buscando...
                     </CommandItem>
+                  ) : searchErrorMessage ? (
+                    <CommandItem
+                      disabled
+                      value={`error resultados ${search}`}
+                      className="min-h-10 cursor-default rounded-[14px] px-2.5 py-2 text-sm text-destructive"
+                    >
+                      {searchErrorMessage}
+                    </CommandItem>
                   ) : dynamicResults.length ? (
                     dynamicResults.map((item) => (
                       <DashboardSearchResultItem
@@ -161,13 +170,15 @@ export function AdminCommandPalette({ open, session, onOpenChange }: AdminComman
                       Sin resultados del estudio.
                     </CommandItem>
                   )}
-                  <DashboardSearchPagination
-                    disabled={dashboardSearchQuery.isFetching}
-                    hasNextPage={Boolean(pageInfo?.hasNextPage && pageInfo.nextCursor)}
-                    pageIndex={pageIndex}
-                    onNext={goToNextResultsPage}
-                    onPrevious={goToPreviousResultsPage}
-                  />
+                  {searchErrorMessage ? null : (
+                    <DashboardSearchPagination
+                      disabled={dashboardSearchQuery.isFetching}
+                      hasNextPage={Boolean(pageInfo?.hasNextPage && pageInfo.nextCursor)}
+                      pageIndex={pageIndex}
+                      onNext={goToNextResultsPage}
+                      onPrevious={goToPreviousResultsPage}
+                    />
+                  )}
                 </CommandGroup>
               ) : null}
 
@@ -211,6 +222,14 @@ function filterCommandSections(sections: AdminCommandSection[], query: string) {
       })
     }))
     .filter((section) => section.items.length > 0);
+}
+
+function getErrorMessage(error: unknown) {
+  if (!error) {
+    return null;
+  }
+
+  return error instanceof Error ? error.message : "No se pudo completar la busqueda del estudio.";
 }
 
 function DashboardSearchPagination({

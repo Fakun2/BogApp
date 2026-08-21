@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 import type { DashboardSearchQuery } from "../dashboard.schemas";
 
+const maxDashboardSearchTerms = 6;
+
 export type DashboardSearchPermissions = {
   canReadCases: boolean;
   canReadDocuments: boolean;
@@ -22,7 +24,7 @@ export class DashboardSearchUseCase {
     permissions: DashboardSearchPermissions
   ) {
     const search = query.search.trim();
-    const terms = splitSearchTerms(search);
+    const terms = splitSearchTerms(search).slice(0, maxDashboardSearchTerms);
     const cursor = decodeDashboardSearchCursor(query.cursor);
 
     if (cursor && cursor.search !== search) {

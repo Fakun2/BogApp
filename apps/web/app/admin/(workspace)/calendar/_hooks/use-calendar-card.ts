@@ -9,7 +9,11 @@ import {
   type CalendarEventType,
   type CalendarView
 } from "../_constants/calendar.constants";
-import { filterCalendarEvents, getCurrentMonthKey, shiftMonth } from "../_utils/calendar-date-utils";
+import {
+  filterCalendarEvents,
+  getCurrentMonthKey,
+  shiftMonth
+} from "../_utils/calendar-date-utils";
 
 export function useCalendarCard({
   caseId,
@@ -68,6 +72,17 @@ export function useCalendarCard({
   useEffect(() => {
     setListPageIndex(0);
   }, [caseId, month, scope, visibleEventTypes]);
+
+  useEffect(() => {
+    setListPageIndex((currentPage) => {
+      const lastPageIndex = Math.max(
+        Math.ceil(visibleEventsCount / calendarEventListPageSize) - 1,
+        0
+      );
+
+      return Math.min(currentPage, lastPageIndex);
+    });
+  }, [visibleEventsCount]);
 
   function goToToday() {
     setMonth(getCurrentMonthKey());

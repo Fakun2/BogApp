@@ -163,11 +163,12 @@ describe("CaseExpensesUseCase calendar list", () => {
     });
   });
 
-  it("returns tenant calendar metrics without event queries when permissions deny selected types", async () => {
+  it("returns only authorized tenant calendar metrics without event queries when permissions deny selected types", async () => {
+    const countCalls: string[] = [];
     const executeCalls: unknown[] = [];
     const queryCalls: unknown[] = [];
     const useCase = new CaseExpensesUseCase(
-      makePrisma({ executeCalls, queryCalls, rows: [], counts: [2, 1, 4, 3] })
+      makePrisma({ countCalls, executeCalls, queryCalls, rows: [], counts: [2, 1, 4, 3] })
     );
 
     const response = await useCase.tenantCalendar(
@@ -183,17 +184,50 @@ describe("CaseExpensesUseCase calendar list", () => {
 
     assert.equal(queryCalls.length, 0);
     assert.deepEqual(response.events, []);
-    assert.equal(response.metrics?.pendingExpensesCount, 3);
+    assert.deepEqual(response.metrics, {
+      hearingsCount: 4,
+      pendingTasks: 1,
+      totalTasks: 2
+    });
+    assert.ok(!countCalls.includes("caseExpense"));
+    assert.equal(response.pageInfo?.hasNextPage, false);
+  });
+
+  it("does not expose tenant calendar metrics when permissions deny every event domain", async () => {
+    const countCalls: string[] = [];
+    const executeCalls: unknown[] = [];
+    const queryCalls: unknown[] = [];
+    const useCase = new CaseExpensesUseCase(
+      makePrisma({ countCalls, executeCalls, queryCalls, rows: [], counts: [2, 1, 4, 3] })
+    );
+
+    const response = await useCase.tenantCalendar(
+      tenantId,
+      {
+        limit: 5,
+        mode: "list",
+        month: "2026-08",
+        types: "payment_due,task_due,hearing"
+      },
+      { canReadExpenses: false, canReadHearings: false, canReadTasks: false }
+    );
+
+    assert.equal(queryCalls.length, 0);
+    assert.deepEqual(response.events, []);
+    assert.deepEqual(response.metrics, {});
+    assert.deepEqual(countCalls, []);
     assert.equal(response.pageInfo?.hasNextPage, false);
   });
 });
 
 function makePrisma({
+  countCalls = [],
   counts = [],
   executeCalls,
   queryCalls,
   rows
 }: {
+  countCalls?: string[];
   counts?: number[];
   executeCalls: unknown[];
   queryCalls: unknown[];
@@ -214,13 +248,22 @@ function makePrisma({
       findFirst: async () => ({ id: caseId })
     },
     caseExpense: {
-      count: async () => counts[countIndex++] ?? 0
+      count: async () => {
+        countCalls.push("caseExpense");
+        return counts[countIndex++] ?? 0;
+      }
     },
     caseHearing: {
-      count: async () => counts[countIndex++] ?? 0
+      count: async () => {
+        countCalls.push("caseHearing");
+        return counts[countIndex++] ?? 0;
+      }
     },
     caseTask: {
-      count: async () => counts[countIndex++] ?? 0
+      count: async () => {
+        countCalls.push("caseTask");
+        return counts[countIndex++] ?? 0;
+      }
     }
   } as unknown as PrismaService;
 }

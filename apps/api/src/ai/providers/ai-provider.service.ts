@@ -33,7 +33,9 @@ function toProviderConfig(config: ConfigService): Parameters<typeof createBogapp
 
   const apiKey = config.get<string>("AI_OPENAI_API_KEY") ?? config.get<string>("OPENAI_API_KEY");
   if (!apiKey) {
-    throw new Error("AI_OPENAI_API_KEY u OPENAI_API_KEY es requerido para AI_PROVIDER=openai-compatible.");
+    throw new Error(
+      "AI_OPENAI_API_KEY u OPENAI_API_KEY es requerido para AI_PROVIDER=openai-compatible."
+    );
   }
 
   return {
@@ -48,9 +50,13 @@ function toProviderConfig(config: ConfigService): Parameters<typeof createBogapp
 }
 
 function createModelResolver(config: ConfigService) {
-  const fallbackModel = config.get<string>("AI_OPENAI_MODEL") ?? config.get<string>("AI_DEFAULT_MODEL");
+  const fallbackModel =
+    config.get<string>("AI_OPENAI_MODEL") ?? config.get<string>("AI_DEFAULT_MODEL");
   const modelMap: Record<AiModel, string | undefined> = {
-    "justinia-legal": config.get<string>("AI_MODEL_JUSTINIA_LEGAL") ?? fallbackModel,
+    "justinia-legal":
+      config.get<string>("AI_MODEL_JUSTINIA_LEGAL") ??
+      config.get<string>("AI_MODEL_BOGAPP_LEGAL") ??
+      fallbackModel,
     fast: config.get<string>("AI_MODEL_FAST") ?? fallbackModel,
     reasoning: config.get<string>("AI_MODEL_REASONING") ?? fallbackModel
   };

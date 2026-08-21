@@ -1,4 +1,3 @@
-import { CalendarCard } from "../../../calendar/_components/calendar-card";
 import { CaseDetailSummary } from "../../_components/detail/case-detail-summary";
 import { CaseDocumentsPanel } from "../../_components/detail/case-documents-panel";
 import { CaseExpensesTable } from "../../_components/detail/case-expenses-table";
@@ -67,7 +66,6 @@ export function CaseDetailView({
           caseId={caseItem.id}
         />
       </section>
-
     </div>
   );
 }

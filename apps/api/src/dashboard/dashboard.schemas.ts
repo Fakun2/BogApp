@@ -12,8 +12,10 @@ const requiredTrimmedString = z.preprocess(
   z.string().min(1)
 );
 
+const maxDashboardSearchLength = 120;
+
 export const dashboardSearchQuerySchema = z.object({
-  search: requiredTrimmedString,
+  search: requiredTrimmedString.pipe(z.string().max(maxDashboardSearchLength)),
   limit: z.coerce.number().int().min(1).max(20).default(8),
   cursor: optionalTrimmedString,
   offset: z.coerce.number().int().min(0).default(0)

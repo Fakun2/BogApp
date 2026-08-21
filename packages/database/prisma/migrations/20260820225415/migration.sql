@@ -1,5 +1,2 @@
--- DropIndex
-DROP INDEX "cases_caption_trgm_idx";
-
--- DropIndex
-DROP INDEX "cases_case_number_trgm_idx";
+-- Keep the case trigram indexes: cases.listSearch still relies on ILIKE and
+-- similarity() over case_number and caption for the highest-weighted matches.

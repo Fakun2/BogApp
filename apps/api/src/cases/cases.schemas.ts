@@ -644,17 +644,17 @@ export class CasesMetricsDto {
 }
 
 export class TenantCalendarMetricsDto {
-  @ApiProperty({ example: 12 })
-  totalTasks!: number;
+  @ApiPropertyOptional({ example: 12 })
+  totalTasks?: number;
 
-  @ApiProperty({ example: 5 })
-  pendingTasks!: number;
+  @ApiPropertyOptional({ example: 5 })
+  pendingTasks?: number;
 
-  @ApiProperty({ example: 3 })
-  hearingsCount!: number;
+  @ApiPropertyOptional({ example: 3 })
+  hearingsCount?: number;
 
-  @ApiProperty({ example: 4 })
-  pendingExpensesCount!: number;
+  @ApiPropertyOptional({ example: 4 })
+  pendingExpensesCount?: number;
 }
 
 export class CasesPageInfoDto {

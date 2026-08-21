@@ -239,10 +239,10 @@ export type CaseCalendarEventDto = {
 };
 
 export type TenantCalendarMetricsDto = {
-  hearingsCount: number;
-  pendingExpensesCount: number;
-  pendingTasks: number;
-  totalTasks: number;
+  hearingsCount?: number;
+  pendingExpensesCount?: number;
+  pendingTasks?: number;
+  totalTasks?: number;
 };
 
 export type CaseCalendarResponseDto = {

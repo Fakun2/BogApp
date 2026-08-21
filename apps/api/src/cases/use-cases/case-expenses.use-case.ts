@@ -186,7 +186,7 @@ export class CaseExpensesUseCase {
     const canReadPaymentEvents = permissions.canReadExpenses && eventTypes.includes("payment_due");
     const canReadTaskEvents = permissions.canReadTasks && eventTypes.includes("task_due");
     const canReadHearingEvents = permissions.canReadHearings && eventTypes.includes("hearing");
-    const metricsPromise = this.getTenantCalendarMetrics(tenantId);
+    const metricsPromise = this.getTenantCalendarMetrics(tenantId, permissions);
 
     if (!canReadPaymentEvents && !canReadTaskEvents && !canReadHearingEvents) {
       return {
@@ -350,9 +350,7 @@ export class CaseExpensesUseCase {
     ]);
 
     return [
-      ...paymentExpenses.map((expense) =>
-        toPaymentDueCalendarEvent(expense, includeCaseContext)
-      ),
+      ...paymentExpenses.map((expense) => toPaymentDueCalendarEvent(expense, includeCaseContext)),
       ...pendingTasks.map((task) => toTaskDueCalendarEvent(task, includeCaseContext)),
       ...hearings.map((hearing) => toHearingCalendarEvent(hearing, includeCaseContext))
     ].sort(compareCalendarEvents);
@@ -475,23 +473,38 @@ export class CaseExpensesUseCase {
     return rows.map((row) => toCalendarEventFromRow(row, includeCaseContext));
   }
 
-  private async getTenantCalendarMetrics(tenantId: string) {
-    const [totalTasks, pendingTasks, hearingsCount, pendingExpensesCount] = await Promise.all([
-      this.prisma.caseTask.count({ where: { tenantId } }),
-      this.prisma.caseTask.count({
-        where: { status: { in: ["pending", "in_progress"] }, tenantId }
-      }),
-      this.prisma.caseHearing.count({ where: { tenantId } }),
-      this.prisma.caseExpense.count({
-        where: { status: { in: ["pending", "overdue"] }, tenantId }
-      })
+  private async getTenantCalendarMetrics(
+    tenantId: string,
+    permissions: { canReadExpenses: boolean; canReadHearings: boolean; canReadTasks: boolean }
+  ) {
+    const [taskMetrics, hearingsCount, pendingExpensesCount] = await Promise.all([
+      permissions.canReadTasks
+        ? Promise.all([
+            this.prisma.caseTask.count({ where: { tenantId } }),
+            this.prisma.caseTask.count({
+              where: { status: { in: ["pending", "in_progress"] }, tenantId }
+            })
+          ])
+        : Promise.resolve(null),
+      permissions.canReadHearings
+        ? this.prisma.caseHearing.count({ where: { tenantId } })
+        : Promise.resolve(null),
+      permissions.canReadExpenses
+        ? this.prisma.caseExpense.count({
+            where: { status: { in: ["pending", "overdue"] }, tenantId }
+          })
+        : Promise.resolve(null)
     ]);
 
     return {
-      hearingsCount,
-      pendingExpensesCount,
-      pendingTasks,
-      totalTasks
+      ...(taskMetrics
+        ? {
+            pendingTasks: taskMetrics[1],
+            totalTasks: taskMetrics[0]
+          }
+        : {}),
+      ...(hearingsCount !== null ? { hearingsCount } : {}),
+      ...(pendingExpensesCount !== null ? { pendingExpensesCount } : {})
     };
   }
 
@@ -732,15 +745,18 @@ function toPaymentDueCalendarEvent(
   },
   includeCaseContext = false
 ) {
-  return withCalendarCaseContext({
-    type: "payment_due" as const,
-    id: expense.id,
-    title: `Pago: ${expense.concept}`,
-    date: expense.paymentDate.toISOString().slice(0, 10),
-    amount: Number(expense.amount),
-    currencyCode: expense.currencyCode,
-    status: expense.status
-  }, includeCaseContext ? expense.case : undefined);
+  return withCalendarCaseContext(
+    {
+      type: "payment_due" as const,
+      id: expense.id,
+      title: `Pago: ${expense.concept}`,
+      date: expense.paymentDate.toISOString().slice(0, 10),
+      amount: Number(expense.amount),
+      currencyCode: expense.currencyCode,
+      status: expense.status
+    },
+    includeCaseContext ? expense.case : undefined
+  );
 }
 
 function toTaskDueCalendarEvent(
@@ -756,13 +772,16 @@ function toTaskDueCalendarEvent(
 ) {
   const taskDate = task.endDate ?? task.startDate;
 
-  return withCalendarCaseContext({
-    type: "task_due" as const,
-    id: task.id,
-    title: `Tarea: ${task.name}`,
-    date: taskDate?.toISOString().slice(0, 10) ?? "",
-    status: task.status
-  }, includeCaseContext ? task.case : undefined);
+  return withCalendarCaseContext(
+    {
+      type: "task_due" as const,
+      id: task.id,
+      title: `Tarea: ${task.name}`,
+      date: taskDate?.toISOString().slice(0, 10) ?? "",
+      status: task.status
+    },
+    includeCaseContext ? task.case : undefined
+  );
 }
 
 function toHearingCalendarEvent(
@@ -776,49 +795,64 @@ function toHearingCalendarEvent(
   },
   includeCaseContext = false
 ) {
-  return withCalendarCaseContext({
-    type: "hearing" as const,
-    id: hearing.id,
-    title: `Audiencia: ${hearing.description}`,
-    date: hearing.date.toISOString().slice(0, 10),
-    hearingType: hearing.type,
-    time: hearing.time
-  }, includeCaseContext ? hearing.case : undefined);
+  return withCalendarCaseContext(
+    {
+      type: "hearing" as const,
+      id: hearing.id,
+      title: `Audiencia: ${hearing.description}`,
+      date: hearing.date.toISOString().slice(0, 10),
+      hearingType: hearing.type,
+      time: hearing.time
+    },
+    includeCaseContext ? hearing.case : undefined
+  );
 }
 
-function toCalendarEventFromRow(row: CalendarListEventRow, includeCaseContext = false): CalendarEvent {
+function toCalendarEventFromRow(
+  row: CalendarListEventRow,
+  includeCaseContext = false
+): CalendarEvent {
   const date = toCalendarDateString(row.event_date);
 
   if (row.event_type === "payment_due") {
-    return withCalendarCaseContext({
-      type: "payment_due",
-      id: row.id,
-      title: row.title,
-      date,
-      amount: Number(row.amount ?? 0),
-      currencyCode: row.currency_code ?? "ARS",
-      status: row.status === "overdue" ? "overdue" : "pending"
-    }, includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined);
+    return withCalendarCaseContext(
+      {
+        type: "payment_due",
+        id: row.id,
+        title: row.title,
+        date,
+        amount: Number(row.amount ?? 0),
+        currencyCode: row.currency_code ?? "ARS",
+        status: row.status === "overdue" ? "overdue" : "pending"
+      },
+      includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined
+    );
   }
 
   if (row.event_type === "task_due") {
-    return withCalendarCaseContext({
-      type: "task_due",
+    return withCalendarCaseContext(
+      {
+        type: "task_due",
+        id: row.id,
+        title: row.title,
+        date,
+        status: row.status === "in_progress" ? "in_progress" : "pending"
+      },
+      includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined
+    );
+  }
+
+  return withCalendarCaseContext(
+    {
+      type: "hearing",
       id: row.id,
       title: row.title,
       date,
-      status: row.status === "in_progress" ? "in_progress" : "pending"
-    }, includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined);
-  }
-
-  return withCalendarCaseContext({
-    type: "hearing",
-    id: row.id,
-    title: row.title,
-    date,
-    hearingType: row.hearing_type ?? "other",
-    time: row.time ?? ""
-  }, includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined);
+      hearingType: row.hearing_type ?? "other",
+      time: row.time ?? ""
+    },
+    includeCaseContext ? toCalendarCaseContextFromRow(row) : undefined
+  );
 }
 
 function withCalendarCaseContext<TEvent extends CalendarEvent>(

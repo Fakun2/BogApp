@@ -45,7 +45,7 @@ export function CaseTaskSheet({
     task
   });
   const canSelectCase = !task && !caseId;
-  const isMissingCase = canSelectCase && !selectedCaseId;
+  const isMissingCase = !selectedCaseId;
 
   useEffect(() => {
     if (open) {

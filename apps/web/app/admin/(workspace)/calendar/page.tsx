@@ -28,6 +28,9 @@ function TenantCalendarContent() {
   const canCreateExpense = hasPermission(session, "expenses:create");
   const canCreateHearing = hasPermission(session, "hearings:create");
   const canCreateTask = hasPermission(session, "tasks:create");
+  const canReadExpense = hasPermission(session, "expenses:read");
+  const canReadHearing = hasPermission(session, "hearings:read");
+  const canReadTask = hasPermission(session, "tasks:read");
   const canUpdateExpense = hasPermission(session, "expenses:update");
   const metricsQuery = useCasesQuery(
     casesQueries.tenantCalendar({
@@ -42,34 +45,46 @@ function TenantCalendarContent() {
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scrollbar-none md:gap-4">
       <AdminMetricsGrid
         metrics={[
-          {
-            detail: "Total del estudio",
-            icon: ListTodo,
-            label: "Tareas totales",
-            loading: metricsQuery.isLoading,
-            value: metrics?.totalTasks ?? 0
-          },
-          {
-            detail: "Pendientes y en curso",
-            icon: CalendarDays,
-            label: "Tareas pendientes",
-            loading: metricsQuery.isLoading,
-            value: metrics?.pendingTasks ?? 0
-          },
-          {
-            detail: "Audiencias cargadas",
-            icon: Gavel,
-            label: "Audiencias",
-            loading: metricsQuery.isLoading,
-            value: metrics?.hearingsCount ?? 0
-          },
-          {
-            detail: "Pendientes y vencidos",
-            icon: CircleDollarSign,
-            label: "Gastos pendientes",
-            loading: metricsQuery.isLoading,
-            value: metrics?.pendingExpensesCount ?? 0
-          }
+          ...(canReadTask
+            ? [
+                {
+                  detail: "Total del estudio",
+                  icon: ListTodo,
+                  label: "Tareas totales",
+                  loading: metricsQuery.isLoading,
+                  value: metrics?.totalTasks ?? 0
+                },
+                {
+                  detail: "Pendientes y en curso",
+                  icon: CalendarDays,
+                  label: "Tareas pendientes",
+                  loading: metricsQuery.isLoading,
+                  value: metrics?.pendingTasks ?? 0
+                }
+              ]
+            : []),
+          ...(canReadHearing
+            ? [
+                {
+                  detail: "Audiencias cargadas",
+                  icon: Gavel,
+                  label: "Audiencias",
+                  loading: metricsQuery.isLoading,
+                  value: metrics?.hearingsCount ?? 0
+                }
+              ]
+            : []),
+          ...(canReadExpense
+            ? [
+                {
+                  detail: "Pendientes y vencidos",
+                  icon: CircleDollarSign,
+                  label: "Gastos pendientes",
+                  loading: metricsQuery.isLoading,
+                  value: metrics?.pendingExpensesCount ?? 0
+                }
+              ]
+            : [])
         ]}
       />
 

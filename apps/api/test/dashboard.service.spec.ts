@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 import { BadRequestException } from "@nestjs/common";
 import { CashboxMovementType, Prisma } from "@prisma/client";
+import { dashboardSearchQuerySchema } from "../src/dashboard/dashboard.schemas";
 import { DashboardMetricsUseCase } from "../src/dashboard/use-cases/dashboard-metrics.use-case";
 import { DashboardSearchUseCase } from "../src/dashboard/use-cases/dashboard-search.use-case";
 
@@ -176,6 +177,40 @@ describe("Dashboard use cases", () => {
         ),
       BadRequestException
     );
+  });
+
+  it("rejects dashboard search queries that exceed the maximum search length", () => {
+    assert.throws(() =>
+      dashboardSearchQuerySchema.parse({
+        search: "x".repeat(121)
+      })
+    );
+  });
+
+  it("limits dashboard search terms before building the SQL query", async () => {
+    const queryCalls: unknown[] = [];
+    const useCase = new DashboardSearchUseCase(
+      createPrismaMock({
+        caseWhere: null,
+        cashboxWheres: [],
+        expenseWhere: null,
+        queryCalls,
+        rows: [],
+        taskWhere: null
+      }) as never
+    );
+
+    await useCase.execute(
+      tenantId,
+      { limit: 8, offset: 0, search: "uno dos tres cuatro cinco seis siete ocho" },
+      allSearchPermissions
+    );
+
+    const serializedQuery = JSON.stringify(queryCalls[0]);
+
+    assert.match(serializedQuery, /%seis%/);
+    assert.doesNotMatch(serializedQuery, /%siete%/);
+    assert.doesNotMatch(serializedQuery, /%ocho%/);
   });
 });
 
